@@ -18,7 +18,7 @@ Flyway采用11.20.3，并同时引入`flyway-core`和`flyway-mysql`。原因是�
 
 ## Boot4比较
 
-另设POM切换Boot4.1.2、对应MyBatis-Plus Boot4 Starter和springdoc3.2.0。保持相同探针行为，明确显式固定的Flyway/Testcontainers版本。比较结果是迁移参考，不扩大为全课程或毕业项目的兼容承诺。
+另设POM切换Boot4.1.2、对应MyBatis-Plus Boot4 Starter和springdoc3.2.0，并增加Boot4的模块化Flyway Starter。保持相同探针行为，明确显式固定的Flyway/Testcontainers版本。CI中的Java21/25组合均已通过；比较结果是迁移参考，不扩大为全课程或毕业项目的兼容承诺。
 
 本次不采用Boot4作为主线：实施计划优先兼容基线，课程还未建立；Boot4涉及框架/JSON/测试栈变化，局部探针成功不足以替代完整迁移验证。未来改主线先更新ADR、计划、全部示例及回归证据。
 
@@ -27,6 +27,7 @@ Flyway采用11.20.3，并同时引入`flyway-core`和`flyway-mysql`。原因是�
 - 选择已验证的固定版本，不保证它们始终最新；后续按兼容矩阵执行升级回归与安全检查。
 - 临时Basic用户、匿名OpenAPI和简单数据库表只用于验证装配，不作为生产配置。
 - Windows11、Docker Linux和Linux CI分别记录，测试工具版本及JDK发行商差异也保留。
+- 当前Windows原生测试受本机JDK环回连接异常阻碍，未宣称跨平台验收通过；已验证的Docker运行方式是临时替代，不能关闭原生Windows待验收项。
 - P0-02的窄CI只验证探针；Maven Wrapper/工作区统一由P0-05交付，全仓库门禁由P0-06交付，避免重复职责。
 
 ## 验收依据

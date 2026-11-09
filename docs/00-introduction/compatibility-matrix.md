@@ -46,14 +46,14 @@ VitePress1文档的Node下限与VitePress2文档不同，应查阅[稳定版安�
 | 栈 | 环境 | JDK | 结果 |
 |---|---|---|---|
 | Boot3主线 | 本机Docker Linux / Maven3.9.11 | Temurin21.0.9 | 4项通过、无跳过，clean verify成功 |
-| Boot3主线 | 本机Docker Linux / Maven3.9.11 | Temurin25，补丁号见运行记录 | 4项通过、无跳过，clean verify成功 |
-| Boot3主线 | Windows11原生 / Maven3.9.11 / Docker Desktop | JBR25.0.4.1 | 正在验证，最终结果写入P0-02记录 |
-| Boot3主线 | Windows11原生 | Java21 | 下载临时JDK中，尚未验证 |
-| Boot3主线 | Ubuntu24.04 GitHub Actions | Temurin21/25 | 工作流已配置，运行结果待回填 |
+| Boot3主线 | 本机Docker Linux / Maven3.9.11 | Temurin25.0.1 | 4项通过、无跳过，clean verify成功 |
+| Boot3主线 | Windows11原生 / Maven3.9.11 / Docker Desktop | JBR25.0.4.1 | 失败：JDK HTTP Client初始化环回连接异常 |
+| Boot3主线 | Windows11原生 / Maven3.9.11 / Docker Desktop | Microsoft21.0.13.0.2 | 同类环回异常；4项错误，0跳过，不计通过 |
+| Boot3主线 | Ubuntu24.04 GitHub Actions | Temurin21.0.13 / 25.0.5 | 两个组合各4项通过、完整verify成功；见CI证据 |
 | Boot4对比 | 本机Docker Linux | Java21 | 依赖下载403，未进入测试，不能判定兼容或不兼容 |
-| Boot4对比 | Ubuntu24.04 GitHub Actions | Temurin21/25 | 独立POM比较，运行结果待回填 |
+| Boot4对比 | Ubuntu24.04 GitHub Actions | Temurin21.0.13 / 25.0.5 | 两个组合各4项通过、完整verify成功；补齐Flyway Starter后复测 |
 
-本机Docker Linux与Linux CI是不同证据；Windows原生运行与Windows宿主上的Linux容器也不混同。完整过程见[P0-02验证记录](../progress/P0-02.md)。
+CI证据：[运行42603068673](https://github.com/zrayjay/java-for-nestjs/actions/runs/42603068673)，代码提交`e22e54b`，四个组合全部成功。本机Docker Linux与Linux CI是不同证据；Windows原生运行与Windows宿主上的Linux容器也不混同。完整过程见[P0-02验证记录](../progress/P0-02.md)。
 
 ## 已知问题与处理
 
@@ -61,10 +61,13 @@ VitePress1文档的Node下限与VitePress2文档不同，应查阅[稳定版安�
 2. 首次verify的测试通过，但打包插件依赖下载失败；重新解析依赖并完成整个verify才计为通过。
 3. Testcontainers容器结束时Redis客户端可能输出重连日志；只在断言及完整退出码成功时记录通过，不删除或隐藏失败输出。
 4. Mockito动态Agent和Maven/JDK25的Unsafe提示属于后续工具链维护事项；当前没有Mock测试，不据此声称Mockito全能力兼容。
+5. 本机Windows的JDK HTTP Client最小程序在脱离Spring后仍报`Unable to establish loopback connection`，根因为UnixDomainSockets连接返回`Invalid argument: connect`。两种JDK均复现；不能归因于Boot或声称Windows已兼容。当前Windows贡献者可使用已验证的Linux容器命令。原生Windows跑通仍是待解决项，不降低原计划的跨平台验收要求。
 
 ## Boot4评估边界
 
 独立`pom-boot4.xml`选择Boot4.1.2、MyBatis-Plus Boot4 Starter3.5.18、springdoc3.2.0。为保持比较变量一致，暂显式固定Testcontainers1.21.4和Flyway11.20.3；这不同于Boot4默认管理的Testcontainers2.0.5/Flyway12.4.0。
+
+首轮CI两项数据库断言失败，原因是仅添加Flyway库未装配Boot4的迁移自动配置，表未创建。按照[Boot4数据库初始化说明](https://docs.spring.io/spring-boot/4.1/how-to/data-initialization.html)增加`spring-boot-starter-flyway`后，Java21/25均复测通过。这是本次实际确认的迁移差异。
 
 即使对比探针通过，也仅证明同一小型API/数据库/缓存组合可运行。Boot4默认测试栈、Jackson3迁移、全部课程和生产行为仍需独立验证；本次不改变Boot3主线。
 

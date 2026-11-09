@@ -5,6 +5,7 @@
 ## 学习入口
 
 - [学习指南](00-introduction/learning-guide.md)：先修要求、推荐顺序和能力成果。
+- [兼容矩阵](00-introduction/compatibility-matrix.md)与[技术基线ADR](adr/0001-technology-baseline.md)：版本依据与验证范围。
 - [仓库说明](../README.md)：项目状态与目录职责。
 - [实施任务](../TASKBOARD.md)：章节责任与推进依赖。
 - [贡献指南](../CONTRIBUTING.md)：写作、代码、验证及审查要求。
