@@ -1,0 +1,24 @@
+# Local credentials and configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.local
+
+# Node and documentation build outputs
+node_modules/
+.pnpm-store/
+dist/
+coverage/
+**/.vitepress/cache/
+
+# Java build outputs (keep Maven Wrapper artifacts trackable)
+target/
+*.class
+
+# Editor and operating system files
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+*.log
