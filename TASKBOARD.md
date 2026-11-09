@@ -8,9 +8,10 @@
 
 | 任务 | 面板编号 | 负责人 | 分支 | 状态 | 验收与证据 | 风险 / 阻塞 |
 |---|---|---|---|---|---|---|
-| P0-01 | JAV-3 | Codex，本会话 | `codex/p0-01-repo-foundation` | review（面板为in_review） | [验证记录](docs/progress/P0-01.md)；PR链接见JAV-3评论 | 独立Review待进行；其余任务未启动 |
+| P0-01 | JAV-3 | Codex，本会话 | 已合并main，任务分支已删除 | done | [PR #1](https://github.com/zrayjay/java-for-nestjs/pull/1)，按用户明确指令合并；提交8607aac | 面板已同步关闭 |
+| P0-02 | JAV-4 | Codex，本会话 | `codex/p0-02-compatibility-baseline` | review（面板为in_review） | [兼容矩阵](docs/00-introduction/compatibility-matrix.md)、[ADR](docs/adr/0001-technology-baseline.md)、[验证记录](docs/progress/P0-02.md)；四组合Linux CI通过 | Windows原生环回连接失败，未通过跨平台验收；独立Review待进行 |
 
-本次仅恢复此前归档的JAV-3，沿用其原有分支绑定与范围。后续任务按本清单的细化粒度认领，避免将旧面板批次直接当作最新拆分结果。
+已依次恢复此前归档的JAV-3/JAV-4，沿用各自分支绑定与范围，其余任务仍未恢复认领。后续任务按本清单的细化粒度推进，避免将旧面板批次直接当作最新拆分结果。P0-02的Windows缺口未关闭前，不将G0或跨平台基线标为通过。
 
 ## 使用与完成标准
 

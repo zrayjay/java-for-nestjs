@@ -7,6 +7,7 @@
 ## 从这里开始
 
 - [学习指南](docs/00-introduction/learning-guide.md)：先修要求、学习顺序和阶段目标。
+- [兼容矩阵](docs/00-introduction/compatibility-matrix.md)：版本锁定、官方依据与分环境实测状态。
 - [文档入口](docs/index.md)：课程内容与建设进度。
 - [实施计划](JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md)：45 章范围、版本治理、教学标准和验收基线。
 - [实施任务](TASKBOARD.md)：任务拆分、前置依赖和执行记录。
@@ -14,9 +15,9 @@
 
 ## 当前可运行内容
 
-当前交付为 P0-01 仓库基础：说明文档、学习入口、目录约定和贡献规范。尚未提供可运行课程示例、文档站或毕业项目。
+已交付 P0-01 仓库基础；P0-02 增加了技术兼容矩阵、选型 ADR 和 [兼容集成探针](examples/compatibility-probe/README.md)。探针可验证真实数据库、缓存、认证、事务与 OpenAPI 的装配，尚未提供正式课程章节、文档站或毕业项目。
 
-后续任务将分别交付兼容矩阵（P0-02）、VitePress 站点（P0-03）、教学模板（P0-04）、双端工程（P0-05）、CI（P0-06）及章节映射校验（P0-07）。届时在对应目录写明真实运行命令、依赖版本及预期输出。
+后续任务将分别交付 VitePress 站点（P0-03）、教学模板（P0-04）、双端工程（P0-05）、全仓库 CI（P0-06）及章节映射校验（P0-07）。P0-02 的窄 CI 仅验证兼容探针。
 
 现阶段可获取仓库并阅读文档：
 
@@ -25,7 +26,7 @@ git clone https://github.com/zrayjay/java-for-nestjs.git
 cd java-for-nestjs
 ```
 
-新内容在任务分支通过审查后合入默认分支；以实际检出的文件为准。Java、Spring Boot、Node 和工具链的精确版本将在兼容矩阵中核验锁定。
+新内容在任务分支通过审查后合入默认分支；以实际检出的文件为准。Java、Spring Boot 与工具链的版本及未验证范围以兼容矩阵为准。
 
 ## 仓库结构
 

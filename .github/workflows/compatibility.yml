@@ -1,0 +1,59 @@
+name: Compatibility probe
+
+on:
+  push:
+    paths:
+      - 'examples/compatibility-probe/**'
+      - '.github/workflows/compatibility.yml'
+  pull_request:
+    paths:
+      - 'examples/compatibility-probe/**'
+      - '.github/workflows/compatibility.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ['21', '25']
+        stack: ['boot3', 'boot4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+          cache-dependency-path: examples/compatibility-probe/pom.xml
+      - name: Maven 3.9.11
+        shell: bash
+        run: |
+          base=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.11
+          archive=apache-maven-3.9.11-bin.tar.gz
+          curl --fail --location --retry 2 "$base/$archive" -o "$RUNNER_TEMP/$archive"
+          checksum=$(curl --fail --location "$base/$archive.sha512")
+          echo "$checksum  $RUNNER_TEMP/$archive" | sha512sum --check
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/apache-maven-3.9.11/bin" >> "$GITHUB_PATH"
+      - name: Toolchain
+        run: |
+          java -version
+          mvn -version
+          docker version
+      - name: Verify integrated baseline
+        shell: bash
+        run: |
+          pom=pom.xml
+          if [ '${{ matrix.stack }}' = boot4 ]; then pom=pom-boot4.xml; fi
+          mvn --batch-mode --no-transfer-progress -f "examples/compatibility-probe/$pom" clean verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compatibility-${{ matrix.stack }}-java-${{ matrix.java }}
+          path: examples/compatibility-probe/target/surefire-reports/

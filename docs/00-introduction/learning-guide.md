@@ -32,4 +32,4 @@
 
 ## 当前可以做什么
 
-当前尚未交付正文、示例或站点构建。可先阅读 [仓库说明](../../README.md)、[贡献指南](../../CONTRIBUTING.md) 和 [任务清单](../../TASKBOARD.md)。精确环境版本与安装运行命令将在 P0-02 / P0-05 核验后提供。
+当前尚未交付课程正文或站点。可先阅读 [仓库说明](../../README.md)、[贡献指南](../../CONTRIBUTING.md) 和 [任务清单](../../TASKBOARD.md)。环境版本见[兼容矩阵](compatibility-matrix.md)；有Java/Maven/Docker环境的贡献者可以运行[兼容探针](../../examples/compatibility-probe/README.md)。正式课程工作区由P0-05建立。
