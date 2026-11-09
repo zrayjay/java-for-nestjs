@@ -1,0 +1,53 @@
+name: Documentation site
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+      - 'examples/compatibility-probe/README.md'
+      - 'scripts/generate-course-index.mjs'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'tsconfig.json'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'examples/compatibility-probe/README.md'
+      - 'scripts/generate-course-index.mjs'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'tsconfig.json'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - name: Install pinned dependencies
+        run: npx --yes pnpm@10.34.9 install --frozen-lockfile
+      - name: Check Vue and config types
+        run: npx --yes pnpm@10.34.9 docs:typecheck
+      - name: Build documentation with dead-link checks
+        run: npx --yes pnpm@10.34.9 docs:build
+      - name: Verify generated course index is committed
+        run: git diff --exit-code -- docs/course/index.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: documentation-${{ matrix.os }}
+          path: docs/.vitepress/dist/

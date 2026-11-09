@@ -1,0 +1,371 @@
+[
+  {
+    "number": "01",
+    "title": "运行时与工具入门",
+    "chapters": [
+      {
+        "number": 1,
+        "title": "Java 生态地图",
+        "topics": "JDK/JRE/JVM、Java SE、Spring、Spring Boot",
+        "reference": "Node、V8、npm、NestJS",
+        "pilot": false
+      },
+      {
+        "number": 2,
+        "title": "Node.js 与 JVM 运行模型",
+        "topics": "编译、字节码、JIT、GC、事件循环与线程",
+        "reference": "V8 / Event Loop",
+        "pilot": true
+      },
+      {
+        "number": 3,
+        "title": "开发环境与调试",
+        "topics": "JDK 安装、IDEA/VS Code、断点、调试器",
+        "reference": "nvm/fnm、VS Code",
+        "pilot": false
+      },
+      {
+        "number": 4,
+        "title": "Java 编译和执行",
+        "topics": "`javac`、`java`、JAR、Classpath、Module Path",
+        "reference": "`tsc`、Node ESM/CJS",
+        "pilot": false
+      },
+      {
+        "number": 5,
+        "title": "内存与对象模型",
+        "topics": "堆/栈、引用、GC、类加载初识",
+        "reference": "JS GC、对象与引用",
+        "pilot": false
+      }
+    ]
+  },
+  {
+    "number": "02",
+    "title": "现代 Java 语言",
+    "chapters": [
+      {
+        "number": 6,
+        "title": "类型系统",
+        "topics": "原始类型、引用类型、装箱、`var`、可空性",
+        "reference": "TS 类型系统",
+        "pilot": false
+      },
+      {
+        "number": 7,
+        "title": "类、接口与 record",
+        "topics": "封装、继承、多态、抽象类、record、sealed",
+        "reference": "TS class/interface/type",
+        "pilot": false
+      },
+      {
+        "number": 8,
+        "title": "泛型",
+        "topics": "类型擦除、边界、通配符、PECS",
+        "reference": "TS Generics",
+        "pilot": true
+      },
+      {
+        "number": 9,
+        "title": "集合与数据结构",
+        "topics": "List/Set/Map、相等性、HashMap",
+        "reference": "JS Array/Map/Set",
+        "pilot": false
+      },
+      {
+        "number": 10,
+        "title": "Lambda 与 Stream",
+        "topics": "函数式接口、流管道、Optional",
+        "reference": "JS map/filter/reduce",
+        "pilot": false
+      },
+      {
+        "number": 11,
+        "title": "异常与注解",
+        "topics": "checked/unchecked、反射、注解",
+        "reference": "JS Error、Decorators",
+        "pilot": false
+      },
+      {
+        "number": 12,
+        "title": "并发与异步",
+        "topics": "Thread、线程池、Future、虚拟线程",
+        "reference": "Event Loop、Promise、Worker",
+        "pilot": false
+      }
+    ]
+  },
+  {
+    "number": "03",
+    "title": "Java 工程化",
+    "chapters": [
+      {
+        "number": 13,
+        "title": "pnpm 到 Maven",
+        "topics": "仓库、坐标、传递依赖、范围",
+        "reference": "package.json / lockfile",
+        "pilot": false
+      },
+      {
+        "number": 14,
+        "title": "`pom.xml` 深入",
+        "topics": "生命周期、插件、BOM、冲突解决",
+        "reference": "pnpm scripts / overrides",
+        "pilot": false
+      },
+      {
+        "number": 15,
+        "title": "Maven 与 Gradle",
+        "topics": "Reactor、Gradle 任务图、缓存、选型",
+        "reference": "Turbo/Nx 构建编排",
+        "pilot": false
+      },
+      {
+        "number": 16,
+        "title": "Java Monorepo",
+        "topics": "模块化单体、Maven 多模块、依赖边界",
+        "reference": "pnpm Workspace",
+        "pilot": false
+      }
+    ]
+  },
+  {
+    "number": "04",
+    "title": "NestJS 到 Spring Boot",
+    "chapters": [
+      {
+        "number": 17,
+        "title": "启动过程与自动配置",
+        "topics": "SpringApplication、Starter、Auto Configuration",
+        "reference": "NestFactory/bootstrap",
+        "pilot": false
+      },
+      {
+        "number": 18,
+        "title": "IoC、DI 与 Bean",
+        "topics": "容器、构造器注入、作用域、生命周期",
+        "reference": "Providers/Modules",
+        "pilot": true
+      },
+      {
+        "number": 19,
+        "title": "Controller / REST API",
+        "topics": "MVC、路由、参数绑定、响应、异常状态",
+        "reference": "Controller/Decorator",
+        "pilot": false
+      },
+      {
+        "number": 20,
+        "title": "DTO 与参数校验",
+        "topics": "Bean Validation、嵌套校验、校验分组",
+        "reference": "DTO/Pipes/class-validator",
+        "pilot": false
+      },
+      {
+        "number": 21,
+        "title": "请求处理链",
+        "topics": "Servlet、Filter、Interceptor、Security Filter",
+        "reference": "Middleware/Guard/Interceptor",
+        "pilot": false
+      },
+      {
+        "number": 22,
+        "title": "AOP、代理与异常",
+        "topics": "JDK/CGLIB 代理、自调用、Advice、ControllerAdvice",
+        "reference": "Interceptor/ExceptionFilter",
+        "pilot": false
+      },
+      {
+        "number": 23,
+        "title": "配置与生命周期",
+        "topics": "Profiles、Properties、Configuration、Actuator",
+        "reference": "ConfigModule/Lifecycle Hooks",
+        "pilot": false
+      }
+    ]
+  },
+  {
+    "number": "05",
+    "title": "数据访问",
+    "chapters": [
+      {
+        "number": 24,
+        "title": "JDBC 与连接池",
+        "topics": "Driver、DataSource、HikariCP、连接生命周期",
+        "reference": "Prisma 连接池概念",
+        "pilot": false
+      },
+      {
+        "number": 25,
+        "title": "MyBatis / MyBatis-Plus",
+        "topics": "Mapper、Wrapper、XML SQL、分页、N+1 防范",
+        "reference": "Prisma Client",
+        "pilot": false
+      },
+      {
+        "number": 26,
+        "title": "JPA / Hibernate / jOOQ",
+        "topics": "Entity、Persistence Context、脏检查、类型安全 SQL",
+        "reference": "Prisma ORM 与查询 API",
+        "pilot": false
+      },
+      {
+        "number": 27,
+        "title": "事务机制",
+        "topics": "ACID、传播、隔离、代理陷阱、回滚规则",
+        "reference": "`$transaction`",
+        "pilot": true
+      },
+      {
+        "number": 28,
+        "title": "数据库工程化",
+        "topics": "Flyway、索引、执行计划、慢 SQL、schema 管理",
+        "reference": "Prisma Migrate",
+        "pilot": false
+      }
+    ]
+  },
+  {
+    "number": "06",
+    "title": "安全与企业业务",
+    "chapters": [
+      {
+        "number": 29,
+        "title": "Spring Security",
+        "topics": "FilterChain、Authentication、SecurityContext",
+        "reference": "Nest Passport / Guard",
+        "pilot": false
+      },
+      {
+        "number": 30,
+        "title": "JWT 与会话",
+        "topics": "Access/Refresh Token、过期、轮换、撤销、CSRF 取舍",
+        "reference": "Nest JWT",
+        "pilot": false
+      },
+      {
+        "number": 31,
+        "title": "RBAC 权限系统",
+        "topics": "用户/角色/权限、按钮/接口/数据权限、越权防范",
+        "reference": "Nest RBAC",
+        "pilot": false
+      },
+      {
+        "number": 32,
+        "title": "Redis 与缓存设计",
+        "topics": "TTL、穿透/击穿/雪崩、一致性、并发",
+        "reference": "ioredis / cache-manager",
+        "pilot": false
+      },
+      {
+        "number": 33,
+        "title": "企业基础能力",
+        "topics": "文件、对象存储、审计、OpenAPI、脱敏",
+        "reference": "Multer / Swagger",
+        "pilot": false
+      }
+    ]
+  },
+  {
+    "number": "07",
+    "title": "测试与诊断",
+    "chapters": [
+      {
+        "number": 34,
+        "title": "单元测试",
+        "topics": "JUnit、Mockito、AssertJ、测试隔离",
+        "reference": "Jest / Vitest",
+        "pilot": false
+      },
+      {
+        "number": 35,
+        "title": "集成与契约测试",
+        "topics": "MockMvc、Testcontainers、API 合约、测试数据",
+        "reference": "Supertest / e2e",
+        "pilot": false
+      },
+      {
+        "number": 36,
+        "title": "JVM 性能诊断",
+        "topics": "JFR、GC、heap dump、thread dump、压测",
+        "reference": "Node profiling",
+        "pilot": false
+      },
+      {
+        "number": 37,
+        "title": "可观测性",
+        "topics": "Actuator、Micrometer、Tracing、结构化日志",
+        "reference": "OpenTelemetry / Pino",
+        "pilot": false
+      }
+    ]
+  },
+  {
+    "number": "08",
+    "title": "分布式与云原生",
+    "chapters": [
+      {
+        "number": 38,
+        "title": "消息队列",
+        "topics": "RabbitMQ/Kafka、确认、重试、DLQ、幂等",
+        "reference": "BullMQ、Node MQ 客户端",
+        "pilot": false
+      },
+      {
+        "number": 39,
+        "title": "分布式可靠性",
+        "topics": "超时、熔断、Outbox、最终一致性、租约",
+        "reference": "Agent Worker 设计",
+        "pilot": false
+      },
+      {
+        "number": 40,
+        "title": "容器与编排",
+        "topics": "Docker、Kubernetes、健康检查、滚动更新",
+        "reference": "Node Docker 部署",
+        "pilot": false
+      },
+      {
+        "number": 41,
+        "title": "自动交付",
+        "topics": "GitLab CI/GitHub Actions、镜像、配置、回滚",
+        "reference": "现有 Node CI/CD",
+        "pilot": false
+      }
+    ]
+  },
+  {
+    "number": "09",
+    "title": "最终工程实战",
+    "chapters": [
+      {
+        "number": 42,
+        "title": "需求与架构设计",
+        "topics": "模块边界、数据库设计、ADR、API 契约",
+        "reference": "NestJS 项目拆分",
+        "pilot": false
+      },
+      {
+        "number": 43,
+        "title": "Spring Boot 业务实现",
+        "topics": "用户、认证、RBAC、订单/代理商、审计、测试",
+        "reference": "NestJS 对照实现",
+        "pilot": false
+      },
+      {
+        "number": 44,
+        "title": "Vue3 前后端联调",
+        "topics": "OpenAPI、生成 TS Client、错误码、权限菜单",
+        "reference": "既有 Vue3 管理端",
+        "pilot": false
+      },
+      {
+        "number": 45,
+        "title": "生产交付与验收",
+        "topics": "Docker Compose、CI、监控、备份、故障演练",
+        "reference": "Node 项目生产部署",
+        "pilot": false
+      }
+    ]
+  }
+]

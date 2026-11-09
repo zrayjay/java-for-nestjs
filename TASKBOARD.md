@@ -9,9 +9,10 @@
 | 任务 | 面板编号 | 负责人 | 分支 | 状态 | 验收与证据 | 风险 / 阻塞 |
 |---|---|---|---|---|---|---|
 | P0-01 | JAV-3 | Codex，本会话 | 已合并main，任务分支已删除 | done | [PR #1](https://github.com/zrayjay/java-for-nestjs/pull/1)，按用户明确指令合并；提交8607aac | 面板已同步关闭 |
-| P0-02 | JAV-4 | Codex，本会话 | `codex/p0-02-compatibility-baseline` | review（面板为in_review） | [兼容矩阵](docs/00-introduction/compatibility-matrix.md)、[ADR](docs/adr/0001-technology-baseline.md)、[验证记录](docs/progress/P0-02.md)；四组合Linux CI通过 | Windows原生环回连接失败，未通过跨平台验收；独立Review待进行 |
+| P0-02 | JAV-4 | Codex，本会话 | 已合并main | done | [PR #2](https://github.com/zrayjay/java-for-nestjs/pull/2)，按用户明确指令合并；提交2faecab | Java原生Windows限制保留在兼容矩阵，G0尚未验收 |
+| P0-03 | JAV-5 | Codex，本会话 | `codex/p0-03-docs-site` | review（面板为in_review） | [运行指南](docs/00-introduction/docs-site.md)、[验证记录](docs/progress/P0-03.md)；PR链接见面板评论 | 正文仍待建设；独立Review待进行 |
 
-已依次恢复此前归档的JAV-3/JAV-4，沿用各自分支绑定与范围，其余任务仍未恢复认领。后续任务按本清单的细化粒度推进，避免将旧面板批次直接当作最新拆分结果。P0-02的Windows缺口未关闭前，不将G0或跨平台基线标为通过。
+已依次恢复此前归档的JAV-3/JAV-4/JAV-5，沿用各自分支绑定与范围，其余任务仍未恢复认领。后续任务按本清单的细化粒度推进，避免将旧面板批次直接当作最新拆分结果。Java原生Windows缺口未关闭前，不将G0或Java跨平台基线标为通过；Node文档站的Windows构建结果单独记录。
 
 ## 使用与完成标准
 
