@@ -31,7 +31,7 @@
 | pnpm | 10.34.9，packageManager与锁文件固定 | 通过npx运行已锁定CLI，绕过本机损坏的全局12.5.1启动器，不修改全局安装 |
 | Vue / TypeScript / vue-tsc | 3.5.45 / 5.9.3 / 3.1.8 | 组成文档主题，类型检查与SSR构建通过；不代表P6管理端基线已确定 |
 | Mermaid | 11.12.2，客户端按需加载 | 流程图、时序图、浅/深主题切换及子路径均已浏览器验证 |
-| Vite及其余间接依赖 | 随VitePress1.6.4解析，完整版本见pnpm-lock.yaml | 不单独升级到Vite8；未宣称后续业务工程版本已锁定 |
+| Vite / lodash-es | overrides固定6.4.4 / 4.18.1 | P0-06修复high审计项；超出VitePress声明的Vite5范围，见[ADR-0002](../adr/0002-documentation-build-security.md)及[回归记录](../progress/P0-06.md) |
 
 VitePress1文档的Node下限与VitePress2文档不同，应查阅[稳定版安装指南](https://vuejs.github.io/vitepress/v1/guide/getting-started)，不要混用next/alpha的要求。
 

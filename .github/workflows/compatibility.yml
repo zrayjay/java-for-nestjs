@@ -31,27 +31,17 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
           cache-dependency-path: examples/compatibility-probe/pom.xml
-      - name: Maven 3.9.11
-        shell: bash
-        run: |
-          base=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.11
-          archive=apache-maven-3.9.11-bin.tar.gz
-          curl --fail --location --retry 2 "$base/$archive" -o "$RUNNER_TEMP/$archive"
-          checksum=$(curl --fail --location "$base/$archive.sha512")
-          echo "$checksum  $RUNNER_TEMP/$archive" | sha512sum --check
-          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP"
-          echo "$RUNNER_TEMP/apache-maven-3.9.11/bin" >> "$GITHUB_PATH"
       - name: Toolchain
         run: |
           java -version
-          mvn -version
+          ./mvnw --version
           docker version
       - name: Verify integrated baseline
         shell: bash
         run: |
           pom=pom.xml
           if [ '${{ matrix.stack }}' = boot4 ]; then pom=pom-boot4.xml; fi
-          mvn --batch-mode --no-transfer-progress -f "examples/compatibility-probe/$pom" clean verify
+          ./mvnw --batch-mode --no-transfer-progress -f "examples/compatibility-probe/$pom" clean verify
       - uses: actions/upload-artifact@v4
         if: always()
         with:

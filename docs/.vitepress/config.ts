@@ -26,28 +26,44 @@ export default defineConfig({
       { text: '技术基线', link: '/00-introduction/compatibility-matrix' },
     ],
     sidebar: [
-      { text: '从这里开始', items: [
-        { text: '学习指南', link: '/00-introduction/learning-guide' },
-        { text: '课程目录 · 45章', link: '/course/' },
-        { text: '运行兼容探针', link: '/00-introduction/run-probe' },
-        { text: '运行示例工作区', link: '/00-introduction/workspace' },
-        { text: '图表与阅读说明', link: '/00-introduction/diagrams' },
-      ] },
-      { text: '课程路线 · 正文待建设', collapsed: false, items: catalog.map(part => ({
-        text: `${part.number} · ${part.title}`, link: `/course/#part-${part.number}`,
-      })) },
-      { text: '作者指南', collapsed: true, items: [
-        { text: '写作与类比规范', link: '/00-introduction/analogy-standard' },
-        { text: '章节十段式模板', link: '/templates/chapter' },
-        { text: '双端代码对照模板', link: '/templates/code-comparison' },
-        { text: '类比评分与独立审查', link: '/templates/analogy-review' },
-      ] },
-      { text: '工程与维护', collapsed: true, items: [
-        { text: '兼容矩阵', link: '/00-introduction/compatibility-matrix' },
-        { text: '技术基线 ADR', link: '/adr/0001-technology-baseline' },
-        { text: 'P0-02 验证记录', link: '/progress/P0-02' },
-        { text: '文档站运行指南', link: '/00-introduction/docs-site' },
-      ] },
+      {
+        text: '从这里开始',
+        items: [
+          { text: '学习指南', link: '/00-introduction/learning-guide' },
+          { text: '课程目录 · 45章', link: '/course/' },
+          { text: '运行兼容探针', link: '/00-introduction/run-probe' },
+          { text: '运行示例工作区', link: '/00-introduction/workspace' },
+          { text: '图表与阅读说明', link: '/00-introduction/diagrams' },
+        ],
+      },
+      {
+        text: '课程路线 · 正文待建设',
+        collapsed: false,
+        items: catalog.map((part) => ({
+          text: `${part.number} · ${part.title}`,
+          link: `/course/#part-${part.number}`,
+        })),
+      },
+      {
+        text: '作者指南',
+        collapsed: true,
+        items: [
+          { text: '写作与类比规范', link: '/00-introduction/analogy-standard' },
+          { text: '章节十段式模板', link: '/templates/chapter' },
+          { text: '双端代码对照模板', link: '/templates/code-comparison' },
+          { text: '类比评分与独立审查', link: '/templates/analogy-review' },
+        ],
+      },
+      {
+        text: '工程与维护',
+        collapsed: true,
+        items: [
+          { text: '兼容矩阵', link: '/00-introduction/compatibility-matrix' },
+          { text: '技术基线 ADR', link: '/adr/0001-technology-baseline' },
+          { text: 'P0-02 验证记录', link: '/progress/P0-02' },
+          { text: '文档站运行指南', link: '/00-introduction/docs-site' },
+        ],
+      },
     ],
     socialLinks: [{ icon: 'github', link: repository }],
     outline: { label: '本页目录', level: [2, 3] },
@@ -59,16 +75,41 @@ export default defineConfig({
     sidebarMenuLabel: '菜单',
     returnToTopLabel: '返回顶部',
     skipToContentLabel: '跳转到正文',
-    editLink: { pattern: `${repository}/edit/main/docs/:path`, text: '在GitHub上改进此页' },
-    search: { provider: 'local', options: { locales: { root: { translations: {
-      button: { buttonText: '搜索文档', buttonAriaLabel: '搜索文档' },
-      modal: {
-        displayDetails: '显示详细内容', resetButtonTitle: '清空搜索', backButtonTitle: '返回',
-        noResultsText: '没有找到相关内容',
-        footer: { selectText: '选择', selectKeyAriaLabel: '回车', navigateText: '切换', navigateUpKeyAriaLabel: '上箭头', navigateDownKeyAriaLabel: '下箭头', closeText: '关闭', closeKeyAriaLabel: 'Esc' },
+    editLink: {
+      pattern: `${repository}/edit/main/docs/:path`,
+      text: '在GitHub上改进此页',
+    },
+    search: {
+      provider: 'local',
+      options: {
+        locales: {
+          root: {
+            translations: {
+              button: { buttonText: '搜索文档', buttonAriaLabel: '搜索文档' },
+              modal: {
+                displayDetails: '显示详细内容',
+                resetButtonTitle: '清空搜索',
+                backButtonTitle: '返回',
+                noResultsText: '没有找到相关内容',
+                footer: {
+                  selectText: '选择',
+                  selectKeyAriaLabel: '回车',
+                  navigateText: '切换',
+                  navigateUpKeyAriaLabel: '上箭头',
+                  navigateDownKeyAriaLabel: '下箭头',
+                  closeText: '关闭',
+                  closeKeyAriaLabel: 'Esc',
+                },
+              },
+            },
+          },
+        },
       },
-    } } } } },
-    footer: { message: '以熟悉的经验为起点，以可验证的理解为终点。', copyright: 'MIT License · Java for NestJS contributors' },
+    },
+    footer: {
+      message: '以熟悉的经验为起点，以可验证的理解为终点。',
+      copyright: 'MIT License · Java for NestJS contributors',
+    },
   },
   markdown: {
     theme: { light: 'github-light', dark: 'github-dark' },
@@ -76,7 +117,9 @@ export default defineConfig({
       const fence = md.renderer.rules.fence!
       md.renderer.rules.fence = (tokens, index, options, env, self) => {
         if (tokens[index].info.trim() === 'mermaid') {
-          const code = md.utils.escapeHtml(JSON.stringify(tokens[index].content))
+          const code = md.utils.escapeHtml(
+            JSON.stringify(tokens[index].content),
+          )
           return `<MermaidDiagram :code="${code}" />\n`
         }
         return fence(tokens, index, options, env, self)
@@ -91,8 +134,14 @@ export default defineConfig({
           const target = resolve(dirname(env.path), decodeURIComponent(path))
           const inDocs = relative(docsRoot, target)
           if (inDocs === '..' || inDocs.startsWith(`..${sep}`)) {
-            const sourcePath = relative(resolve('.'), target).split(sep).map(encodeURIComponent).join('/')
-            token.attrSet('href', `${repository}/blob/main/${sourcePath}${anchor ? `#${anchor}` : ''}`)
+            const sourcePath = relative(resolve('.'), target)
+              .split(sep)
+              .map(encodeURIComponent)
+              .join('/')
+            token.attrSet(
+              'href',
+              `${repository}/blob/main/${sourcePath}${anchor ? `#${anchor}` : ''}`,
+            )
           } else {
             const sitePath = inDocs.split(sep).map(encodeURIComponent).join('/')
             token.attrSet('href', `/${sitePath}${anchor ? `#${anchor}` : ''}`)

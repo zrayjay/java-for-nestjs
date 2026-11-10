@@ -1,12 +1,20 @@
 import { readFile, writeFile } from 'node:fs/promises'
 
-const catalog = JSON.parse(await readFile(new URL('../docs/.vitepress/course.json', import.meta.url), 'utf8'))
-const chapters = catalog.flatMap(part => part.chapters)
-if (chapters.length !== 45 || chapters.some((chapter, index) => chapter.number !== index + 1)) {
+const catalog = JSON.parse(
+  await readFile(
+    new URL('../docs/.vitepress/course.json', import.meta.url),
+    'utf8',
+  ),
+)
+const chapters = catalog.flatMap((part) => part.chapters)
+if (
+  chapters.length !== 45 ||
+  chapters.some((chapter, index) => chapter.number !== index + 1)
+) {
   throw new Error('课程目录必须按顺序包含01~45章，每章编号唯一。')
 }
 
-const cell = value => String(value).replaceAll('|', '&#124;')
+const cell = (value) => String(value).replaceAll('|', '&#124;')
 const lines = [
   '---',
   'title: 课程目录',
@@ -26,17 +34,32 @@ const lines = [
 ]
 
 for (const part of catalog) {
-  lines.push('', `## Part ${part.number} · ${part.title} {#part-${part.number}}`, '',
-    '| 章节 | 主题 | 核心知识点 | 认知参照 | 状态 |', '|---|---|---|---|---|')
+  lines.push(
+    '',
+    `## Part ${part.number} · ${part.title} {#part-${part.number}}`,
+    '',
+    '| 章节 | 主题 | 核心知识点 | 认知参照 | 状态 |',
+    '|---|---|---|---|---|',
+  )
   for (const chapter of part.chapters) {
-    lines.push(`| ${String(chapter.number).padStart(2, '0')} | ${cell(chapter.title)} | ${cell(chapter.topics)} | ${cell(chapter.reference)} | ${chapter.pilot ? '试点计划 · 待编写' : '待编写'} |`)
+    lines.push(
+      `| ${String(chapter.number).padStart(2, '0')} | ${cell(chapter.title)} | ${cell(chapter.topics)} | ${cell(chapter.reference)} | ${chapter.pilot ? '试点计划 · 待编写' : '待编写'} |`,
+    )
   }
 }
 
-lines.push('', '## 从已有成果开始', '',
+lines.push(
+  '',
+  '## 从已有成果开始',
+  '',
   '- [学习指南](../00-introduction/learning-guide.md)：先修知识与能力验收。',
   '- [运行兼容探针](../00-introduction/run-probe.md)：真实数据库、缓存、事务与认证验证。',
-  '- [图表说明](../00-introduction/diagrams.md)：了解教程使用的流程图及阅读方式。', '')
+  '- [图表说明](../00-introduction/diagrams.md)：了解教程使用的流程图及阅读方式。',
+  '',
+)
 
-await writeFile(new URL('../docs/course/index.md', import.meta.url), lines.join('\n'))
+await writeFile(
+  new URL('../docs/course/index.md', import.meta.url),
+  lines.join('\n'),
+)
 console.log(`已生成${catalog.length}部分、${chapters.length}章的课程索引。`)

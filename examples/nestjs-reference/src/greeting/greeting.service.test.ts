@@ -11,7 +11,15 @@ test('assembled Nest module follows the shared greeting contract', async () => {
     const service = app.get(GreetingService)
     assert.equal(service.greet('NestJS'), 'Hello, NestJS!')
     assert.equal(service.greet('reader_21'), 'Hello, reader_21!')
-    for (const invalid of ['', ' ', ' reader', 'reader\n', '1reader', '读者', 'abcdefghijklmnopqrstuvwxyzABCDEFG']) {
+    for (const invalid of [
+      '',
+      ' ',
+      ' reader',
+      'reader\n',
+      '1reader',
+      '读者',
+      'abcdefghijklmnopqrstuvwxyzABCDEFG',
+    ]) {
       assert.throws(() => service.greet(invalid))
     }
   } finally {
