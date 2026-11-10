@@ -15,11 +15,16 @@
     "examples:build": "pnpm --filter @java-for-nestjs/nestjs-reference build",
     "examples:test": "pnpm --filter @java-for-nestjs/nestjs-reference test",
     "examples:start": "pnpm --filter @java-for-nestjs/nestjs-reference start",
-    "examples:verify": "node scripts/verify-greeting-contract.mjs"
+    "examples:verify": "node scripts/verify-greeting-contract.mjs",
+    "format:check": "prettier --check .",
+    "format:write": "prettier --write .",
+    "deps:audit": "pnpm audit --audit-level high",
+    "js:check": "node scripts/check-js-syntax.mjs"
   },
   "devDependencies": {
     "@types/node": "22.19.3",
     "mermaid": "11.12.2",
+    "prettier": "3.9.10",
     "typescript": "5.9.3",
     "vitepress": "1.6.4",
     "vue": "3.5.45",
@@ -28,6 +33,10 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "vite": "6.4.4",
+      "lodash-es": "4.18.1"
+    }
   }
 }

@@ -1,6 +1,6 @@
 # Java for NestJS 实施任务清单
 
-依据：[JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md](JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md) v1.0（2026-11-09）。本文件细化执行粒度，原计划仍是唯一范围与验收基线。
+依据：[JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md](JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md) v1.1（2026-11-10，文档构建安全修订）。本文件细化执行粒度，原计划仍是唯一范围与验收基线。
 
 共 **73 个实施任务 + 8 个阶段验收任务 = 81 个任务**。覆盖原计划38项、全部45章。拆分时任务初始为 `todo`；实际启动情况见下方执行记录，实时面板状态以 Taskboard 为准。
 
@@ -13,6 +13,7 @@
 | P0-03 | JAV-5 | Codex，本会话 | 已合并main | done | [PR #3](https://github.com/zrayjay/java-for-nestjs/pull/3)，按用户明确指令合并；提交40d9320 | 课程正文仍待建设 |
 | P0-04 | JAV-6 | Codex，本会话 | 已合并main，分支已删除 | done | [PR #4](https://github.com/zrayjay/java-for-nestjs/pull/4)，用户已明确合并；提交3eb10fb | 模板不是样章 |
 | P0-05 | JAV-7 | Codex，本会话 | `codex/p0-05-build-workspace` | review | [工作区指南](docs/00-introduction/workspace.md)、[验证记录](docs/progress/P0-05.md) | 本机Docker Desktop无法启动，Compose运行由Linux CI核验 |
+| P0-06 | JAV-8 | Codex，本会话 | `codex/p0-06-ci-foundation` | review | [验证记录](docs/progress/P0-06.md) | 依赖P0-05草稿PR；独立Review待完成 |
 
 已依次恢复此前归档的JAV-3/JAV-4/JAV-5/JAV-6，沿用各自分支绑定与范围，其余任务仍未恢复认领。后续任务按本清单的细化粒度推进，避免将旧面板批次直接当作最新拆分结果。Java原生Windows缺口未关闭前，不将G0或Java跨平台基线标为通过；Node文档站的Windows构建结果单独记录。
 
