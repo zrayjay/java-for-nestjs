@@ -37,6 +37,8 @@ VitePress1文档的Node下限与VitePress2文档不同，应查阅[稳定版安�
 
 ## 官方兼容声明
 
+第27章新增的独立参照运行时（[ADR-0003](../adr/0003-transaction-reference-runtime.md)）：Prisma CLI / Client / @prisma/adapter-mariadb均固定7.10.1，JS驱动mariadb3.5.4，数据库仍为MySQL8.4.7。Node22.20.0满足该Prisma版本的^22.12约束。Flyway11.20.3独占实验表结构迁移，不同时用Prisma Migrate。当前生成/TS构建及Java test-compile已通过；真实SQL断言须以独立Linux事务CI实际结果补齐，不把本机无Docker的编译通过写成数据库通过。
+
 - [Boot3.5系统要求](https://docs.spring.io/spring-boot/3.5/system-requirements.html)：该版本线支持本课程选择的Java21/25，构建工具满足其最低要求。
 - [MyBatis-Plus安装说明](https://baomidou.com/en/getting-started/install/)：Boot3和Boot4使用不同Starter坐标，不能只改Boot parent。
 - [springdoc兼容矩阵](https://springdoc.org/v2/faq.html)：Boot3.5选择2.x对应范围，Boot4选择3.x。

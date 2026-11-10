@@ -1,0 +1,21 @@
+{
+  "name": "@java-for-nestjs/prisma-reference",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "prisma generate",
+    "build": "pnpm generate && tsc -p tsconfig.json",
+    "test": "node --test --test-concurrency=1 dist/transaction.test.js",
+    "test:unit": "node --test dist/connection.test.js"
+  },
+  "dependencies": {
+    "@prisma/adapter-mariadb": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "mariadb": "3.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.3",
+    "prisma": "7.10.1",
+    "typescript": "5.9.3"
+  }
+}

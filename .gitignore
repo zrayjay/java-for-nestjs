@@ -15,6 +15,7 @@ coverage/
 # Java build outputs (keep Maven Wrapper artifacts trackable)
 target/
 *.class
+examples/prisma-reference/src/generated/
 
 # Editor and operating system files
 .idea/

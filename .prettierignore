@@ -4,3 +4,4 @@
 **/.vitepress/cache/**
 **/*.md
 pnpm-lock.yaml
+examples/prisma-reference/src/generated/

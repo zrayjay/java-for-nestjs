@@ -220,6 +220,9 @@ test('version drift is blocked against actual package/POM/wrapper/CI sources', a
     'docs/00-introduction/compatibility-matrix.md',
     '.github/workflows/docs.yml',
     '.github/workflows/foundation.yml',
+    '.github/workflows/transactions.yml',
+    'examples/prisma-reference/package.json',
+    'examples/transaction-lab/pom.xml',
   ]
   for (const path of paths) {
     await mkdir(dirname(resolve(dir, path)), { recursive: true })

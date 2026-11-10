@@ -7,11 +7,17 @@ export async function verifyCompatibility(root) {
   const { baseline: b } = await loadMap(root)
   const read = (path) => readFile(resolve(root, path), 'utf8')
   const pkg = JSON.parse(await read('package.json'))
+  const reference = JSON.parse(
+    await read('examples/prisma-reference/package.json'),
+  )
+  const transactionPom = await read('examples/transaction-lab/pom.xml')
   const pom = await read('pom.xml')
   const properties = await read('.mvn/wrapper/maven-wrapper.properties')
   const matrix = await read('docs/00-introduction/compatibility-matrix.md')
   const workflows = await Promise.all(
-    ['docs', 'foundation'].map((n) => read(`.github/workflows/${n}.yml`)),
+    ['docs', 'foundation', 'transactions'].map((n) =>
+      read(`.github/workflows/${n}.yml`),
+    ),
   )
   const actual = {
     java: pom.match(/<java.version>([^<]+)</)?.[1],
@@ -22,6 +28,11 @@ export async function verifyCompatibility(root) {
     vite: pkg.pnpm.overrides.vite,
     lodashEs: pkg.pnpm.overrides['lodash-es'],
     maven: properties.match(/apache-maven-([\d.]+)-bin/)?.[1],
+    prisma: reference.devDependencies.prisma,
+    prismaClient: reference.dependencies['@prisma/client'],
+    prismaAdapter: reference.dependencies['@prisma/adapter-mariadb'],
+    mariadb: reference.dependencies.mariadb,
+    flyway: transactionPom.match(/<flyway.version>([^<]+)</)?.[1],
   }
   for (const [name, value] of Object.entries(actual)) {
     if (!value || b?.[name] !== value)

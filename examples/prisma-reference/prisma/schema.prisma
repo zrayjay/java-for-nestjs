@@ -1,0 +1,23 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Entry {
+  id    Int    @id @default(autoincrement())
+  label String @db.VarChar(64)
+
+  @@map("tx_lab_entries")
+}
+
+model Balance {
+  id     Int @id
+  amount Int
+
+  @@map("tx_lab_balances")
+}

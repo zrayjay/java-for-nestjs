@@ -17,6 +17,8 @@
     "examples:start": "pnpm --filter @java-for-nestjs/nestjs-reference start",
     "examples:verify": "node scripts/verify-greeting-contract.mjs && node scripts/verify-runtime-lab.mjs",
     "runtime:verify": "node scripts/verify-runtime-lab.mjs",
+    "transactions:build": "pnpm --filter @java-for-nestjs/prisma-reference build",
+    "transactions:test": "pnpm --filter @java-for-nestjs/prisma-reference test",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
     "deps:audit": "pnpm audit --audit-level high",

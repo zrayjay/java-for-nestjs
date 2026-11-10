@@ -1,0 +1,81 @@
+name: Transaction pilot
+
+on:
+  push:
+    paths:
+      - 'examples/transaction-lab/**'
+      - 'examples/prisma-reference/**'
+      - 'pom.xml'
+      - '.mvn/**'
+      - 'mvnw*'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'package.json'
+      - '.github/workflows/transactions.yml'
+  pull_request:
+    paths:
+      - 'examples/transaction-lab/**'
+      - 'examples/prisma-reference/**'
+      - 'pom.xml'
+      - '.mvn/**'
+      - 'mvnw*'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'package.json'
+      - '.github/workflows/transactions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mysql:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ['21', '25']
+    services:
+      mysql:
+        image: mysql:8.4.7
+        env:
+          MYSQL_DATABASE: transaction_lab
+          MYSQL_USER: lab
+          MYSQL_PASSWORD: lab-only-password
+          MYSQL_ROOT_PASSWORD: root-lab-only-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h127.0.0.1 -proot-lab-only-password"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    env:
+      TX_JDBC_URL: jdbc:mysql://127.0.0.1:3306/transaction_lab?allowPublicKeyRetrieval=true&useSSL=false
+      TX_DATABASE_USER: lab
+      TX_DATABASE_PASSWORD: lab-only-password
+      TX_DATABASE_URL: mysql://lab:lab-only-password@127.0.0.1:3306/transaction_lab
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+          cache-dependency-path: '**/pom.xml'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
+      - name: Generate and compile pinned Prisma client
+        run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/prisma-reference build
+      - name: Verify dedicated fixture connection guard
+        run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/prisma-reference test:unit
+      - name: Flyway migration and real Spring transactions
+        run: ./mvnw --batch-mode --no-transfer-progress -f examples/transaction-lab/pom.xml clean verify
+      - name: Real Prisma MySQL transactions
+        run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/prisma-reference test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: transaction-results-java-${{ matrix.java }}
+          path: examples/transaction-lab/target/surefire-reports/
