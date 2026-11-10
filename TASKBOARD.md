@@ -14,8 +14,9 @@
 | P0-04 | JAV-6 | Codex，本会话 | 已合并main，分支已删除 | done | [PR #4](https://github.com/zrayjay/java-for-nestjs/pull/4)，用户已明确合并；提交3eb10fb | 模板不是样章 |
 | P0-05 | JAV-7 | Codex，本会话 | `codex/p0-05-build-workspace` | review | [工作区指南](docs/00-introduction/workspace.md)、[验证记录](docs/progress/P0-05.md) | 本机Docker Desktop无法启动，Compose运行由Linux CI核验 |
 | P0-06 | JAV-8 | Codex，本会话 | `codex/p0-06-ci-foundation` | review | [验证记录](docs/progress/P0-06.md) | 依赖P0-05草稿PR；独立Review待完成 |
+| P0-07 | JAV-9 | Codex，本会话 | `codex/p0-07-chapter-map-validator` | review | [验证记录](docs/progress/P0-07.md)、[映射维护](docs/00-introduction/chapter-map.md) | 依赖P0-06草稿PR；独立Review待完成 |
 
-已依次恢复此前归档的JAV-3/JAV-4/JAV-5/JAV-6，沿用各自分支绑定与范围，其余任务仍未恢复认领。后续任务按本清单的细化粒度推进，避免将旧面板批次直接当作最新拆分结果。Java原生Windows缺口未关闭前，不将G0或Java跨平台基线标为通过；Node文档站的Windows构建结果单独记录。
+已依次恢复并实施JAV-3至JAV-9，沿用各自分支绑定与范围。P0-05/06/07作为依赖链草稿PR提交，尚未合并或标记done；其余阶段仍待关卡开放。Java原生Windows Web探针缺口未关闭前，不将G0或完整Java跨平台基线标为通过；本次Windows非Web示例及Node文档站的通过结果单独记录。
 
 ## 使用与完成标准
 

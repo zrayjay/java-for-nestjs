@@ -5,7 +5,8 @@ on:
     paths:
       - 'docs/**'
       - 'examples/compatibility-probe/README.md'
-      - 'scripts/generate-course-index.mjs'
+      - 'scripts/**'
+      - 'chapter-map.yml'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'tsconfig.json'
@@ -14,7 +15,8 @@ on:
     paths:
       - 'docs/**'
       - 'examples/compatibility-probe/README.md'
-      - 'scripts/generate-course-index.mjs'
+      - 'scripts/**'
+      - 'chapter-map.yml'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'tsconfig.json'
@@ -43,10 +45,13 @@ jobs:
         run: npx --yes pnpm@10.34.9 install --frozen-lockfile
       - name: Check Vue and config types
         run: npx --yes pnpm@10.34.9 docs:typecheck
+      - run: npx --yes pnpm@10.34.9 chapters:test
+      - run: npx --yes pnpm@10.34.9 chapters:check
       - name: Build documentation with dead-link checks
         run: npx --yes pnpm@10.34.9 docs:build
       - name: Verify generated course index is committed
-        run: git diff --exit-code -- docs/course/index.md
+        run: git diff --exit-code -- docs/course/index.md docs/.vitepress/course.json
+      - run: npx --yes pnpm@10.34.9 docs:links
       - uses: actions/upload-artifact@v4
         with:
           name: documentation-${{ matrix.os }}

@@ -19,16 +19,21 @@
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
     "deps:audit": "pnpm audit --audit-level high",
-    "js:check": "node scripts/check-js-syntax.mjs"
+    "js:check": "node scripts/check-js-syntax.mjs",
+    "chapters:check": "node scripts/check-doc-structure.mjs && node scripts/check-example-links.mjs && node scripts/verify-compatibility.mjs",
+    "chapters:test": "node --test scripts/tests/*.test.mjs",
+    "docs:links": "node scripts/check-example-links.mjs --built"
   },
   "devDependencies": {
     "@types/node": "22.19.3",
+    "markdown-it": "14.3.3",
     "mermaid": "11.12.2",
     "prettier": "3.9.10",
     "typescript": "5.9.3",
     "vitepress": "1.6.4",
     "vue": "3.5.45",
-    "vue-tsc": "3.1.8"
+    "vue-tsc": "3.1.8",
+    "yaml": "2.9.1"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
