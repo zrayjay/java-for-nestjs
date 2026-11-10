@@ -449,7 +449,7 @@ chapters:
     part: '03'
     title: pnpm 到 Maven
     path: docs/03-build-tools/13-pnpm-to-maven.md
-    status: draft
+    status: in_review
     prerequisites:
       - '04'
     tags:
@@ -466,12 +466,22 @@ chapters:
     noCodeReason: 本章复用真实多模块与问候测试，新增构建模型与字节码守卫，Gradle仅规则对照，不制造第二套未验证构建。
     verification:
       - docs/progress/P2-03.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P2-03.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P2-03.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '14'
     part: '03'
     title: '`pom.xml` 深入'
     path: docs/03-build-tools/14-pom-lifecycle.md
-    status: draft
+    status: in_review
     prerequisites:
       - '13'
     tags:
@@ -488,12 +498,22 @@ chapters:
     noCodeReason: 本章复用真实多模块与问候测试，新增构建模型与字节码守卫，Gradle仅规则对照，不制造第二套未验证构建。
     verification:
       - docs/progress/P2-03.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P2-03.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P2-03.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '15'
     part: '03'
     title: Maven 与 Gradle
     path: docs/03-build-tools/15-maven-and-gradle.md
-    status: draft
+    status: in_review
     prerequisites:
       - '14'
     tags:
@@ -510,12 +530,22 @@ chapters:
     noCodeReason: 本章复用真实多模块与问候测试，新增构建模型与字节码守卫，Gradle仅规则对照，不制造第二套未验证构建。
     verification:
       - docs/progress/P2-03.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P2-03.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P2-03.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '16'
     part: '03'
     title: Java Monorepo
     path: docs/03-build-tools/16-java-monorepo.md
-    status: draft
+    status: in_review
     prerequisites:
       - '14'
     tags:
@@ -532,7 +562,17 @@ chapters:
     noCodeReason: 本章复用真实多模块与问候测试，新增构建模型与字节码守卫，Gradle仅规则对照，不制造第二套未验证构建。
     verification:
       - docs/progress/P2-03.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P2-03.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P2-03.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '17'
     part: '04'
     title: 启动过程与自动配置

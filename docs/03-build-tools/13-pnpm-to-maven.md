@@ -1,7 +1,7 @@
 ---
 title: 13 · 从pnpm到Maven
 chapter_id: '13'
-teaching_status: draft
+teaching_status: in_review
 baseline: Maven3.9.11 / Java21 / pnpm10.34.9
 ---
 
@@ -93,6 +93,17 @@ SNAPSHOT与发布版本的更新策略不同；本例内部SNAPSHOT由当前Reac
 
 部分可比：dependencies/devDependencies与Maven scopes都有使用阶段含义，但不是一一对应表。Maven provided、runtime、test的类路径/传递规则与Node安装、打包、运行加载应分开分析。
 
+下表是本项目依赖的常用阶段规则说明，不是全部传递组合的实测矩阵：
+
+| scope | 主源码编译 | 测试编译/运行 | 应用运行 |
+|---|---|---|---|
+| compile | 可用 | 可用 | 可用 |
+| provided | 可用 | 可用 | Maven普通运行类路径不提供，需部署环境承担 |
+| runtime | 不用于主编译 | 可用 | 可用 |
+| test | 不用于主编译 | 可用 | 不作为应用运行依赖 |
+
+这不保证所有打包插件或容器都会自动按期望布置依赖，实际产物和部署仍要验证。
+
 #### 5. 两端代码对照
 
 TS package.json把typescript放devDependencies，并由pnpm构建脚本调用。Java core仅直接声明test范围JUnit。实际dependency:tree JSON解析出8项依赖节点，均为测试用途；守卫递归拒绝core非test Spring依赖，夹具验证深层泄漏也会失败。不以在有效POM里搜到Spring字样认定运行耦合。
@@ -176,7 +187,7 @@ clean删除项目输出，不会清空Maven本地仓库；install写入本地仓
 
 ## 章末验收与审查记录
 
-当前draft，实际子Reactor、模型与产物边界证据见[P2-03](../progress/P2-03.md)；未做所有仓库认证和scope组合实验。
+当前in_review，实际子Reactor、模型与产物边界证据见[P2-03](../progress/P2-03.md)；未做所有仓库认证和scope组合实验。
 
 ## 参考资料与变更
 

@@ -14,6 +14,8 @@ Linux改为`./mvnw`。TS生产/测试文件为`examples/nestjs-reference/src/lan
 
 Java11运行测试+6真实编译负例；负例必须命中预期诊断类别、Fixture.java与有效位置，Maven整体仍退出0。TS8新增运行测试及strictNullChecks编译负例，构建必须执行，不用跳过类型检查将负例变绿。
 
+G2另补[无框架综合练习](../../../docs/exercises/P2-capstone.md)，组合输入不变量、ID去重、客户分组、受检查法与稳定排序；Java/TS各新增2测试，故本模块共19 Java、Nest参照共23 Node测试。这里不是生产订单/货币/幂等架构，拒绝重复ID和int32数量上限是明确的小模型契约。
+
 虚拟线程测试实际执行Thread.isVirtual，并用闩锁确保两任务都进入后才放行，无sleep、无速度基准。结果10/20来自各自任务返回，按Future取得顺序收集；不声称完成顺序。平台线程池测试证明等待超时不会自动取消任务，最后释放闩锁、等待完成并关闭executor。另验证ExecutionException.getCause保留原异常。没有主动取消/打断、生产容量、pinning性能或外部IO测试，不能扩写为这些能力已验证。
 
 Account的Java List.copyOf与TS Object.freeze/数组复制只对本例字符串元素提供所需不可变边界，不是任意嵌套对象的深冻结。注解本身不执行鉴权；测试读取标记不表示运行了授权框架。

@@ -1,7 +1,7 @@
 ---
 title: 16 · Java Monorepo与模块边界
 chapter_id: '16'
-teaching_status: draft
+teaching_status: in_review
 baseline: Maven3.9.11 / Java21 / Boot3.5.16 / pnpm10.34.9
 ---
 
@@ -186,7 +186,7 @@ core泄漏框架时找直接和传递引入点；把依赖改provided并不自�
 
 ## 章末验收与审查记录
 
-当前draft。P2阶段整体验收另行执行，不将本章说明当G2通过。构建/模型/字节码及消费者验证见[P2-03](../progress/P2-03.md)。
+当前in_review。P2阶段整体验收另行执行，不将本章说明当G2通过。构建/模型/字节码及消费者验证见[P2-03](../progress/P2-03.md)。
 
 ## 参考资料与变更
 

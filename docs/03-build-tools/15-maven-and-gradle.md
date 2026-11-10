@@ -1,7 +1,7 @@
 ---
 title: 15 · Reactor、Gradle任务图与缓存
 chapter_id: '15'
-teaching_status: draft
+teaching_status: in_review
 baseline: Maven3.9.11 / Java21 / pnpm10.34.9；Gradle仅规则对照未运行
 ---
 
@@ -184,7 +184,7 @@ flowchart TD
 
 ## 章末验收与审查记录
 
-当前draft。Maven Reactor有实测；Gradle任务/缓存选型为明确标注的规则对照，未运行Gradle。真实证据见[P2-03](../progress/P2-03.md)。
+当前in_review。Maven Reactor有实测；Gradle任务/缓存选型为明确标注的规则对照，未运行Gradle。真实证据见[P2-03](../progress/P2-03.md)。
 
 ## 参考资料与变更
 

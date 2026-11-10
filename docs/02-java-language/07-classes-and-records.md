@@ -226,7 +226,7 @@ TS Payment联合分card/cash并在default赋never；Java Payment只permits Card/
 
 ## 章末验收与审查记录
 
-四知识点逐点完成十段式；类型负例、值快照和支付分支均有真实测试。当前draft，待[P2-02](../progress/P2-02.md)独立审查。
+四知识点逐点完成十段式；类型负例、值快照和支付分支均有真实测试。当前in_review，独立审查见[P2-02](../progress/P2-02.md)及其审查记录。
 
 ## 参考资料与变更
 

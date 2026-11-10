@@ -186,7 +186,7 @@ TS gate模型显示工作在显式release前等待，不用计时器伪造取消
 
 ## 章末验收与审查记录
 
-当前draft。真实虚拟线程、闩锁重叠、Future cause和超时不取消均有测试；未测生产容量、取消/中断、外部IO和pinning性能。记录见[P2-02](../progress/P2-02.md)。
+当前in_review。真实虚拟线程、闩锁重叠、Future cause和超时不取消均有测试；未测生产容量、取消/中断、外部IO和pinning性能。记录见[P2-02](../progress/P2-02.md)。
 
 ## 参考资料与变更
 

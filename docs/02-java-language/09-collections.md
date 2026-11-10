@@ -176,7 +176,7 @@ TS测试Map以指定字符串取值，不依赖Java迭代顺序；JavaLanguageLa
 
 ## 章末验收与审查记录
 
-当前draft，快照与值键/身份键有真实正反例；HashMap性能/全部并发API未做实测。证据与独立审查见[P2-02](../progress/P2-02.md)。
+当前in_review，快照与值键/身份键有真实正反例；HashMap性能/全部并发API未做实测。证据与独立审查见[P2-02](../progress/P2-02.md)。
 
 ## 参考资料与变更
 

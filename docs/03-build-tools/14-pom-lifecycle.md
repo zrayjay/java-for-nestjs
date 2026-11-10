@@ -1,7 +1,7 @@
 ---
 title: 14 · POM、生命周期与版本管理
 chapter_id: '14'
-teaching_status: draft
+teaching_status: in_review
 baseline: Maven3.9.11 / Java21 / Boot3.5.16
 ---
 
@@ -176,7 +176,7 @@ TS根package使用overrides固定相关依赖，真实锁文件另记录解析�
 
 ## 章末验收与审查记录
 
-当前draft。生命周期用真实日志，有效模型与产物交叉核对；未执行全部冲突/profile组合实验。见[P2-03](../progress/P2-03.md)。
+当前in_review。生命周期用真实日志，有效模型与产物交叉核对；未执行全部冲突/profile组合实验。见[P2-03](../progress/P2-03.md)。
 
 ## 参考资料与变更
 
