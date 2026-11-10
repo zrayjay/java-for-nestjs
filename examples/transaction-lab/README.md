@@ -2,7 +2,7 @@
 
 Java21/25，Boot3.5.16、Flyway11.20.3、MySQL8.4.7；Prisma参照固定7.10.1及mariadb3.5.4。独立项目未加入无需数据库的根reactor。技术选择见[ADR-0003](../../docs/adr/0003-transaction-reference-runtime.md)。
 
-这是专用测试库实验：会删除transaction_lab中tx_lab_entries的测试行并重置tx_lab_balances。代码拒绝外部主机或其它数据库名。不要复用业务库；下面公开凭据只用于本地隔离容器。
+这是专用测试库实验：会删除transaction_lab中tx_lab_entries的测试行并重置tx_lab_balances。代码拒绝外部主机或其它数据库名。Java URL仅允许无查询参数或下面精确的`allowPublicKeyRetrieval=true&useSSL=false`，拒绝包括`dbname`覆盖在内的其它连接属性。不要复用业务库；下面公开凭据只用于本地隔离容器。
 
 ## 准备独立服务
 
@@ -43,7 +43,7 @@ Linux用export设置同名变量，Wrapper改为`./mvnw`。Flyway必须先创建
 
 隔离测试不靠sleep或线程碰运气：读取事务先读100，另一个连接上的独立事务把值改为200并提交，然后第一个事务再读。只验证普通一致性读，不推广到锁定读、所有幻读或任意数据库。
 
-Java9项SQL测试、Node7项SQL测试和2项连接边界单测均须通过。预期异常由断言捕获，测试本身必须退出0。实际代理由Proxy.isProxyClass断言，默认checked规则未被全局覆盖。池大小4，以免刻意的第二事务因只剩一个连接自我等待；生产连接池容量另需按真实并发设计。
+Java9项SQL测试、Java2项URL守卫单测、Node7项SQL测试和2项连接边界单测均须通过。预期异常由断言捕获，测试本身必须退出0。实际代理由Proxy.isProxyClass断言，默认checked规则未被全局覆盖。池大小4，以免刻意的第二事务因只剩一个连接自我等待；生产连接池容量另需按真实并发设计。
 
 ## CI与当前环境
 

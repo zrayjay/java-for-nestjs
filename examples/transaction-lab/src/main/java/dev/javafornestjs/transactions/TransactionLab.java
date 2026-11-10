@@ -19,6 +19,16 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public final class TransactionLab {
     private TransactionLab() { }
 
+    static String dedicatedDatabaseUrl(String url) {
+        // Reject arbitrary Connector/J properties (for example dbname can override the path).
+        if (url == null || !url.matches("jdbc:mysql://(127\\.0\\.0\\.1|localhost):[0-9]+/transaction_lab"
+                + "(\\?allowPublicKeyRetrieval=true&useSSL=false)?")) {
+            throw new IllegalArgumentException("TX_JDBC_URL must select the local transaction_lab test database"
+                    + " with no query or exactly allowPublicKeyRetrieval=true&useSSL=false");
+        }
+        return url;
+    }
+
     public static final class Failure extends RuntimeException {
         public Failure(String message) { super(message); }
     }
@@ -161,10 +171,7 @@ public final class TransactionLab {
     public static class Config {
         @Bean(destroyMethod = "close")
         HikariDataSource dataSource() {
-            String url = System.getenv("TX_JDBC_URL");
-            if (url == null || !url.matches("jdbc:mysql://(127\\.0\\.0\\.1|localhost):[0-9]+/transaction_lab(\\?.*)?")) {
-                throw new IllegalArgumentException("TX_JDBC_URL must select the local transaction_lab test database");
-            }
+            String url = dedicatedDatabaseUrl(System.getenv("TX_JDBC_URL"));
             var config = new HikariConfig();
             config.setJdbcUrl(url);
             config.setUsername(System.getenv("TX_DATABASE_USER"));
