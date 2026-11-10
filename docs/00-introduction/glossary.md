@@ -47,3 +47,9 @@
 | checked / suppressed | 编译期异常责任与清理时附加异常 | 自动恢复；与cause完全相同 | [第11章](../02-java-language/11-exceptions-and-annotations.md) |
 | Retention / 装饰器 | Java元数据保留与本项目TS legacy注册函数分别讨论 | 注解本身自动执行鉴权 | [第11章](../02-java-language/11-exceptions-and-annotations.md) |
 | 虚拟线程 / Future | Java执行线程形式与提交任务结果 | Promise等于线程；等待超时自动取消 | [第12章](../02-java-language/12-concurrency.md) |
+| 坐标 / scope | Maven产物标识与各阶段可用/传播规则 | Java import自动下载；scope与npm字段一一对应 | [第13章](../03-build-tools/13-pnpm-to-maven.md) |
+| BOM / 依赖管理 | 统一选版规则，不自动引入全部管理项 | 看到BOM条目就认定打包依赖或完整锁图 | [第14章](../03-build-tools/14-pom-lifecycle.md) |
+| 有效POM | 合成的Maven项目模型 | 等于实际运行依赖图或所有插件参数完整快照 | [第14章](../03-build-tools/14-pom-lifecycle.md) |
+| Reactor | 本次所选Maven项目及构建排序 | 按目录逐个执行；-am自动包含全部下游 | [第15章](../03-build-tools/15-maven-and-gradle.md) |
+| 缓存分层 | 下载、增量判定、配置及构建输出分别分析 | cache命中等于测试或业务正确性通过 | [第15章](../03-build-tools/15-maven-and-gradle.md) |
+| 模块边界 / 部署单元 | 构建依赖方向与运行部署责任分层 | 每个Maven模块都要拆成微服务 | [第16章](../03-build-tools/16-java-monorepo.md) |

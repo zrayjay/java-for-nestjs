@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 class OrderReportTest {
     @Test
     void groupsValidatedUniqueOrdersAndSortsTheReportWithoutSpring() {
-        var lines = List.of(new OrderReport.Line("o1", "alice", 2), new OrderReport.Line("o2", "bob", 1),
+        var lines = List.of(new OrderReport.Line("o2", "bob", 1), new OrderReport.Line("o1", "alice", 2),
                 new OrderReport.Line("o3", "alice", 3));
         assertEquals(List.of("alice:5", "bob:1"), OrderReport.summarize(lines));
         assertEquals(List.of(), OrderReport.summarize(List.of()));

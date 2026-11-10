@@ -5,8 +5,8 @@ import { summarize } from './order-report.js'
 test('validated unique orders share the Java sorted grouping contract', () => {
   assert.deepEqual(
     summarize([
-      { id: 'o1', customer: 'alice', quantity: 2 },
       { id: 'o2', customer: 'bob', quantity: 1 },
+      { id: 'o1', customer: 'alice', quantity: 2 },
       { id: 'o3', customer: 'alice', quantity: 3 },
     ]),
     ['alice:5', 'bob:1'],
