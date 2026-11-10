@@ -3,7 +3,7 @@
 > 文档性质：可执行的课程建设与工程落地计划（不是教程正文）  
 > 适用读者：已有 Node.js、TypeScript、NestJS 经验的前端/全栈/后端开发者  
 > 适用执行者：维护者、技术作者、Claude Code / Codex / OpenCode 等开发 Agent  
-> 版本：v1.4 · 2026-11-10  
+> 版本：v1.5 · 2026-11-11  
 > 状态：待实施
 
 ---
@@ -420,6 +420,8 @@ java-for-nestjs-developers/
 **验收**：读者无需 Spring 即可用 Java 完成中等复杂度数据处理、泛型、异常和并发练习；Maven 能正确构建共享模块与调用方。
 
 ### P3：Spring Boot 与数据访问（章节 17~28）
+
+双端HTTP参照固定版本及隔离边界见[ADR-0006](docs/adr/0006-http-reference-runtime.md)，继续Boot3.5.16/Nest11主线，不因npm最新Swagger要求Nest12而隐式升级。
 
 - [ ] P3-01 完成 17~23，建立 Controller → Service → Mapper 的主路径。
 - [ ] P3-02 完成 24~28，接入 MySQL、Flyway 和 ORM。
