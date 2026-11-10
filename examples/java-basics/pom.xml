@@ -14,5 +14,6 @@
     <module>greeting-core</module>
     <module>greeting-cli</module>
     <module>runtime-lab</module>
+    <module>generics-lab</module>
   </modules>
 </project>

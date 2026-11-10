@@ -177,19 +177,27 @@ chapters:
     part: '02'
     title: 泛型
     path: docs/02-java-language/08-generics.md
-    status: planned
+    status: draft
     prerequisites:
       - '06'
       - '07'
     tags:
-      - java-language
+      - java-generics
+      - typescript
+      - pecs
     topics: 类型擦除、边界、通配符、PECS
     reference: TS Generics
     pilot: true
-    examples: []
-    tests: []
+    examples:
+      - examples/java-basics/generics-lab/src/main/java/dev/javafornestjs/generics/GenericLab.java
+      - examples/nestjs-reference/src/generics/generics-lab.ts
+    tests:
+      - examples/java-basics/generics-lab/src/test/java/dev/javafornestjs/generics/GenericLabTest.java
+      - examples/java-basics/generics-lab/src/test/java/dev/javafornestjs/generics/CompilationTest.java
+      - examples/nestjs-reference/src/generics/generics-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P1-02.md
     reviews: []
   - id: '09'
     part: '02'

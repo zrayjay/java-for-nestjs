@@ -11,5 +11,10 @@
 | 事件循环 | 单个JS执行环境中的回调调度机制 | Node进程只有一个操作系统线程 | [第02章](../01-java-runtime/02-runtime-model.md) |
 | Worker | 具备独立JS执行环境的执行单元，可消息通信或显式共享部分内存 | 创建Promise就会产生Worker | [第02章](../01-java-runtime/02-runtime-model.md) |
 | 丢失更新 | 多个业务增量基于旧快照写回，覆盖彼此结果 | 等待线程结束就能修复已覆盖结果 | [第02章](../01-java-runtime/02-runtime-model.md) |
+| 类型参数 / 类型实参 | 声明中的T与使用时传入的String等类型 | 把类型参数当作可直接typeof的运行时值 | [第08章](../02-java-language/08-generics.md) |
+| 擦除 | 类型变量按最左上界等规则映射到运行时类型 | 所有元数据都消失，或一律变成Object | [第08章](../02-java-language/08-generics.md) |
+| 不变性 | List的元素继承关系不自动变成容器赋值关系 | List<Integer>必然可赋给List<Number> | [第08章](../02-java-language/08-generics.md) |
+| 通配符 / PECS | 根据生产/消费T的数据流表达Java使用点约束 | extends等于不可变，super读到的总是T | [第08章](../02-java-language/08-generics.md) |
+| raw type / 堆污染 | 绕过泛型检查等路径可能破坏参数化引用的元素承诺 | 泛型正常检查没有价值，或运行时自动拒绝全部错误写入 | [第08章](../02-java-language/08-generics.md) |
 
 自动链接检查核对路径，概念与类比边界仍需独立技术审查。
