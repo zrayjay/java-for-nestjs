@@ -1,7 +1,7 @@
 ---
 title: 07 · 类、接口、record与sealed
 chapter_id: '07'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / TS5.9.3 / Node22.20.0
 ---
 

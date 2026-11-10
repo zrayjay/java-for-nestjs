@@ -1,7 +1,7 @@
 ---
 title: 11 · 异常、资源关闭与注解
 chapter_id: '11'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / TS5.9.3 legacy decorators / Node22.20.0
 ---
 

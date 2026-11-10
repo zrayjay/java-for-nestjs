@@ -1,7 +1,7 @@
 ---
 title: 06 · Java类型系统
 chapter_id: '06'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / TS5.9.3 strict / Node22.20.0
 ---
 

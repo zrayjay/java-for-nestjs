@@ -1,7 +1,7 @@
 ---
 title: 09 · 集合、相等性与键设计
 chapter_id: '09'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / TS5.9.3 / Node22.20.0
 ---
 

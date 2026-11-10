@@ -28,13 +28,13 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 
 | 章节 | 主题 | 核心知识点 | 认知参照 | 状态 |
 |---|---|---|---|---|
-| 06 | [类型系统](../../docs/02-java-language/06-type-system.md) | 原始类型、引用类型、装箱、`var`、可空性 | TS 类型系统 | 编写中 |
-| 07 | [类、接口与 record](../../docs/02-java-language/07-classes-and-records.md) | 封装、继承、多态、抽象类、record、sealed | TS class/interface/type | 编写中 |
+| 06 | [类型系统](../../docs/02-java-language/06-type-system.md) | 原始类型、引用类型、装箱、`var`、可空性 | TS 类型系统 | 待独立审查 |
+| 07 | [类、接口与 record](../../docs/02-java-language/07-classes-and-records.md) | 封装、继承、多态、抽象类、record、sealed | TS class/interface/type | 待独立审查 |
 | 08 | [泛型](../../docs/02-java-language/08-generics.md) | 类型擦除、边界、通配符、PECS | TS Generics | 已验收 |
-| 09 | [集合与数据结构](../../docs/02-java-language/09-collections.md) | List/Set/Map、相等性、HashMap | JS Array/Map/Set | 编写中 |
-| 10 | [Lambda 与 Stream](../../docs/02-java-language/10-lambda-and-stream.md) | 函数式接口、流管道、Optional | JS map/filter/reduce | 编写中 |
-| 11 | [异常与注解](../../docs/02-java-language/11-exceptions-and-annotations.md) | checked/unchecked、反射、注解 | JS Error、Decorators | 编写中 |
-| 12 | [并发与异步](../../docs/02-java-language/12-concurrency.md) | Thread、线程池、Future、虚拟线程 | Event Loop、Promise、Worker | 编写中 |
+| 09 | [集合与数据结构](../../docs/02-java-language/09-collections.md) | List/Set/Map、相等性、HashMap | JS Array/Map/Set | 待独立审查 |
+| 10 | [Lambda 与 Stream](../../docs/02-java-language/10-lambda-and-stream.md) | 函数式接口、流管道、Optional | JS map/filter/reduce | 待独立审查 |
+| 11 | [异常与注解](../../docs/02-java-language/11-exceptions-and-annotations.md) | checked/unchecked、反射、注解 | JS Error、Decorators | 待独立审查 |
+| 12 | [并发与异步](../../docs/02-java-language/12-concurrency.md) | Thread、线程池、Future、虚拟线程 | Event Loop、Promise、Worker | 待独立审查 |
 
 ## Part 03 · Java 工程化 {#part-03}
 

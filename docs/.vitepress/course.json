@@ -60,7 +60,7 @@
         "topics": "原始类型、引用类型、装箱、`var`、可空性",
         "reference": "TS 类型系统",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/02-java-language/06-type-system.md"
       },
       {
@@ -69,7 +69,7 @@
         "topics": "封装、继承、多态、抽象类、record、sealed",
         "reference": "TS class/interface/type",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/02-java-language/07-classes-and-records.md"
       },
       {
@@ -87,7 +87,7 @@
         "topics": "List/Set/Map、相等性、HashMap",
         "reference": "JS Array/Map/Set",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/02-java-language/09-collections.md"
       },
       {
@@ -96,7 +96,7 @@
         "topics": "函数式接口、流管道、Optional",
         "reference": "JS map/filter/reduce",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/02-java-language/10-lambda-and-stream.md"
       },
       {
@@ -105,7 +105,7 @@
         "topics": "checked/unchecked、反射、注解",
         "reference": "JS Error、Decorators",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/02-java-language/11-exceptions-and-annotations.md"
       },
       {
@@ -114,7 +114,7 @@
         "topics": "Thread、线程池、Future、虚拟线程",
         "reference": "Event Loop、Promise、Worker",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/02-java-language/12-concurrency.md"
       }
     ]

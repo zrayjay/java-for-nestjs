@@ -209,7 +209,7 @@ chapters:
     part: '02'
     title: 类型系统
     path: docs/02-java-language/06-type-system.md
-    status: draft
+    status: in_review
     prerequisites:
       - '04'
       - '05'
@@ -228,12 +228,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P2-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P2-02.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P2-02.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '07'
     part: '02'
     title: 类、接口与 record
     path: docs/02-java-language/07-classes-and-records.md
-    status: draft
+    status: in_review
     prerequisites:
       - '06'
     tags:
@@ -251,7 +261,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P2-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P2-02.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P2-02.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '08'
     part: '02'
     title: 泛型
@@ -292,7 +312,7 @@ chapters:
     part: '02'
     title: 集合与数据结构
     path: docs/02-java-language/09-collections.md
-    status: draft
+    status: in_review
     prerequisites:
       - '07'
       - '08'
@@ -311,12 +331,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P2-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P2-02.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P2-02.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '10'
     part: '02'
     title: Lambda 与 Stream
     path: docs/02-java-language/10-lambda-and-stream.md
-    status: draft
+    status: in_review
     prerequisites:
       - '08'
       - '09'
@@ -335,12 +365,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P2-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P2-02.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P2-02.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '11'
     part: '02'
     title: 异常与注解
     path: docs/02-java-language/11-exceptions-and-annotations.md
-    status: draft
+    status: in_review
     prerequisites:
       - '07'
     tags:
@@ -358,12 +398,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P2-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P2-02.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P2-02.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '12'
     part: '02'
     title: 并发与异步
     path: docs/02-java-language/12-concurrency.md
-    status: draft
+    status: in_review
     prerequisites:
       - '05'
       - '10'
@@ -384,7 +434,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P2-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P2-02.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P2-02.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '13'
     part: '03'
     title: pnpm 到 Maven

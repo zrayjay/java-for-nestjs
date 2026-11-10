@@ -1,7 +1,7 @@
 ---
 title: 12 · 线程、Future与虚拟线程
 chapter_id: '12'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / JDK21与25 / Node22.20.0
 ---
 

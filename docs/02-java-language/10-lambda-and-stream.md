@@ -1,7 +1,7 @@
 ---
 title: 10 · Lambda、Stream与Optional
 chapter_id: '10'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / TS5.9.3 / Node22.20.0
 ---
 
@@ -138,7 +138,7 @@ Optional显式表达某个结果可能不存在，调用方仍需选择缺失策
 
 | 元素 | 对应 | 失效条件 |
 |---|---|---|
-| 标明有/无结果的回执 | Optional | 回执不能证明输入有效或值不含内部null |
+| 标明有/无结果的回执 | Optional | 回执不能证明输入有效或值对象的内部字段非空 |
 | 需要时才制作备选 | orElseGet供应器 | 函数本身有副作用时仍需负责 |
 
 #### 4. Node.js / TypeScript / NestJS 技术对照
