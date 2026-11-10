@@ -2,7 +2,7 @@
 
 ## 开始前
 
-阅读 [实施计划](JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md) 与 [任务清单](TASKBOARD.md)，确认任务范围、依赖及交付物。兼容矩阵、知识点模板、章节映射在对应 P0 任务交付后，同样作为实施依据。
+阅读 [实施计划](JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md) 与 [任务清单](TASKBOARD.md)，确认任务范围、依赖及交付物。技术版本以[兼容矩阵](docs/00-introduction/compatibility-matrix.md)为准；教学写作从[作者指南](docs/00-introduction/analogy-standard.md)开始。章节映射由P0-07交付后同样作为实施依据。
 
 使用 Taskboard 执行时，先读取任务、评论和附件信息，确认未被其他会话认领，再按当前版本认领。已有任务分支或 worktree 时使用其绑定；不重复创建任务。
 
@@ -24,7 +24,9 @@ git switch -c codex/p0-02-compatibility-baseline
 
 完整代码放在 `examples/` 或 `project/`，正文引用真实路径，说明依赖、运行命令、预期输出及故障排查。片段标明所在文件和上下文。每章至少提交自动化测试或可复现练习；无需新增代码时解释原因并提供可检查资料。
 
-同步更新导航、术语、章节映射和任务记录。具体模板与映射由 P0-04 / P0-07 建立，当前不要编造尚未存在的脚本或命令。
+使用[章节十段式模板](docs/templates/chapter.md)、[双端代码模板](docs/templates/code-comparison.md)和[逐知识点评分表](docs/templates/analogy-review.md)组织交付；没有技术等价物或生活类比会误导时，按作者指南说明原因与替代模型。模板不代表样章已经交付。
+
+同步更新导航、术语、章节映射和任务记录。P0-07建立映射与自动校验前，不编造尚未存在的文件、脚本或命令；未执行的验证必须如实记录。
 
 ## 模块与依赖
 

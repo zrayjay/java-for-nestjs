@@ -35,6 +35,12 @@ export default defineConfig({
       { text: '课程路线 · 正文待建设', collapsed: false, items: catalog.map(part => ({
         text: `${part.number} · ${part.title}`, link: `/course/#part-${part.number}`,
       })) },
+      { text: '作者指南', collapsed: true, items: [
+        { text: '写作与类比规范', link: '/00-introduction/analogy-standard' },
+        { text: '章节十段式模板', link: '/templates/chapter' },
+        { text: '双端代码对照模板', link: '/templates/code-comparison' },
+        { text: '类比评分与独立审查', link: '/templates/analogy-review' },
+      ] },
       { text: '工程与维护', collapsed: true, items: [
         { text: '兼容矩阵', link: '/00-introduction/compatibility-matrix' },
         { text: '技术基线 ADR', link: '/adr/0001-technology-baseline' },
