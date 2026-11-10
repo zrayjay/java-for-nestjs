@@ -26,6 +26,9 @@ on:
 permissions:
   contents: read
 
+env:
+  DOCS_BASE: /java-for-nestjs/
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -56,3 +59,28 @@ jobs:
         with:
           name: documentation-${{ matrix.os }}
           path: docs/.vitepress/dist/
+      - name: Upload Pages site
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.os == 'ubuntu-24.04'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/.vitepress/dist/
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - name: Deploy documentation
+        id: deployment
+        uses: actions/deploy-pages@v4

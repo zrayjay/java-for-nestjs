@@ -52,7 +52,17 @@ npx --yes pnpm@10.34.9 docs:build
 npx --yes pnpm@10.34.9 docs:preview
 ```
 
-也可在Linux shell前置`DOCS_BASE=/java-for-nestjs/`。构建后访问对应子路径；环境变量影响构建和预览，需要保持一致。本任务不发布站点。
+也可在Linux shell前置`DOCS_BASE=/java-for-nestjs/`。构建后访问对应子路径；环境变量影响构建和预览，需要保持一致。
+
+## GitHub Pages自动部署
+
+在线文档：[Java for NestJS](https://zrayjay.github.io/java-for-nestjs/)。这是建设中的站点，章节完成情况以课程目录为准。
+
+仓库公开，Pages的发布源选择GitHub Actions。`.github/workflows/docs.yml`固定`DOCS_BASE=/java-for-nestjs/`，main上的相关文档/脚本/依赖更新或手动运行工作流后，先在Windows/Linux完成类型、章节映射、测试、构建和产物链接检查；两端全部成功后，由Ubuntu产物部署到`github-pages`环境。PR和其它分支只检查，不发布。
+
+部署使用官方Pages Actions及短期OIDC凭证，不需要个人Token或gh-pages分支。发布作业仅获`pages: write`和`id-token: write`权限，并使用并发组避免同时部署。失败时查看Actions中的Documentation site工作流；修复后重新运行或推送修复提交。
+
+此部署不创建GitHub Release，不代表G0/G1关卡或P7全书发布验收已经通过。
 
 docs目录内的Markdown链接作为站内页面解析；指向仓库外层README、任务清单和examples源码的相对链接，在构建时转换到GitHub main上的对应文件。未合并的源码文件在main中可能尚不存在，审查阶段可切换到任务分支查看。
 

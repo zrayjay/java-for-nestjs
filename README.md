@@ -6,6 +6,7 @@
 
 ## 从这里开始
 
+- [在线文档](https://zrayjay.github.io/java-for-nestjs/)：由main自动部署的建设中站点。
 - [学习指南](docs/00-introduction/learning-guide.md)：先修要求、学习顺序和阶段目标。
 - [兼容矩阵](docs/00-introduction/compatibility-matrix.md)：版本锁定、官方依据与分环境实测状态。
 - [文档入口](docs/index.md)：课程内容与建设进度。
@@ -18,7 +19,7 @@
 
 已交付仓库基础、兼容矩阵与[兼容集成探针](examples/compatibility-probe/README.md)。P0-03增加VitePress文档站，提供学习指南、45章计划索引、本地搜索与Mermaid图表。正式课程正文与毕业项目尚未交付。
 
-P0-04提供写作模板；P0-05提供Maven Wrapper、多模块Java/Nest示例、pnpm工作区和本地MySQL/Redis Compose，见[运行示例工作区](docs/00-introduction/workspace.md)。全仓库CI与章节映射校验由后续P0-06/P0-07交付。
+P0-04提供写作模板；P0-05提供Maven Wrapper、多模块Java/Nest示例、pnpm工作区和本地MySQL/Redis Compose，见[运行示例工作区](docs/00-introduction/workspace.md)。P0-06/P0-07已交付跨平台CI、章节映射、结构/链接/版本校验。GitHub Actions在文档检查通过后自动部署Pages站点。
 
 ## 启动文档站
 

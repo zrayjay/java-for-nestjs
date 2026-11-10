@@ -12,11 +12,12 @@
 | P0-02 | JAV-4 | Codex，本会话 | 已合并main | done | [PR #2](https://github.com/zrayjay/java-for-nestjs/pull/2)，按用户明确指令合并；提交2faecab | Java原生Windows限制保留在兼容矩阵，G0尚未验收 |
 | P0-03 | JAV-5 | Codex，本会话 | 已合并main | done | [PR #3](https://github.com/zrayjay/java-for-nestjs/pull/3)，按用户明确指令合并；提交40d9320 | 课程正文仍待建设 |
 | P0-04 | JAV-6 | Codex，本会话 | 已合并main，分支已删除 | done | [PR #4](https://github.com/zrayjay/java-for-nestjs/pull/4)，用户已明确合并；提交3eb10fb | 模板不是样章 |
-| P0-05 | JAV-7 | Codex，本会话 | `codex/p0-05-build-workspace` | review | [工作区指南](docs/00-introduction/workspace.md)、[验证记录](docs/progress/P0-05.md) | 本机Docker Desktop无法启动，Compose运行由Linux CI核验 |
-| P0-06 | JAV-8 | Codex，本会话 | `codex/p0-06-ci-foundation` | review | [验证记录](docs/progress/P0-06.md) | 依赖P0-05草稿PR；独立Review待完成 |
-| P0-07 | JAV-9 | Codex，本会话 | `codex/p0-07-chapter-map-validator` | review | [验证记录](docs/progress/P0-07.md)、[映射维护](docs/00-introduction/chapter-map.md) | 依赖P0-06草稿PR；独立Review待完成 |
+| P0-05 | JAV-7 | Codex，本会话 | 已合并main，分支已删除 | done | [PR #5](https://github.com/zrayjay/java-for-nestjs/pull/5)，用户明确要求合并；提交56bed0a；[验证记录](docs/progress/P0-05.md) | Linux Compose CI已通过，本机Docker不可用 |
+| P0-06 | JAV-8 | Codex，本会话 | 已合并main，分支已删除 | done | [PR #6](https://github.com/zrayjay/java-for-nestjs/pull/6)，用户明确要求合并；提交d7eaa89；[验证记录](docs/progress/P0-06.md) | G0独立验收仍待执行 |
+| P0-07 | JAV-9 | Codex，本会话 | 已合并main，分支已删除 | done | [PR #7](https://github.com/zrayjay/java-for-nestjs/pull/7)，用户明确要求合并；提交d1ba6cb；[验证记录](docs/progress/P0-07.md) | 45章正文仍为planned |
+| 文档预览站 | JAV-56 | Codex，本会话 | main | in_progress | [自动部署说明](docs/00-introduction/docs-site.md#github-pages自动部署) | 不等同P7全书发布或Release |
 
-已依次恢复并实施JAV-3至JAV-9，沿用各自分支绑定与范围。P0-05/06/07作为依赖链草稿PR提交，尚未合并或标记done；其余阶段仍待关卡开放。Java原生Windows Web探针缺口未关闭前，不将G0或完整Java跨平台基线标为通过；本次Windows非Web示例及Node文档站的通过结果单独记录。
+JAV-3至JAV-9已全部按用户指令合并main并标记done，任务分支已删除。2026-11-10用户另行授权公开当前仓库并部署建设中的文档站，以JAV-56跟踪，不提前完成P7-05。其余阶段仍待关卡开放。Java原生Windows Web探针缺口未关闭前，不将G0或完整Java跨平台基线标为通过；本次Windows非Web示例及Node文档站的通过结果单独记录。
 
 ## 使用与完成标准
 
