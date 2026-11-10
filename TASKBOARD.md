@@ -11,7 +11,8 @@
 | P0-01 | JAV-3 | Codex，本会话 | 已合并main，任务分支已删除 | done | [PR #1](https://github.com/zrayjay/java-for-nestjs/pull/1)，按用户明确指令合并；提交8607aac | 面板已同步关闭 |
 | P0-02 | JAV-4 | Codex，本会话 | 已合并main | done | [PR #2](https://github.com/zrayjay/java-for-nestjs/pull/2)，按用户明确指令合并；提交2faecab | Java原生Windows限制保留在兼容矩阵，G0尚未验收 |
 | P0-03 | JAV-5 | Codex，本会话 | 已合并main | done | [PR #3](https://github.com/zrayjay/java-for-nestjs/pull/3)，按用户明确指令合并；提交40d9320 | 课程正文仍待建设 |
-| P0-04 | JAV-6 | Codex，本会话 | `codex/p0-04-teaching-templates` | review（面板为in_review） | [作者指南](docs/00-introduction/analogy-standard.md)、[验证记录](docs/progress/P0-04.md)；PR链接见面板评论 | 模板不是已完成样章；独立Review待进行 |
+| P0-04 | JAV-6 | Codex，本会话 | 已合并main，分支已删除 | done | [PR #4](https://github.com/zrayjay/java-for-nestjs/pull/4)，用户已明确合并；提交3eb10fb | 模板不是样章 |
+| P0-05 | JAV-7 | Codex，本会话 | `codex/p0-05-build-workspace` | review | [工作区指南](docs/00-introduction/workspace.md)、[验证记录](docs/progress/P0-05.md) | 本机Docker Desktop无法启动，Compose运行由Linux CI核验 |
 
 已依次恢复此前归档的JAV-3/JAV-4/JAV-5/JAV-6，沿用各自分支绑定与范围，其余任务仍未恢复认领。后续任务按本清单的细化粒度推进，避免将旧面板批次直接当作最新拆分结果。Java原生Windows缺口未关闭前，不将G0或Java跨平台基线标为通过；Node文档站的Windows构建结果单独记录。
 

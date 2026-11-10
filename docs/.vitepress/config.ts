@@ -30,6 +30,7 @@ export default defineConfig({
         { text: '学习指南', link: '/00-introduction/learning-guide' },
         { text: '课程目录 · 45章', link: '/course/' },
         { text: '运行兼容探针', link: '/00-introduction/run-probe' },
+        { text: '运行示例工作区', link: '/00-introduction/workspace' },
         { text: '图表与阅读说明', link: '/00-introduction/diagrams' },
       ] },
       { text: '课程路线 · 正文待建设', collapsed: false, items: catalog.map(part => ({

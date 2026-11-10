@@ -11,7 +11,11 @@
     "docs:dev": "node scripts/generate-course-index.mjs && vitepress dev docs --host 127.0.0.1",
     "docs:build": "node scripts/generate-course-index.mjs && vitepress build docs",
     "docs:preview": "vitepress preview docs --host 127.0.0.1",
-    "docs:typecheck": "vue-tsc --noEmit"
+    "docs:typecheck": "vue-tsc --noEmit",
+    "examples:build": "pnpm --filter @java-for-nestjs/nestjs-reference build",
+    "examples:test": "pnpm --filter @java-for-nestjs/nestjs-reference test",
+    "examples:start": "pnpm --filter @java-for-nestjs/nestjs-reference start",
+    "examples:verify": "node scripts/verify-greeting-contract.mjs"
   },
   "devDependencies": {
     "@types/node": "22.19.3",

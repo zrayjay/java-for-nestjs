@@ -9,10 +9,10 @@
 在仓库根目录执行：
 
 ```sh
-mvn --batch-mode --no-transfer-progress -f examples/compatibility-probe/pom.xml clean verify
+./mvnw --batch-mode --no-transfer-progress -f examples/compatibility-probe/pom.xml clean verify
 ```
 
-Windows 使用本机 `mvn.cmd` 也可。当前工程未添加 Maven Wrapper；仓库统一 Wrapper 由 P0-05 交付。不能跳过测试后宣称集成通过。
+Windows 使用仓库根目录的 `.\mvnw.cmd`。统一Wrapper固定Maven3.9.11；探针仍是独立POM，不进入无Docker的根Reactor。不能跳过测试后宣称集成通过。
 
 预期：4 项测试，0 失败、0 错误、0 跳过，并输出 `BUILD SUCCESS`。测试会创建临时 MySQL 和 Redis 容器，测试结束自动清理。
 
@@ -30,7 +30,7 @@ Basic用户及明文测试口令仅供此隔离探针。它们是公开测试数
 独立POM切换Boot、MyBatis-Plus Starter和springdoc主版本；保留同一测试契约与Testcontainers 1.21.4，避免把对照差异藏进测试工具升级中：
 
 ```sh
-mvn --batch-mode --no-transfer-progress -f examples/compatibility-probe/pom-boot4.xml clean verify
+./mvnw --batch-mode --no-transfer-progress -f examples/compatibility-probe/pom-boot4.xml clean verify
 ```
 
 Boot4使用结果只对该探针有效，不代表45章、全部Starter或毕业项目已迁移。两套POM共用输出目录，勿在同一工作目录同时构建。
