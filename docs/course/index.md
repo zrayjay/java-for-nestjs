@@ -64,7 +64,7 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 | 24 | JDBC 与连接池 | Driver、DataSource、HikariCP、连接生命周期 | Prisma 连接池概念 | 待编写 |
 | 25 | MyBatis / MyBatis-Plus | Mapper、Wrapper、XML SQL、分页、N+1 防范 | Prisma Client | 待编写 |
 | 26 | JPA / Hibernate / jOOQ | Entity、Persistence Context、脏检查、类型安全 SQL | Prisma ORM 与查询 API | 待编写 |
-| 27 | [事务机制](../../docs/05-database/27-transactions.md) | ACID、传播、隔离、代理陷阱、回滚规则 | `$transaction` | 编写中 |
+| 27 | [事务机制](../../docs/05-database/27-transactions.md) | ACID、传播、隔离、代理陷阱、回滚规则 | `$transaction` | 待独立审查 |
 | 28 | 数据库工程化 | Flyway、索引、执行计划、慢 SQL、schema 管理 | Prisma Migrate | 待编写 |
 
 ## Part 06 · 安全与企业业务 {#part-06}

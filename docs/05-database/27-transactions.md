@@ -2,7 +2,7 @@
 title: '27 · Spring事务与Prisma $transaction'
 description: 在真实MySQL上验证提交、回滚、代理边界、传播与隔离，明确两端不等价的机制。
 chapter_id: '27'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Temurin21与25 / Boot3.5.16 / Prisma7.10.1 / MySQL8.4.7 / Node22.20.0
 ---
 
@@ -352,12 +352,12 @@ RR这里的快照与首次一致性读有关，不笼统写成“所有事务开
 
 | 知识点 | 验证证据 | 独立审查 |
 |---|---|---|
-| ch27-kp01 | 两端正常提交/回滚与根client错误边界 | 待审 |
-| ch27-kp02 | 默认/显式checked、unchecked及真实代理自调用 | 待审 |
-| ch27-kp03 | REQUIRED捕获后回滚、独立内层提交保留 | 待审 |
-| ch27-kp04 | 真实MySQL受控RC/RR，两条连接身份核对 | 待审 |
+| ch27-kp01 | 两端正常提交/回滚与根client错误边界 | 独立评分10，两轴无剩余阻断 |
+| ch27-kp02 | 默认/显式checked、unchecked及真实代理自调用 | 独立评分10，两轴无剩余阻断 |
+| ch27-kp03 | REQUIRED捕获后回滚、独立内层提交保留 | 独立评分9，两轴无剩余阻断 |
+| ch27-kp04 | 真实MySQL受控RC/RR，两条连接身份核对 | 独立评分10，两轴无剩余阻断 |
 
-真实CI、版本、未测范围及作者逐点自检见[P1-04验证记录](../progress/P1-04.md)。当前为试点初稿，不计完成；G1仍需四篇整体独立审查与验收。
+真实CI、版本、未测范围及作者逐点自检见[P1-04验证记录](../progress/P1-04.md)，发现与修订见[独立审查](../reviews/P1-04.md)。当前为in_review，不计完成；[G1](../progress/G1.md)仍需真实读者反馈与验收。
 
 ## 参考资料与变更
 

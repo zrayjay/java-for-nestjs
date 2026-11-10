@@ -16,10 +16,11 @@
 | P0-06 | JAV-8 | Codex，本会话 | 已合并main，分支已删除 | done | [PR #6](https://github.com/zrayjay/java-for-nestjs/pull/6)，用户明确要求合并；提交d7eaa89；[验证记录](docs/progress/P0-06.md) | G0独立验收仍待执行 |
 | P0-07 | JAV-9 | Codex，本会话 | 已合并main，分支已删除 | done | [PR #7](https://github.com/zrayjay/java-for-nestjs/pull/7)，用户明确要求合并；提交d1ba6cb；[验证记录](docs/progress/P0-07.md) | 45章正文仍为planned |
 | G0 | JAV-10 | Codex，本会话；两轴独立审查 | main，无新增分支 | done | [验收与修订记录](docs/progress/G0.md)；用户任务评论明确接受并要求继续全部任务 | Windows完整集成技术缺口仍保留；不冒充该测试通过 |
-| P1-01 | JAV-12 | Codex，本会话 | main | review | [第02章](docs/01-java-runtime/02-runtime-model.md)、[实验验证](docs/progress/P1-01.md)、[独立审查](docs/reviews/P1-01.md) | CI通过，等待用户验收，不计入已完成章节 |
-| P1-02 | JAV-13 | Codex，本会话 | main | review | [第08章](docs/02-java-language/08-generics.md)、[泛型实验](docs/progress/P1-02.md)、[独立审查](docs/reviews/P1-02.md) | CI通过，待用户验收 |
-| P1-03 | JAV-14 | Codex，本会话 | main | review | [第18章](docs/04-spring-boot/18-dependency-injection.md)、[IoC实验](docs/progress/P1-03.md)、[独立审查](docs/reviews/P1-03.md) | 独立审查通过，待CI及用户验收 |
-| P1-04 | JAV-15 | Codex，本会话 | main | in_progress | [第27章初稿](docs/05-database/27-transactions.md)、[真实SQL验证](docs/progress/P1-04.md) | 初版真实MySQL CI通过，待新增连接断言/独立审查 |
+| P1-01 | JAV-12 | Codex，本会话 | main | done（面板） | [第02章](docs/01-java-runtime/02-runtime-model.md)、[实验验证](docs/progress/P1-01.md)、[独立审查](docs/reviews/P1-01.md) | 用户已在面板关闭；课程映射保守维持in_review，G1尚未通过 |
+| P1-02 | JAV-13 | Codex，本会话 | main | done（面板） | [第08章](docs/02-java-language/08-generics.md)、[泛型实验](docs/progress/P1-02.md)、[独立审查](docs/reviews/P1-02.md) | 用户已在面板关闭；课程映射维持in_review，G1尚未通过 |
+| P1-03 | JAV-14 | Codex，本会话 | main | review | [第18章](docs/04-spring-boot/18-dependency-injection.md)、[IoC实验](docs/progress/P1-03.md)、[独立审查](docs/reviews/P1-03.md) | 两轴审查、跨平台CI通过，待用户验收 |
+| P1-04 | JAV-15 | Codex，本会话 | main | review | [第27章](docs/05-database/27-transactions.md)、[真实SQL验证](docs/progress/P1-04.md)、[独立审查](docs/reviews/P1-04.md) | 两JDK真实MySQL通过，JDBC参数绕过已关闭，待用户验收 |
+| G1 | JAV-16 | Codex，本会话；两轴独立审查 | 无新增分支 | review | [整体验收](docs/progress/G1.md)、[线上交互](docs/progress/P1-browser-qa.md)、模板反馈修订 | 技术审查通过；真实读者三项差异反馈未验证，G1整体未通过，不开放其余41章 |
 | 文档预览站 | JAV-56 | Codex，本会话 | main | review | [部署CI通过](https://github.com/zrayjay/java-for-nestjs/actions/runs/42765271826)，提交3f495c0；[线上文档](https://zrayjay.github.io/java-for-nestjs/)首页/目录/图表/部署指南及6项JS/CSS资源HTTP200 | 不等同P7全书发布或Release |
 
 JAV-3至JAV-9已全部按用户指令合并main并标记done，任务分支已删除。2026-11-10用户另行授权公开当前仓库并部署建设中的文档站，以JAV-56跟踪，不提前完成P7-05。其余阶段仍待关卡开放。Java原生Windows Web探针缺口未关闭前，不将G0或完整Java跨平台基线标为通过；本次Windows非Web示例及Node文档站的通过结果单独记录。

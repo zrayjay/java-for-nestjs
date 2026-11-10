@@ -555,7 +555,7 @@ chapters:
     part: '05'
     title: 事务机制
     path: docs/05-database/27-transactions.md
-    status: draft
+    status: in_review
     prerequisites:
       - '22'
       - '25'
@@ -574,12 +574,23 @@ chapters:
       - examples/prisma-reference/prisma/schema.prisma
     tests:
       - examples/transaction-lab/src/test/java/dev/javafornestjs/transactions/TransactionTest.java
+      - examples/transaction-lab/src/test/java/dev/javafornestjs/transactions/DatabaseUrlTest.java
       - examples/prisma-reference/src/transaction.test.ts
       - examples/prisma-reference/src/connection.test.ts
     noCodeReason: null
     verification:
       - docs/progress/P1-04.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P1-04.md
+        reviewer: g0_standards_review
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P1-04.md
+        reviewer: g0_spec_review
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '28'
     part: '05'
     title: 数据库工程化
