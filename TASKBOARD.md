@@ -1,6 +1,6 @@
 # Java for NestJS 实施任务清单
 
-依据：[JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md](JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md) v1.3（2026-11-10，包含稳定基线与技术准入/读者效果分离）。本文件细化执行粒度，原计划仍是唯一范围与验收基线。
+依据：[JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md](JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md) v1.4（2026-11-10，包含稳定基线、技术准入/读者效果分离及Gradle对照运行时）。本文件细化执行粒度，原计划仍是唯一范围与验收基线。
 
 共 **73 个实施任务 + 8 个阶段验收任务 = 81 个任务**。覆盖原计划38项、全部45章。拆分时任务初始为 `todo`；实际启动情况见下方执行记录，实时面板状态以 Taskboard 为准。
 
@@ -23,9 +23,9 @@
 | G1 | JAV-16 | Codex，本会话；两轴独立审查 | 无新增分支 | done（用户接受） | [整体验收](docs/progress/G1.md)、[ADR-0004](docs/adr/0004-reader-feedback-and-phase-execution.md) | 真实读者效果未验证，P7-03闭环；技术准入允许继续 |
 | P2-01 | JAV-18 | Codex，本会话 | main | 实现in_review，面板待同步 | [第01/03/04/05章记录](docs/progress/P2-01.md)、[独立审查](docs/reviews/P2-01.md)，复用第02章 | 两轴审查通过；原面板服务不可达，尚未认领JAV-19 |
 | P2-02 | JAV-19 | Codex，本会话离线实施 | main | 实现in_review，面板待同步 | [第06~12章记录](docs/progress/P2-02.md)、[两轴审查](docs/reviews/P2-02.md)，复用第08章 | 两轴与跨平台CI通过，未自动done；离线依据见记录 |
-| P2-03 | JAV-20 | Codex，本会话离线实施 | main | 实现in_review，面板待同步 | [第13~16章记录](docs/progress/P2-03.md)、[两轴审查](docs/reviews/P2-03.md) | 新元数据守卫四系统/JDK CI通过；Gradle仅规则比较 |
+| P2-03 | JAV-20 | Codex，本会话离线实施 | main | 实现in_review，面板待同步 | [第13~16章记录](docs/progress/P2-03.md)、[两轴审查](docs/reviews/P2-03.md) | 元数据守卫矩阵CI通过；Gradle独立任务/缓存本机通过，新矩阵待结果 |
 | P2-04 | JAV-21 | Codex，本会话离线实施 | main | 检查候选，面板待同步 | [术语/链接/练习报告](docs/progress/P2-04.md) | 作者检查与独立G2审查分开 |
-| G2 | JAV-22 | Codex，本会话；独立审查待执行 | 无新增分支 | 验收候选 | [阶段记录](docs/progress/G2.md)、[综合练习](docs/exercises/P2-capstone.md) | 全阶段独立结论与综合练习版本CI待完成 |
+| G2 | JAV-22 | Codex，本会话；两轴独立复核 | 无新增分支 | 技术准入通过，交用户验收 | [阶段记录](docs/progress/G2.md)、[综合练习](docs/exercises/P2-capstone.md) | Gradle增补两轴和四矩阵CI亦通过，进入P3；真实读者效果仍P7必查 |
 | 文档预览站 | JAV-56 | Codex，本会话 | main | review | [部署CI通过](https://github.com/zrayjay/java-for-nestjs/actions/runs/42765271826)，提交3f495c0；[线上文档](https://zrayjay.github.io/java-for-nestjs/)首页/目录/图表/部署指南及6项JS/CSS资源HTTP200 | 不等同P7全书发布或Release |
 
 JAV-3至JAV-9已全部按用户指令合并main并标记done，任务分支已删除。2026-11-10用户另行授权公开当前仓库并部署建设中的文档站，以JAV-56跟踪，不提前完成P7-05。其余阶段仍待关卡开放。Java原生Windows Web探针缺口未关闭前，不将G0或完整Java跨平台基线标为通过；本次Windows非Web示例及Node文档站的通过结果单独记录。
