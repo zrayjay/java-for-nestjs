@@ -3,7 +3,7 @@
 > 文档性质：可执行的课程建设与工程落地计划（不是教程正文）  
 > 适用读者：已有 Node.js、TypeScript、NestJS 经验的前端/全栈/后端开发者  
 > 适用执行者：维护者、技术作者、Claude Code / Codex / OpenCode 等开发 Agent  
-> 版本：v1.0 · 2026-11-09  
+> 版本：v1.1 · 2026-11-10  
 > 状态：待实施
 
 ---
@@ -289,6 +289,8 @@ public class UserService {
 | 交付 | Docker Compose + CI，进阶增加 K8s | 可部署、可复现 |
 
 ### 4.2 版本锁定流程
+
+P0-06安全补充（2026-11-10）：依赖审计发现文档构建链存在高危项，按`docs/adr/0002-documentation-build-security.md`保留VitePress1.6.4稳定版，使用经验证的Vite6.4.4及已修复lodash-es覆盖版本。必须记录审计、Windows/Linux构建及浏览器回归证据；不改变45章范围或Java/Spring主线。此项为v1.1相对v1.0的修订。
 
 正式编码前，创建 `docs/00-introduction/compatibility-matrix.md`，记录：
 
