@@ -19,6 +19,10 @@ class CompilationTest {
     @TempDir Path directory;
 
     private boolean compile(String body) throws Exception {
+        return compile(body, null);
+    }
+
+    private boolean compile(String body, String diagnosticPrefix) throws Exception {
         var compiler = ToolProvider.getSystemJavaCompiler();
         assertNotNull(compiler, "A full JDK is required");
         Path output = Files.createTempDirectory(directory, "compile-");
@@ -32,6 +36,17 @@ class CompilationTest {
             if (!success) {
                 assertTrue(diagnostics.getDiagnostics().stream()
                         .anyMatch(item -> item.getKind() == Diagnostic.Kind.ERROR), "Real compiler error required");
+                if (diagnosticPrefix != null) {
+                    assertTrue(diagnostics.getDiagnostics().stream().anyMatch(item ->
+                            item.getKind() == Diagnostic.Kind.ERROR
+                                    && item.getCode().startsWith(diagnosticPrefix)
+                                    && item.getLineNumber() == 1 && item.getColumnNumber() > 0
+                                    && item.getSource() != null
+                                    && item.getSource().toUri().equals(source.toUri())),
+                            () -> "Expected diagnostic " + diagnosticPrefix + ": "
+                                    + diagnostics.getDiagnostics().stream().map(Diagnostic::getCode).toList()
+                                    + " " + diagnostics.getDiagnostics());
+                }
             }
             return success;
         }
@@ -46,27 +61,30 @@ class CompilationTest {
 
     @Test
     void invariantListAssignmentIsRejected() throws Exception {
-        assertFalse(compile("void run() { List<Number> n = new ArrayList<Integer>(); }"));
+        assertFalse(compile("void run() { List<Number> n = new ArrayList<Integer>(); }",
+                "compiler.err.prob.found.req"));
     }
 
     @Test
     void extendsProducerCannotAcceptAnArbitraryNumber() throws Exception {
-        assertFalse(compile("void run(List<? extends Number> n) { n.add(Integer.valueOf(1)); }"));
+        assertFalse(compile("void run(List<? extends Number> n) { n.add(Integer.valueOf(1)); }",
+                "compiler.err.prob.found.req"));
     }
 
     @Test
     void overloadsWithSameErasureAreRejected() throws Exception {
-        assertFalse(compile("void save(List<String> a) { } void save(List<Integer> a) { }"));
+        assertFalse(compile("void save(List<String> a) { } void save(List<Integer> a) { }",
+                "compiler.err.name.clash.same.erasure"));
     }
 
     @Test
     void primitiveTypeArgumentsAreRejected() throws Exception {
-        assertFalse(compile("List<int> values;"));
+        assertFalse(compile("List<int> values;", "compiler.err.type.found.req"));
     }
 
     @Test
     void boundedMethodRejectsStringArguments() throws Exception {
         assertFalse(compile("<T extends Number & Comparable<T>> T max(T a, T b) { return a; } "
-                + "void run() { max(\"a\", \"b\"); }"));
+                + "void run() { max(\"a\", \"b\"); }", "compiler.err.cant.apply.symbol"));
     }
 }

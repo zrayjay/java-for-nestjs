@@ -84,7 +84,7 @@ public static <T> T identity(T value) {
 
 <details><summary>完成后查看提示</summary>
 
-不要把“某声明有泛型签名”和“某对象能普遍报告自己的实际T”写成同一句话。普通ArrayList例子不覆盖所有可重现类型、具体子类或框架类型令牌。
+不要把“某声明有泛型签名”和“某对象能普遍报告自己的实际T”写成同一句话。普通ArrayList例子不覆盖所有可具体化类型（reifiable types）、具体子类或框架类型令牌。
 
 </details>
 
@@ -343,7 +343,7 @@ export function isNumberArray(value: unknown): value is number[] {
 
 2026-11-10核对官方入口可访问；规范范围优先于类比：
 
-- [JLS21第4节](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html)：4.4类型变量与上界、4.5参数化类型、4.6擦除、4.7可重现类型、4.8 raw types、4.12.2堆污染。
+- [JLS21第4节](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html)：4.4类型变量与上界、4.5参数化类型、4.6擦除、4.7可具体化类型（reifiable types）、4.8 raw types、4.12.2堆污染。
 - [TypeScript泛型手册](https://www.typescriptlang.org/docs/handbook/2/generics.html)：类型参数、约束及接口/类中的泛型；不能将文档中的TS机制套成Java规范。
 - [TypeScript兼容性说明](https://www.typescriptlang.org/docs/handbook/type-compatibility.html)：结构兼容与有意保留的不健全部分。
 - [术语表](../00-introduction/glossary.md)与[兼容矩阵](../00-introduction/compatibility-matrix.md)。
