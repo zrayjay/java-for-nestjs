@@ -2,7 +2,7 @@
 title: '08 · 泛型：TS类型消失与Java擦除'
 description: 用真实编译器、PECS复制和堆污染反例，认识泛型能保证与不能保证的事。
 chapter_id: '08'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / JDK21与25 / TypeScript5.9.3 / Node22.20.0
 ---
 
@@ -332,12 +332,12 @@ export function isNumberArray(value: unknown): value is number[] {
 
 | 知识点 | 运行或编译证据 | 独立审查 |
 |---|---|---|
-| ch08-kp01 | Class/方法/字段反射及同擦除重载负例 | 待审 |
-| ch08-kp02 | 交集上界正例、primitive/String上界负例、TS预期错误 | 待审 |
-| ch08-kp03 | 双端[1,2]复制、Java赋值/写入编译负例、TS数组污染反例 | 待审 |
-| ch08-kp04 | ClassCastException断言与unknown真实守卫正反例 | 待审 |
+| ch08-kp01 | Class/方法/字段反射及同擦除重载负例 | 独立评分9，待CI与用户接受 |
+| ch08-kp02 | 交集上界正例、primitive/String上界负例、TS预期错误 | 独立评分9，待CI与用户接受 |
+| ch08-kp03 | 双端[1,2]复制、Java赋值/写入编译负例、TS数组污染反例 | 独立评分10，待CI与用户接受 |
+| ch08-kp04 | ClassCastException断言与unknown真实守卫正反例 | 独立评分10，待CI与用户接受 |
 
-实际版本、命令、结果和作者逐点自检见[P1-02验证记录](../progress/P1-02.md)。当前初稿不计完成，G1仍需四篇试点整体独立验收。
+实际版本、命令、结果和作者自检见[P1-02验证记录](../progress/P1-02.md)，独立评分及修订见[独立审查](../reviews/P1-02.md)。当前待验收，不计完成，G1仍需四篇试点整体独立验收。
 
 ## 参考资料与变更
 

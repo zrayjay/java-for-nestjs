@@ -78,7 +78,7 @@
         "topics": "类型擦除、边界、通配符、PECS",
         "reference": "TS Generics",
         "pilot": true,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/02-java-language/08-generics.md"
       },
       {

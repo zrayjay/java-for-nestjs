@@ -177,7 +177,7 @@ chapters:
     part: '02'
     title: 泛型
     path: docs/02-java-language/08-generics.md
-    status: draft
+    status: in_review
     prerequisites:
       - '06'
       - '07'
@@ -198,7 +198,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P1-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P1-02.md
+        reviewer: g0_standards_review
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P1-02.md
+        reviewer: g0_spec_review
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '09'
     part: '02'
     title: 集合与数据结构

@@ -30,7 +30,7 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 |---|---|---|---|---|
 | 06 | 类型系统 | 原始类型、引用类型、装箱、`var`、可空性 | TS 类型系统 | 待编写 |
 | 07 | 类、接口与 record | 封装、继承、多态、抽象类、record、sealed | TS class/interface/type | 待编写 |
-| 08 | [泛型](../../docs/02-java-language/08-generics.md) | 类型擦除、边界、通配符、PECS | TS Generics | 编写中 |
+| 08 | [泛型](../../docs/02-java-language/08-generics.md) | 类型擦除、边界、通配符、PECS | TS Generics | 待独立审查 |
 | 09 | 集合与数据结构 | List/Set/Map、相等性、HashMap | JS Array/Map/Set | 待编写 |
 | 10 | Lambda 与 Stream | 函数式接口、流管道、Optional | JS map/filter/reduce | 待编写 |
 | 11 | 异常与注解 | checked/unchecked、反射、注解 | JS Error、Decorators | 待编写 |
