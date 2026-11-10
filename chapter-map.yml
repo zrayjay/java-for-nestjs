@@ -209,7 +209,7 @@ chapters:
     part: '02'
     title: 类型系统
     path: docs/02-java-language/06-type-system.md
-    status: planned
+    status: draft
     prerequisites:
       - '04'
       - '05'
@@ -218,16 +218,22 @@ chapters:
     topics: 原始类型、引用类型、装箱、`var`、可空性
     reference: TS 类型系统
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/java-basics/language-lab/src/main/java/dev/javafornestjs/language/LanguageLab.java
+      - examples/nestjs-reference/src/language/language-lab.ts
+    tests:
+      - examples/java-basics/language-lab/src/test/java/dev/javafornestjs/language/LanguageLabTest.java
+      - examples/java-basics/language-lab/src/test/java/dev/javafornestjs/language/CompilationTest.java
+      - examples/nestjs-reference/src/language/language-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P2-02.md
     reviews: []
   - id: '07'
     part: '02'
     title: 类、接口与 record
     path: docs/02-java-language/07-classes-and-records.md
-    status: planned
+    status: draft
     prerequisites:
       - '06'
     tags:
@@ -235,10 +241,16 @@ chapters:
     topics: 封装、继承、多态、抽象类、record、sealed
     reference: TS class/interface/type
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/java-basics/language-lab/src/main/java/dev/javafornestjs/language/LanguageLab.java
+      - examples/nestjs-reference/src/language/language-lab.ts
+    tests:
+      - examples/java-basics/language-lab/src/test/java/dev/javafornestjs/language/LanguageLabTest.java
+      - examples/java-basics/language-lab/src/test/java/dev/javafornestjs/language/CompilationTest.java
+      - examples/nestjs-reference/src/language/language-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P2-02.md
     reviews: []
   - id: '08'
     part: '02'
@@ -280,7 +292,7 @@ chapters:
     part: '02'
     title: 集合与数据结构
     path: docs/02-java-language/09-collections.md
-    status: planned
+    status: draft
     prerequisites:
       - '07'
       - '08'
@@ -289,16 +301,22 @@ chapters:
     topics: List/Set/Map、相等性、HashMap
     reference: JS Array/Map/Set
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/java-basics/language-lab/src/main/java/dev/javafornestjs/language/LanguageLab.java
+      - examples/nestjs-reference/src/language/language-lab.ts
+    tests:
+      - examples/java-basics/language-lab/src/test/java/dev/javafornestjs/language/LanguageLabTest.java
+      - examples/java-basics/language-lab/src/test/java/dev/javafornestjs/language/CompilationTest.java
+      - examples/nestjs-reference/src/language/language-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P2-02.md
     reviews: []
   - id: '10'
     part: '02'
     title: Lambda 与 Stream
     path: docs/02-java-language/10-lambda-and-stream.md
-    status: planned
+    status: draft
     prerequisites:
       - '08'
       - '09'
@@ -307,16 +325,22 @@ chapters:
     topics: 函数式接口、流管道、Optional
     reference: JS map/filter/reduce
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/java-basics/language-lab/src/main/java/dev/javafornestjs/language/LanguageLab.java
+      - examples/nestjs-reference/src/language/language-lab.ts
+    tests:
+      - examples/java-basics/language-lab/src/test/java/dev/javafornestjs/language/LanguageLabTest.java
+      - examples/java-basics/language-lab/src/test/java/dev/javafornestjs/language/CompilationTest.java
+      - examples/nestjs-reference/src/language/language-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P2-02.md
     reviews: []
   - id: '11'
     part: '02'
     title: 异常与注解
     path: docs/02-java-language/11-exceptions-and-annotations.md
-    status: planned
+    status: draft
     prerequisites:
       - '07'
     tags:
@@ -324,16 +348,22 @@ chapters:
     topics: checked/unchecked、反射、注解
     reference: JS Error、Decorators
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/java-basics/language-lab/src/main/java/dev/javafornestjs/language/LanguageLab.java
+      - examples/nestjs-reference/src/language/language-lab.ts
+    tests:
+      - examples/java-basics/language-lab/src/test/java/dev/javafornestjs/language/LanguageLabTest.java
+      - examples/java-basics/language-lab/src/test/java/dev/javafornestjs/language/CompilationTest.java
+      - examples/nestjs-reference/src/language/language-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P2-02.md
     reviews: []
   - id: '12'
     part: '02'
     title: 并发与异步
     path: docs/02-java-language/12-concurrency.md
-    status: planned
+    status: draft
     prerequisites:
       - '05'
       - '10'
@@ -343,10 +373,17 @@ chapters:
     topics: Thread、线程池、Future、虚拟线程
     reference: Event Loop、Promise、Worker
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/java-basics/language-lab/src/main/java/dev/javafornestjs/language/LanguageLab.java
+      - examples/nestjs-reference/src/language/language-lab.ts
+      - examples/java-basics/language-lab/src/main/java/dev/javafornestjs/language/ConcurrencyLab.java
+    tests:
+      - examples/java-basics/language-lab/src/test/java/dev/javafornestjs/language/LanguageLabTest.java
+      - examples/java-basics/language-lab/src/test/java/dev/javafornestjs/language/CompilationTest.java
+      - examples/nestjs-reference/src/language/language-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P2-02.md
     reviews: []
   - id: '13'
     part: '03'

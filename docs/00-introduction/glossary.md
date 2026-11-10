@@ -34,3 +34,16 @@
 | 一致性读 / 隔离级别 | 在固定引擎、级别和读取类型下分析可见性 | RR下任意查询必然永远读旧值；一次实验覆盖所有幻读 | [第27章](../05-database/27-transactions.md) |
 
 自动链接检查核对路径，概念与类比边界仍需独立技术审查。
+
+语言基础扩展：
+
+| 术语 | 本教程用法 | 常见误解 | 正文 |
+|---|---|---|---|
+| 装箱/拆箱 | 基本值与包装引用的转换，null拆箱会失败 | Integer天然非空或身份==就是通用数值比较 | [第06章](../02-java-language/06-type-system.md) |
+| 名义/结构可赋值 | Java声明接口关系与TS主要结构检查分别分析 | 方法名相同就必然可赋给Java接口 | [第07章](../02-java-language/07-classes-and-records.md) |
+| record / sealed | 组件值模型与限制直接子类型的机制 | 深冻结对象或业务权限名单 | [第07章](../02-java-language/07-classes-and-records.md) |
+| equals/hashCode | Java哈希键的相等/哈希契约 | 哈希值相同就等于同一键；JS对象Map也按字段判等 | [第09章](../02-java-language/09-collections.md) |
+| Stream / Optional | 一次处理管道与可能缺失结果 | Node IO stream；自动验证或所有null的替身 | [第10章](../02-java-language/10-lambda-and-stream.md) |
+| checked / suppressed | 编译期异常责任与清理时附加异常 | 自动恢复；与cause完全相同 | [第11章](../02-java-language/11-exceptions-and-annotations.md) |
+| Retention / 装饰器 | Java元数据保留与本项目TS legacy注册函数分别讨论 | 注解本身自动执行鉴权 | [第11章](../02-java-language/11-exceptions-and-annotations.md) |
+| 虚拟线程 / Future | Java执行线程形式与提交任务结果 | Promise等于线程；等待超时自动取消 | [第12章](../02-java-language/12-concurrency.md) |

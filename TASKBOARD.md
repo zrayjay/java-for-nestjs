@@ -22,6 +22,7 @@
 | P1-04 | JAV-15 | Codex，本会话 | main | done | [第27章](docs/05-database/27-transactions.md)、[真实SQL验证](docs/progress/P1-04.md)、[独立审查](docs/reviews/P1-04.md) | 用户09:39在面板接受；Windows本机DB缺口保留 |
 | G1 | JAV-16 | Codex，本会话；两轴独立审查 | 无新增分支 | done（用户接受） | [整体验收](docs/progress/G1.md)、[ADR-0004](docs/adr/0004-reader-feedback-and-phase-execution.md) | 真实读者效果未验证，P7-03闭环；技术准入允许继续 |
 | P2-01 | JAV-18 | Codex，本会话 | main | 实现in_review，面板待同步 | [第01/03/04/05章记录](docs/progress/P2-01.md)、[独立审查](docs/reviews/P2-01.md)，复用第02章 | 两轴审查通过；原面板服务不可达，尚未认领JAV-19 |
+| P2-02 | JAV-19 | Codex，本会话离线实施 | main | 实现中，面板未认领 | [第06~12章记录](docs/progress/P2-02.md)、[离线依据](docs/progress/taskboard-offline.md)，复用第08章 | 用户在知晓服务故障后再次要求完成所有剩余；恢复后先读最新状态，不覆盖其他会话 |
 | 文档预览站 | JAV-56 | Codex，本会话 | main | review | [部署CI通过](https://github.com/zrayjay/java-for-nestjs/actions/runs/42765271826)，提交3f495c0；[线上文档](https://zrayjay.github.io/java-for-nestjs/)首页/目录/图表/部署指南及6项JS/CSS资源HTTP200 | 不等同P7全书发布或Release |
 
 JAV-3至JAV-9已全部按用户指令合并main并标记done，任务分支已删除。2026-11-10用户另行授权公开当前仓库并部署建设中的文档站，以JAV-56跟踪，不提前完成P7-05。其余阶段仍待关卡开放。Java原生Windows Web探针缺口未关闭前，不将G0或完整Java跨平台基线标为通过；本次Windows非Web示例及Node文档站的通过结果单独记录。
