@@ -40,6 +40,12 @@ jobs:
       - name: Resolved Maven model and core bytecode boundary
         shell: pwsh
         run: ./scripts/verify-build-model.ps1
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.2.1
+      - name: Gradle task graph and local cache reference
+        shell: pwsh
+        run: ./scripts/verify-gradle-reference.ps1
       - uses: actions/upload-artifact@v4
         if: always()
         with:

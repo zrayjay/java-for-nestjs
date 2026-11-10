@@ -2,14 +2,14 @@
 title: 15 · Reactor、Gradle任务图与缓存
 chapter_id: '15'
 teaching_status: in_review
-baseline: Maven3.9.11 / Java21 / pnpm10.34.9；Gradle仅规则对照未运行
+baseline: Maven3.9.11 / Java21 / pnpm10.34.9 / Gradle9.2.1独立对照
 ---
 
 # 15 · Reactor、Gradle任务图与缓存
 
 ## 章节范围与先修
 
-先读[POM与生命周期](14-pom-lifecycle.md)。Java主线只使用已固定的Maven Wrapper；Gradle作为任务图与选型对照，未添加Gradle Wrapper/项目，也不提供未经执行的性能结果。真实Maven实验见[BUILD-LAB](../../examples/java-basics/BUILD-LAB.md)，记录见[P2-03](../progress/P2-03.md)。
+先读[POM与生命周期](14-pom-lifecycle.md)。Java主线使用Maven Wrapper；Gradle9.2.1另有[独立任务/缓存小实验](../../examples/gradle-reference/README.md)，不迁移业务构建，也不提供未经测量的性能比较。Maven实验见[BUILD-LAB](../../examples/java-basics/BUILD-LAB.md)，实际环境与结果见[P2-03](../progress/P2-03.md)。
 
 ## 知识点
 
@@ -95,7 +95,7 @@ Maven通常围绕标准生命周期与插件绑定组织工作，Gradle以任务
 
 #### 5. 两端代码对照
 
-本仓库TS package scripts显式分build/test；Java POM显式绑定validate的Checkstyle与package的shade。Gradle概念示例可用“测试任务依赖编译任务”的有向图理解，但本章没有提供或运行第二套Gradle构建，不能声称其命令、兼容矩阵或输出已通过。选择保持Maven主线避免双构建模型漂移。
+本仓库TS package scripts显式分build/test；Java POM显式绑定validate的Checkstyle与package的shade。Gradle[build.gradle](../../examples/gradle-reference/build.gradle)声明generateGreeting与依赖它的verifyGreeting，前者以learner为输入、greeting.txt为输出，后者核对文件内容。验证脚本实际dry-run要求生产任务在验证任务之前；本机真实执行输出Hello, NestJS!与改输入后的Hello, Java!。这是小型任务机制实验，不是第二套业务构建或Java编译兼容证明。
 
 #### 6. 原理与流程图
 
@@ -106,7 +106,7 @@ flowchart TD
   C --> S[源码与配置输入]
 ```
 
-箭头表示“依赖”，不是执行时间向前流动；具体任务名/关系由所用Gradle插件决定，本图不是本仓库已执行的Gradle任务图。
+箭头表示“依赖”，不是执行时间向前流动；图为编译/测试抽象示例，实际小实验的依赖为verifyGreeting→generateGreeting，两者由dry-run顺序断言验证，未将图示称为本仓库的Gradle Java构建。
 
 #### 7. 类比边界与错误直觉
 
@@ -154,7 +154,7 @@ flowchart TD
 
 #### 5. 两端代码对照
 
-本仓库CI setup-java cache:maven复用下载，仍执行clean verify；TS frozen安装后仍build/test。构建实验本机-o证明缓存满足当前解析，不证明空环境或任务输出缓存命中。Gradle缓存规则仅官方资料对照，未提供缓存命中日志、基准或远程缓存配置。
+本仓库CI setup-java cache:maven复用下载，仍执行clean verify；TS frozen安装后仍build/test。构建实验本机-o只证明当前下载缓存完整。另用[verify-gradle-reference.ps1](../../scripts/verify-gradle-reference.ps1)实际验证：同输入第二次UP-TO-DATE，删除唯一生成文件后FROM-CACHE且内容恢复，改learner输入后输出改变。@CacheableTask/Input/OutputFile提供本例跟踪条件；并未提供配置缓存、远端缓存或相对速度基准。
 
 #### 6. 原理与流程图
 
@@ -184,8 +184,8 @@ flowchart TD
 
 ## 章末验收与审查记录
 
-当前in_review。Maven Reactor有实测；Gradle任务/缓存选型为明确标注的规则对照，未运行Gradle。真实证据见[P2-03](../progress/P2-03.md)。
+当前in_review。Maven Reactor及Gradle任务/本地缓存小实验均有本机真实断言，跨平台新步骤另记；配置/远端缓存和速度比较未测。证据见[P2-03](../progress/P2-03.md)。
 
 ## 参考资料与变更
 
-2026-11-10参考：[Maven多模块](https://maven.apache.org/guides/mini/guide-multiple-modules.html)、[Gradle任务](https://docs.gradle.org/current/userguide/more_about_tasks.html)、[Gradle构建缓存](https://docs.gradle.org/current/userguide/build_cache.html)。Gradle链接随官方current演进，实际采用版本前需另做兼容核验。
+2026-11-10参考：[Maven多模块](https://maven.apache.org/guides/mini/guide-multiple-modules.html)、[Gradle9.2.1任务](https://docs.gradle.org/9.2.1/userguide/more_about_tasks.html)、[Gradle9.2.1构建缓存](https://docs.gradle.org/9.2.1/userguide/build_cache.html)、[ADR-0005](../adr/0005-gradle-comparison-runtime.md)。

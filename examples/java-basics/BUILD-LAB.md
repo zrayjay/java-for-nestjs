@@ -1,6 +1,6 @@
 # 第13~16章构建与模块实验
 
-仓库根，完整JDK21/25、Maven Wrapper3.9.11、Node22.20.0、pnpm10.34.9；自动元数据检查另需PowerShell7（CI已有pwsh）。不加入Gradle项目，不将官方Gradle规则说明冒充已执行Gradle构建。
+仓库根，完整JDK21/25、Maven Wrapper3.9.11、Node22.20.0、pnpm10.34.9；自动元数据检查另需PowerShell7（CI已有pwsh）。Gradle任务/缓存另有[独立小实验](../gradle-reference/README.md)，不迁移Maven业务构建，不做相对性能保证。
 
 ```powershell
 .\mvnw.cmd --batch-mode --no-transfer-progress -pl examples/java-basics/greeting-cli -am clean verify

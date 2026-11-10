@@ -16,6 +16,8 @@ coverage/
 target/
 *.class
 examples/prisma-reference/src/generated/
+examples/gradle-reference/.gradle/
+examples/gradle-reference/build/
 
 # Editor and operating system files
 .idea/

@@ -10,6 +10,7 @@
 | Spring Boot | 3.5.16 | starter-parent统一管理Spring与插件 | 真实Web上下文与4项集成测试 |
 | Spring Security | 6.5.11 | Boot 3.5.16 BOM | 匿名401、认证后200；不代表JWT/RBAC完成 |
 | Maven | 3.9.11 | 独立固定构建工具；Wrapper由P0-05统一交付 | clean verify含打包 |
+| Gradle对照 | 9.2.1 | 独立任务图/本地缓存小实验，见[ADR-0005](../adr/0005-gradle-comparison-runtime.md) | Windows/Microsoft21加已知临时套接字目录修正后任务/缓存通过；新矩阵步骤待CI |
 | MyBatis-Plus | 3.5.18 | mybatis-plus-spring-boot3-starter | MySQL查询、写入与回滚 |
 | springdoc OpenAPI | 2.10.0 | Boot3.5对应2.8~2.10系列 | 生成文档并包含实际路由 |
 | Flyway | 11.20.3 | 显式覆盖Boot默认11.7.2；core与mysql模块同版 | 空库迁移及MySQL8.4集成 |

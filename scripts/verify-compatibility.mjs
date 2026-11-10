@@ -28,6 +28,7 @@ export async function verifyCompatibility(root) {
     vite: pkg.pnpm.overrides.vite,
     lodashEs: pkg.pnpm.overrides['lodash-es'],
     maven: properties.match(/apache-maven-([\d.]+)-bin/)?.[1],
+    gradle: workflows[1].match(/gradle-version:\s*([\d.]+)/)?.[1],
     prisma: reference.devDependencies.prisma,
     prismaClient: reference.dependencies['@prisma/client'],
     prismaAdapter: reference.dependencies['@prisma/adapter-mariadb'],
