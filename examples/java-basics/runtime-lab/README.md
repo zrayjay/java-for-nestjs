@@ -9,7 +9,7 @@ npx --yes pnpm@10.34.9 examples:test
 npx --yes pnpm@10.34.9 runtime:verify
 ```
 
-Windows使用`.\mvnw.cmd`；`JAVA_HOME`须指向被测试JDK，脚本用同一JDK的java/javap。无需Docker、HTTP或数据库。
+Windows使用`.\mvnw.cmd`；`JAVA_HOME`须指向带java/javap的完整JDK，脚本用同一JDK的工具。JetBrains附带的JBR不保证包含javap，不能代替完整工具链。无需Docker、HTTP或数据库。
 
 实际运行物：`RuntimeLab.java`包含32位算术、受控线程交错及可回收分配；TS端位于`examples/nestjs-reference/src/runtime/`，包含同步CPU/定时器顺序及真实Worker。
 

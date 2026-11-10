@@ -1,6 +1,8 @@
 import { spawnSync } from 'node:child_process'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import assert from 'node:assert/strict'
+import { hasMixCompilation } from './lib/runtime-evidence.mjs'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
 const javaTool = (name) =>
@@ -55,16 +57,18 @@ const compiled = run(javaTool('java'), [
   'compute',
 ])
 const value = (output) => output.match(/CHECKSUM=(-?\d+)/)?.[1]
+const expectedChecksum = '380327344'
 if (
-  !value(interpreted) ||
+  value(interpreted) !== expectedChecksum ||
   value(interpreted) !== value(compiled) ||
-  !compiled.includes('RuntimeLab::mix')
+  !hasMixCompilation(compiled)
 )
   throw new Error('JIT/interpreter evidence missing or result mismatch')
 const nodeOutput = run(process.execPath, [
   'examples/nestjs-reference/dist/runtime/runtime-lab.js',
 ])
 const nodeResult = JSON.parse(nodeOutput.trim())
+assert.deepEqual(nodeResult.events, ['sync-start', 'cpu-finished', 'timer'])
 if (
   String(nodeResult.checksum) !== value(interpreted) ||
   nodeResult.worker !== nodeResult.checksum
