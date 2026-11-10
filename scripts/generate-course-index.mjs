@@ -1,10 +1,12 @@
-import { readFile, writeFile } from 'node:fs/promises'
+import { writeFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
+import { loadMap, validateMap, toCatalog } from './lib/chapter-map.mjs'
 
-const catalog = JSON.parse(
-  await readFile(
-    new URL('../docs/.vitepress/course.json', import.meta.url),
-    'utf8',
-  ),
+const root = fileURLToPath(new URL('../', import.meta.url))
+const catalog = toCatalog(await validateMap(await loadMap(root), root))
+await writeFile(
+  new URL('../docs/.vitepress/course.json', import.meta.url),
+  JSON.stringify(catalog, null, 2) + '\n',
 )
 const chapters = catalog.flatMap((part) => part.chapters)
 if (
@@ -21,13 +23,13 @@ const lines = [
   'description: 从NestJS迁移到Java与Spring Boot的45章学习地图。',
   '---',
   '',
-  '<!-- 由 scripts/generate-course-index.mjs 从 course.json 生成。请修改数据源后重新生成。 -->',
+  '<!-- 由 scripts/generate-course-index.mjs 从 chapter-map.yml 生成。请修改数据源后重新生成。 -->',
   '# 课程目录',
   '',
   '45章，9个部分。从运行时差异出发，走向可交付的Java后端。',
   '',
   '::: info 建设状态',
-  '**正文尚未交付。** 下方为计划索引，不计作完成章节。第02、08、18、27章将作为首轮试点；先完成样章及独立审查，再扩展其余内容。',
+  `当前已验收 ${chapters.filter((c) => c.status === 'done').length}/45 章。计划索引不计作完成章节。第02、08、18、27章作为首轮试点；先完成样章及独立审查，再扩展其余内容。`,
   ':::',
   '',
   '[了解如何学习](../00-introduction/learning-guide.md) · [查看已验证的技术版本](../00-introduction/compatibility-matrix.md)',
@@ -43,7 +45,7 @@ for (const part of catalog) {
   )
   for (const chapter of part.chapters) {
     lines.push(
-      `| ${String(chapter.number).padStart(2, '0')} | ${cell(chapter.title)} | ${cell(chapter.topics)} | ${cell(chapter.reference)} | ${chapter.pilot ? '试点计划 · 待编写' : '待编写'} |`,
+      `| ${String(chapter.number).padStart(2, '0')} | ${chapter.status === 'planned' ? cell(chapter.title) : `[${cell(chapter.title)}](../../${chapter.path})`} | ${cell(chapter.topics)} | ${cell(chapter.reference)} | ${chapter.status === 'planned' ? (chapter.pilot ? '试点计划 · 待编写' : '待编写') : { draft: '编写中', in_review: '待独立审查', done: '已验收' }[chapter.status]} |`,
     )
   }
 }

@@ -49,6 +49,7 @@ export default defineConfig({
         collapsed: true,
         items: [
           { text: '写作与类比规范', link: '/00-introduction/analogy-standard' },
+          { text: '章节映射与校验', link: '/00-introduction/chapter-map' },
           { text: '章节十段式模板', link: '/templates/chapter' },
           { text: '双端代码对照模板', link: '/templates/code-comparison' },
           { text: '类比评分与独立审查', link: '/templates/analogy-review' },

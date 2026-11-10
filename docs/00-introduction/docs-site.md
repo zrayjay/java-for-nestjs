@@ -32,13 +32,13 @@ npx --yes pnpm@10.34.9 docs:preview
 
 ## 修改目录
 
-`docs/.vitepress/course.json`是当前索引的数据源，`docs/course/index.md`是生成后纳入仓库的Markdown。修改数据后执行：
+根目录`chapter-map.yml`是唯一数据源；`docs/.vitepress/course.json`和`docs/course/index.md`都是生成后纳入仓库的产物。修改映射后执行：
 
 ```sh
 npx --yes pnpm@10.34.9 docs:prepare
 ```
 
-dev/build也会先生成索引。数据必须顺序包含01~45且编号唯一。原计划仍是课程范围基线；正文路径与测试映射由P0-07的`chapter-map.yml`进一步管理，当前数据不代替它。
+dev/build也会先校验映射并生成索引。数据必须顺序包含01~45且编号唯一，正文路径、状态、先修条件及测试映射均在源文件维护。执行`chapters:check`、`chapters:test`检查结构、链接、版本和阻断用例；构建后执行`docs:links`检查HTML页面与锚点。详见[映射维护指南](chapter-map.md)。
 
 新增真实章节时，更新索引生成方式、侧栏和章节映射，并去掉对应“待编写”标识。不要仅建立空文件后标记章节完成。
 
