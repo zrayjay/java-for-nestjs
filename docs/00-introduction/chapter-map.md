@@ -21,7 +21,7 @@
 | in_review | draft要求，加真实运行验证证据 | 否 |
 | done | in_review要求，加用户接受及独立审查记录 | 是 |
 
-正文frontmatter至少填写`chapter_id: '02'`、`teaching_status: draft`及非占位的`baseline`（例如`Java21 / Spring Boot3.5.16`）。`## 知识点`区域中每个三级标题下完整复制模板的十个四级标题，顺序及名称保持一致；代码围栏里的标题不计数，空段落和`【待填写】`等占位会阻断。
+正文frontmatter至少填写`chapter_id: '02'`、`teaching_status: draft`及非占位的`baseline`（例如`Java21 / Spring Boot3.5.16`）。`## 知识点`区域中每个三级标题采用`ch02-kp01 · 标题`，ID须匹配章节且章内唯一；下面完整复制模板的十个四级标题，顺序及名称保持一致。代码围栏里的标题不计数，空段落和`【待填写】`等占位会阻断。
 
 独立审查记录字段为`path`、`reviewer`、`date`（YYYY-MM-DD）、`independent: true`和`conclusion: approved`。校验器检查字段和证据文件存在，无法认证审查者身份、断言教学正确性或代替用户验收。编写者自评不能作为独立审查。
 

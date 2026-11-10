@@ -63,7 +63,7 @@ CI证据：[运行42603068673](https://github.com/zrayjay/java-for-nestjs/action
 2. 首次verify的测试通过，但打包插件依赖下载失败；重新解析依赖并完成整个verify才计为通过。
 3. Testcontainers容器结束时Redis客户端可能输出重连日志；只在断言及完整退出码成功时记录通过，不删除或隐藏失败输出。
 4. Mockito动态Agent和Maven/JDK25的Unsafe提示属于后续工具链维护事项；当前没有Mock测试，不据此声称Mockito全能力兼容。
-5. 本机Windows的JDK HTTP Client最小程序在脱离Spring后仍报`Unable to establish loopback connection`，根因为UnixDomainSockets连接返回`Invalid argument: connect`。两种JDK均复现；不能归因于Boot或声称Windows已兼容。当前Windows贡献者可使用已验证的Linux容器命令。原生Windows跑通仍是待解决项，不降低原计划的跨平台验收要求。
+5. 本机Windows默认临时目录下，JDK HTTP Client仍因UnixDomainSockets连接返回`Invalid argument: connect`而失败；操作系统侧根因尚未确认。G0复测发现将进程属性`jdk.net.unixdomain.tmpdir`指向本机实测可用的仓库目录后，Java21/25真实HTTP200及响应体断言通过。完整Spring/数据库复测随后因Docker Desktop自己的套接字目录错误阻塞，仍不计作完整Windows兼容通过。命令、范围及独立发现见[G0验收记录](../progress/G0.md)，不得以Linux结果或最小HTTP回归代替该项。
 
 ## Boot4评估边界
 

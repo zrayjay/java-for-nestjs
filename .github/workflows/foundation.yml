@@ -26,6 +26,8 @@ jobs:
           cache: maven
           cache-dependency-path: '**/pom.xml'
       - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
+      - name: Native JDK HTTP loopback regression
+        run: java examples/compatibility-probe/tools/HttpClientProbe.java
       - name: Java style, compile and tests with pinned Wrapper
         shell: pwsh
         run: |
@@ -55,6 +57,8 @@ jobs:
       - run: npx --yes pnpm@10.34.9 format:check
       - run: npx --yes pnpm@10.34.9 js:check
       - run: npx --yes pnpm@10.34.9 deps:audit
+      - run: npx --yes pnpm@10.34.9 chapters:check
+      - run: npx --yes pnpm@10.34.9 chapters:test
 
   services:
     runs-on: ubuntu-24.04

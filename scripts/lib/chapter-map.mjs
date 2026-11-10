@@ -91,8 +91,18 @@ export function chapterStructure(source, chapter) {
     `${chapter.id}: 至少一个真实知识点`,
   )
   assert(points[0]?.level === 3, `${chapter.id}: 知识点必须以三级标题开始`)
+  const pointIds = new Set()
   for (let i = 0; i < points.length; i++) {
     if (points[i].level !== 3) continue
+    const pointId = points[i].title.match(
+      new RegExp(`^(ch${chapter.id}-kp[0-9]{2}) · .+`),
+    )?.[1]
+    assert(
+      pointId,
+      `${chapter.id}: 知识点缺少稳定ID（ch${chapter.id}-kpNN · 标题）`,
+    )
+    assert(!pointIds.has(pointId), `${chapter.id}: 知识点ID重复 ${pointId}`)
+    pointIds.add(pointId)
     let j = i + 1
     while (j < points.length && points[j].level !== 3) j++
     const block = points.slice(i + 1, j)

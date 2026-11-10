@@ -37,6 +37,24 @@ Boot4使用结果只对该探针有效，不代表45章、全部Starter或毕业
 
 ## 排查
 
+先用JDK自身的HTTP服务端/客户端隔离网络问题（仓库根目录）：
+
+```sh
+java examples/compatibility-probe/tools/HttpClientProbe.java
+```
+
+成功时输出`NATIVE_HTTP_OK`及真实JDK版本。它不替代Spring、数据库、安全或事务集成测试。Foundation在Windows/Linux的Java21/25组合运行该回归。
+
+本机Windows若报`Unable to establish loopback connection`，可先验证套接字目录：
+
+```powershell
+java '-Djdk.net.unixdomain.tmpdir=D:\JERRY\java-for-nestjs' examples/compatibility-probe/tools/HttpClientProbe.java
+```
+
+这里是本次实测可用的仓库路径，使用时须换成你本机可写、支持AF_UNIX的目录，不保证所有D盘或路径均适用。此参数只影响当前Java进程，不修改全局配置。实测本机默认C盘临时目录失败，指定上述目录后Java21/25真实HTTP响应通过；这是已验证的路径绕行，操作系统侧原因尚未确认。
+
+完整Maven集成测试需要把同一属性传给fork的测试JVM；在当前PowerShell临时设置`JAVA_TOOL_OPTIONS`，执行后恢复原值，不能只给Maven进程设置`MAVEN_OPTS`。仍须有可用的Linux Docker引擎，禁止跳过失败测试。过程及命令见[G0验收记录](../../docs/progress/G0.md)。
+
 - 缺少Docker或容器引擎不可用：先运行 `docker version`，确认服务端可用且为Linux容器模式；测试不会自动跳过。
 - Maven依赖下载失败：保存错误并确认仓库网络；解决后重试，不把已通过测试等同于完整 `verify` 成功。
 - 在Linux Maven容器中访问Docker Desktop的同级容器时，挂载Docker socket并设置 `TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal`；原生主机运行通常无需该覆盖。
