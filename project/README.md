@@ -1,6 +1,6 @@
 # 毕业项目目录约定
 
-此目录用于 Vue3 管理端与 Spring Boot 模块化单体，当前尚无可运行应用。P6 在前置阶段验收后整合课程成果。
+此目录用于Vue3管理端与Spring Boot模块化单体，当前尚无业务应用。已有`deploy/compose/compose.yaml`提供本地MySQL/Redis，运行方式见[工作区指南](../docs/00-introduction/workspace.md)。P6在前置阶段验收后整合业务成果。
 
 | 后续路径 | 职责 |
 |---|---|

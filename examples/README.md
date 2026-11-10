@@ -1,6 +1,6 @@
 # 独立示例与双端对照
 
-此目录保存教学运行物。当前可运行 [compatibility-probe](compatibility-probe/README.md)，用于技术基线的集成验证。正式课程示例尚未交付；P0-05 初始化工作区，P1 交付四篇样章的代码和验证。
+此目录保存教学运行物。当前可运行[兼容探针](compatibility-probe/README.md)、[Java CLI](java-basics/README.md)、[Spring容器版](spring-boot-examples/README.md)和[Nest对照端](nestjs-reference/README.md)。后三者用于最小工作区验证，P1再交付四篇样章及对应代码。
 
 | 后续路径 | 职责 |
 |---|---|

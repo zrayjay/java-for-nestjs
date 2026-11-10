@@ -18,7 +18,7 @@
 
 已交付仓库基础、兼容矩阵与[兼容集成探针](examples/compatibility-probe/README.md)。P0-03增加VitePress文档站，提供学习指南、45章计划索引、本地搜索与Mermaid图表。正式课程正文与毕业项目尚未交付。
 
-P0-04提供写作与类比规范、十段式章节模板、双端代码模板及评分表。后续任务将交付双端工作区（P0-05）、全仓库 CI（P0-06）及章节映射校验（P0-07）。当前已有兼容探针与文档站各自的窄范围CI。
+P0-04提供写作模板；P0-05提供Maven Wrapper、多模块Java/Nest示例、pnpm工作区和本地MySQL/Redis Compose，见[运行示例工作区](docs/00-introduction/workspace.md)。全仓库CI与章节映射校验由后续P0-06/P0-07交付。
 
 ## 启动文档站
 
