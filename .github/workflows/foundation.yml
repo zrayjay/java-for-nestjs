@@ -37,6 +37,9 @@ jobs:
       - run: npx --yes pnpm@10.34.9 examples:build
       - run: npx --yes pnpm@10.34.9 examples:test
       - run: npx --yes pnpm@10.34.9 examples:verify
+      - name: Resolved Maven model and core bytecode boundary
+        shell: pwsh
+        run: ./scripts/verify-build-model.ps1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -44,6 +47,8 @@ jobs:
           path: |
             examples/**/target/surefire-reports/
             examples/**/target/checkstyle-result.xml
+            examples/java-basics/greeting-core/target/dependency-tree.json
+            examples/java-basics/greeting-core/target/effective-pom.xml
 
   tooling:
     runs-on: ubuntu-24.04

@@ -40,10 +40,10 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 
 | 章节 | 主题 | 核心知识点 | 认知参照 | 状态 |
 |---|---|---|---|---|
-| 13 | pnpm 到 Maven | 仓库、坐标、传递依赖、范围 | package.json / lockfile | 待编写 |
-| 14 | `pom.xml` 深入 | 生命周期、插件、BOM、冲突解决 | pnpm scripts / overrides | 待编写 |
-| 15 | Maven 与 Gradle | Reactor、Gradle 任务图、缓存、选型 | Turbo/Nx 构建编排 | 待编写 |
-| 16 | Java Monorepo | 模块化单体、Maven 多模块、依赖边界 | pnpm Workspace | 待编写 |
+| 13 | [pnpm 到 Maven](../../docs/03-build-tools/13-pnpm-to-maven.md) | 仓库、坐标、传递依赖、范围 | package.json / lockfile | 编写中 |
+| 14 | [`pom.xml` 深入](../../docs/03-build-tools/14-pom-lifecycle.md) | 生命周期、插件、BOM、冲突解决 | pnpm scripts / overrides | 编写中 |
+| 15 | [Maven 与 Gradle](../../docs/03-build-tools/15-maven-and-gradle.md) | Reactor、Gradle 任务图、缓存、选型 | Turbo/Nx 构建编排 | 编写中 |
+| 16 | [Java Monorepo](../../docs/03-build-tools/16-java-monorepo.md) | 模块化单体、Maven 多模块、依赖边界 | pnpm Workspace | 编写中 |
 
 ## Part 04 · NestJS 到 Spring Boot {#part-04}
 

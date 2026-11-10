@@ -449,7 +449,7 @@ chapters:
     part: '03'
     title: pnpm 到 Maven
     path: docs/03-build-tools/13-pnpm-to-maven.md
-    status: planned
+    status: draft
     prerequisites:
       - '04'
     tags:
@@ -457,16 +457,21 @@ chapters:
     topics: 仓库、坐标、传递依赖、范围
     reference: package.json / lockfile
     pilot: false
-    examples: []
-    tests: []
-    noCodeReason: null
-    verification: []
+    examples:
+      - examples/java-basics/BUILD-LAB.md
+      - examples/java-basics/greeting-core/pom.xml
+      - examples/java-basics/greeting-cli/pom.xml
+    tests:
+      - examples/java-basics/greeting-core/src/test/java/dev/javafornestjs/greeting/GreetingPolicyTest.java
+    noCodeReason: 本章复用真实多模块与问候测试，新增构建模型与字节码守卫，Gradle仅规则对照，不制造第二套未验证构建。
+    verification:
+      - docs/progress/P2-03.md
     reviews: []
   - id: '14'
     part: '03'
     title: '`pom.xml` 深入'
     path: docs/03-build-tools/14-pom-lifecycle.md
-    status: planned
+    status: draft
     prerequisites:
       - '13'
     tags:
@@ -474,16 +479,21 @@ chapters:
     topics: 生命周期、插件、BOM、冲突解决
     reference: pnpm scripts / overrides
     pilot: false
-    examples: []
-    tests: []
-    noCodeReason: null
-    verification: []
+    examples:
+      - examples/java-basics/BUILD-LAB.md
+      - examples/java-basics/greeting-core/pom.xml
+      - examples/java-basics/greeting-cli/pom.xml
+    tests:
+      - examples/java-basics/greeting-core/src/test/java/dev/javafornestjs/greeting/GreetingPolicyTest.java
+    noCodeReason: 本章复用真实多模块与问候测试，新增构建模型与字节码守卫，Gradle仅规则对照，不制造第二套未验证构建。
+    verification:
+      - docs/progress/P2-03.md
     reviews: []
   - id: '15'
     part: '03'
     title: Maven 与 Gradle
     path: docs/03-build-tools/15-maven-and-gradle.md
-    status: planned
+    status: draft
     prerequisites:
       - '14'
     tags:
@@ -491,16 +501,21 @@ chapters:
     topics: Reactor、Gradle 任务图、缓存、选型
     reference: Turbo/Nx 构建编排
     pilot: false
-    examples: []
-    tests: []
-    noCodeReason: null
-    verification: []
+    examples:
+      - examples/java-basics/BUILD-LAB.md
+      - examples/java-basics/greeting-core/pom.xml
+      - examples/java-basics/greeting-cli/pom.xml
+    tests:
+      - examples/java-basics/greeting-core/src/test/java/dev/javafornestjs/greeting/GreetingPolicyTest.java
+    noCodeReason: 本章复用真实多模块与问候测试，新增构建模型与字节码守卫，Gradle仅规则对照，不制造第二套未验证构建。
+    verification:
+      - docs/progress/P2-03.md
     reviews: []
   - id: '16'
     part: '03'
     title: Java Monorepo
     path: docs/03-build-tools/16-java-monorepo.md
-    status: planned
+    status: draft
     prerequisites:
       - '14'
     tags:
@@ -508,10 +523,15 @@ chapters:
     topics: 模块化单体、Maven 多模块、依赖边界
     reference: pnpm Workspace
     pilot: false
-    examples: []
-    tests: []
-    noCodeReason: null
-    verification: []
+    examples:
+      - examples/java-basics/BUILD-LAB.md
+      - examples/java-basics/greeting-core/pom.xml
+      - examples/java-basics/greeting-cli/pom.xml
+    tests:
+      - examples/java-basics/greeting-core/src/test/java/dev/javafornestjs/greeting/GreetingPolicyTest.java
+    noCodeReason: 本章复用真实多模块与问候测试，新增构建模型与字节码守卫，Gradle仅规则对照，不制造第二套未验证构建。
+    verification:
+      - docs/progress/P2-03.md
     reviews: []
   - id: '17'
     part: '04'
