@@ -267,7 +267,7 @@
         "topics": "ACID、传播、隔离、代理陷阱、回滚规则",
         "reference": "`$transaction`",
         "pilot": true,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/05-database/27-transactions.md"
       },
       {

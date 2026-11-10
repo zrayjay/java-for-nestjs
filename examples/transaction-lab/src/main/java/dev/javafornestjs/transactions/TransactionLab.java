@@ -44,7 +44,7 @@ public final class TransactionLab {
     public interface InnerActions {
         void requiredFailure();
         void independentCommit();
-        void changeBalance();
+        long changeBalance();
     }
 
     public static final class Service implements Actions {
@@ -110,7 +110,11 @@ public final class TransactionLab {
 
         private ReadPair readTwice() {
             int first = jdbc.queryForObject("SELECT amount FROM tx_lab_balances WHERE id=1", Integer.class);
-            inner.changeBalance();
+            long readerConnection = jdbc.queryForObject("SELECT CONNECTION_ID()", Long.class);
+            long writerConnection = inner.changeBalance();
+            if (readerConnection == writerConnection) {
+                throw new IllegalStateException("Isolation experiment requires distinct connections");
+            }
             int second = jdbc.queryForObject("SELECT amount FROM tx_lab_balances WHERE id=1", Integer.class);
             return new ReadPair(first, second);
         }
@@ -142,7 +146,10 @@ public final class TransactionLab {
 
         @Override
         @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED, timeout = 10)
-        public void changeBalance() { jdbc.update("UPDATE tx_lab_balances SET amount=200 WHERE id=1"); }
+        public long changeBalance() {
+            jdbc.update("UPDATE tx_lab_balances SET amount=200 WHERE id=1");
+            return jdbc.queryForObject("SELECT CONNECTION_ID()", Long.class);
+        }
     }
 
     private static void insert(JdbcTemplate jdbc, String label) {

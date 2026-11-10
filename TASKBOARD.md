@@ -1,6 +1,6 @@
 # Java for NestJS 实施任务清单
 
-依据：[JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md](JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md) v1.1（2026-11-10，文档构建安全修订）。本文件细化执行粒度，原计划仍是唯一范围与验收基线。
+依据：[JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md](JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md) v1.2（2026-11-10，包含安全修订与事务参照稳定基线）。本文件细化执行粒度，原计划仍是唯一范围与验收基线。
 
 共 **73 个实施任务 + 8 个阶段验收任务 = 81 个任务**。覆盖原计划38项、全部45章。拆分时任务初始为 `todo`；实际启动情况见下方执行记录，实时面板状态以 Taskboard 为准。
 
@@ -19,6 +19,7 @@
 | P1-01 | JAV-12 | Codex，本会话 | main | review | [第02章](docs/01-java-runtime/02-runtime-model.md)、[实验验证](docs/progress/P1-01.md)、[独立审查](docs/reviews/P1-01.md) | CI通过，等待用户验收，不计入已完成章节 |
 | P1-02 | JAV-13 | Codex，本会话 | main | review | [第08章](docs/02-java-language/08-generics.md)、[泛型实验](docs/progress/P1-02.md)、[独立审查](docs/reviews/P1-02.md) | CI通过，待用户验收 |
 | P1-03 | JAV-14 | Codex，本会话 | main | review | [第18章](docs/04-spring-boot/18-dependency-injection.md)、[IoC实验](docs/progress/P1-03.md)、[独立审查](docs/reviews/P1-03.md) | 独立审查通过，待CI及用户验收 |
+| P1-04 | JAV-15 | Codex，本会话 | main | in_progress | [第27章初稿](docs/05-database/27-transactions.md)、[真实SQL验证](docs/progress/P1-04.md) | 初版真实MySQL CI通过，待新增连接断言/独立审查 |
 | 文档预览站 | JAV-56 | Codex，本会话 | main | review | [部署CI通过](https://github.com/zrayjay/java-for-nestjs/actions/runs/42765271826)，提交3f495c0；[线上文档](https://zrayjay.github.io/java-for-nestjs/)首页/目录/图表/部署指南及6项JS/CSS资源HTTP200 | 不等同P7全书发布或Release |
 
 JAV-3至JAV-9已全部按用户指令合并main并标记done，任务分支已删除。2026-11-10用户另行授权公开当前仓库并部署建设中的文档站，以JAV-56跟踪，不提前完成P7-05。其余阶段仍待关卡开放。Java原生Windows Web探针缺口未关闭前，不将G0或完整Java跨平台基线标为通过；本次Windows非Web示例及Node文档站的通过结果单独记录。

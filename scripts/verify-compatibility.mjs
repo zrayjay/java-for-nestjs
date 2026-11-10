@@ -33,6 +33,7 @@ export async function verifyCompatibility(root) {
     prismaAdapter: reference.dependencies['@prisma/adapter-mariadb'],
     mariadb: reference.dependencies.mariadb,
     flyway: transactionPom.match(/<flyway.version>([^<]+)</)?.[1],
+    mysql: workflows[2].match(/image:\s+mysql:([\d.]+)/)?.[1],
   }
   for (const [name, value] of Object.entries(actual)) {
     if (!value || b?.[name] !== value)

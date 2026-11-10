@@ -23,5 +23,9 @@
 | 注入令牌 | 按框架规则定位依赖的运行时身份 | 两个同描述Symbol必然相同；TS接口自动成为运行时令牌 | [第18章](../04-spring-boot/18-dependency-injection.md) |
 | BeanPostProcessor | Spring Bean初始化前后等后处理扩展，可返回包装对象 | 完全等价于Nest请求Interceptor | [第18章](../04-spring-boot/18-dependency-injection.md) |
 | 代理自调用边界 | 本例target内部调用未重新经过JDK代理 | 方法没执行；所有织入/代理技术必然同样处理 | [第18章](../04-spring-boot/18-dependency-injection.md) |
+| 事务边界 / transaction client | 实际参与同一提交/回滚的资源范围；Prisma回调显式传tx | 源码出现transaction字样就覆盖所有根client或外部副作用 | [第27章](../05-database/27-transactions.md) |
+| rollback-only | 本例Spring共用事务被标记为最终应回滚的状态 | catch原异常就自动清除该标记 | [第27章](../05-database/27-transactions.md) |
+| REQUIRED / REQUIRES_NEW | Spring加入已有事务或建立独立事务的传播规则 | 与savepoint或Prisma普通函数调用完全等价 | [第27章](../05-database/27-transactions.md) |
+| 一致性读 / 隔离级别 | 在固定引擎、级别和读取类型下分析可见性 | RR下任意查询必然永远读旧值；一次实验覆盖所有幻读 | [第27章](../05-database/27-transactions.md) |
 
 自动链接检查核对路径，概念与类比边界仍需独立技术审查。

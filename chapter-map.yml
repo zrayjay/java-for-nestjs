@@ -13,6 +13,7 @@ baseline:
   prismaAdapter: 7.10.1
   mariadb: 3.5.4
   flyway: 11.20.3
+  mysql: 8.4.7
 parts:
   - id: '01'
     title: 运行时与工具入门
@@ -554,19 +555,30 @@ chapters:
     part: '05'
     title: 事务机制
     path: docs/05-database/27-transactions.md
-    status: planned
+    status: draft
     prerequisites:
       - '22'
       - '25'
     tags:
-      - database
+      - transactions
+      - spring
+      - prisma
+      - mysql
     topics: ACID、传播、隔离、代理陷阱、回滚规则
     reference: '`$transaction`'
     pilot: true
-    examples: []
-    tests: []
+    examples:
+      - examples/transaction-lab/src/main/java/dev/javafornestjs/transactions/TransactionLab.java
+      - examples/transaction-lab/src/main/resources/db/migration/V1__transaction_lab.sql
+      - examples/prisma-reference/src/transactions.ts
+      - examples/prisma-reference/prisma/schema.prisma
+    tests:
+      - examples/transaction-lab/src/test/java/dev/javafornestjs/transactions/TransactionTest.java
+      - examples/prisma-reference/src/transaction.test.ts
+      - examples/prisma-reference/src/connection.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P1-04.md
     reviews: []
   - id: '28'
     part: '05'

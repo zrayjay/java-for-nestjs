@@ -47,9 +47,18 @@ export const readTwice = (isolationLevel: 'ReadCommitted' | 'RepeatableRead') =>
   client.$transaction(
     async (reader) => {
       const first = await reader.balance.findUniqueOrThrow({ where: { id: 1 } })
-      await client.$transaction((writer) =>
-        writer.balance.update({ where: { id: 1 }, data: { amount: 200 } }),
-      )
+      const readerIds = await reader.$queryRaw<
+        { connection_id: string }[]
+      >`SELECT CAST(CONNECTION_ID() AS CHAR) AS connection_id`
+      const writerId = await client.$transaction(async (writer) => {
+        await writer.balance.update({ where: { id: 1 }, data: { amount: 200 } })
+        const ids = await writer.$queryRaw<
+          { connection_id: string }[]
+        >`SELECT CAST(CONNECTION_ID() AS CHAR) AS connection_id`
+        return ids[0].connection_id
+      })
+      if (readerIds[0].connection_id === writerId)
+        throw new Error('Isolation experiment requires distinct connections')
       const second = await reader.balance.findUniqueOrThrow({
         where: { id: 1 },
       })
