@@ -32,7 +32,19 @@ const source = join(
   root,
   'examples/java-basics/runtime-lab/src/main/java/dev/javafornestjs/runtime/MemoryLab.java',
 )
-run('javac', ['--release', '21', '-g', '-d', output, source])
+const initializationSource = join(
+  root,
+  'examples/java-basics/runtime-lab/src/main/java/dev/javafornestjs/runtime/InitializationLab.java',
+)
+run('javac', [
+  '--release',
+  '21',
+  '-g',
+  '-d',
+  output,
+  source,
+  initializationSource,
+])
 const expected =
   'Result[primitive=1, shared=2, sameReference=false, sameText=true]'
 assert.equal(run('java', ['-cp', output, main]).trim(), expected)
@@ -70,6 +82,14 @@ assert.match(
 )
 const moduleDescription = run('java', ['--describe-module', 'java.base'])
 assert.match(moduleDescription, /exports java\.lang(?:\r?\n|$)/)
+assert.equal(
+  run('java', [
+    '-cp',
+    output,
+    'dev.javafornestjs.runtime.InitializationLab',
+  ]).trim(),
+  'INITIALIZATIONS=0,1;VALUES=42,42;TYPE=Lazy',
+)
 console.log(
   'FOUNDATIONS: release21 major65 + debug tables + classpath + executable JAR + 2 expected startup failures + java.base exports verified',
 )

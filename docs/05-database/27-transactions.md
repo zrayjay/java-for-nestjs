@@ -2,7 +2,7 @@
 title: '27 · Spring事务与Prisma $transaction'
 description: 在真实MySQL上验证提交、回滚、代理边界、传播与隔离，明确两端不等价的机制。
 chapter_id: '27'
-teaching_status: in_review
+teaching_status: done
 baseline: Java21 / Temurin21与25 / Boot3.5.16 / Prisma7.10.1 / MySQL8.4.7 / Node22.20.0
 ---
 

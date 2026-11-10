@@ -2,7 +2,7 @@
 title: '02 · Node.js 与 JVM 运行模型'
 description: 用字节码、JIT日志、GC和并发负例，区分两种运行时的机制与边界。
 chapter_id: '02'
-teaching_status: in_review
+teaching_status: done
 baseline: Java21 / HotSpot系JVM21与25 / Node22.20.0 / TypeScript5.9.3
 ---
 

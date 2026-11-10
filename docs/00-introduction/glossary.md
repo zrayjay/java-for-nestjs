@@ -4,6 +4,11 @@
 
 | 术语 | 本教程用法 | 常见误解 | 正文 |
 |---|---|---|---|
+| JDK / JVM / Java SE | 开发工具包、执行class的虚拟机、平台规范/API分别讨论 | Java就是Spring；Node整体只等于JVM | [第01章](../01-java-runtime/01-java-ecosystem.md) |
+| classpath / Module Path | 普通类查找根与命名模块解析路径 | PATH、Java包、Maven模块、JPMS模块是一回事 | [第04章](../01-java-runtime/04-compile-and-run.md) |
+| JAR / Main-Class | 归档及特定启动方式的入口元数据 | 每个JAR都可直接java -jar或带齐所有依赖 | [第04章](../01-java-runtime/04-compile-and-run.md) |
+| 按值传参 / 引用值复制 | 形参复制值；对象字段修改与局部引用重新绑定分开 | Java对象参数按引用传递；赋值自动深拷贝 | [第05章](../01-java-runtime/05-memory-model.md) |
+| 对象身份 / 内容相等 | 引用==看身份，String.equals看内容，其他类型按各自约定 | Java String==等于TS string===；equals一律深比较 | [第05章](../01-java-runtime/05-memory-model.md) |
 | class / 字节码 | JVM格式的指令及元数据；本实验major65 | 等同于CPU机器码或TS输出JS文本 | [第02章](../01-java-runtime/02-runtime-model.md) |
 | JIT | 运行期间编译部分代码的实现策略 | 观察一次编译就证明服务稳态性能 | [第02章](../01-java-runtime/02-runtime-model.md) |
 | 存活集 | 某时刻仍须保留的对象及其占用 | 等于累计分配字节总数 | [第02章](../01-java-runtime/02-runtime-model.md) |

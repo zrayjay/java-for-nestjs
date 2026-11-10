@@ -2,7 +2,7 @@
 title: 05 · 内存与对象模型
 description: 通过固定结果区分值复制、共享修改、对象身份和GC可达性，不把示意图当物理布局。
 chapter_id: '05'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Node22.20.0 / TS5.9.3 / HotSpot系GC实验
 ---
 
@@ -216,7 +216,7 @@ GC不保证及时关闭文件、连接、线程或外部事务。设置null只�
 
 #### 5. 两端代码对照
 
-MemoryLab包含嵌套Box类型；javac产物中有MemoryLab与Box的class，启动主类后observe实际new Box。TS编译产物中包含observeMemory函数，导入模块与调用该函数也是不同动作。当前实验验证产物与返回值，没有用日志断言完整类初始化顺序；关于初始化触发规则以JLS12.4为准，读者练习不计作已执行测试。
+[InitializationLab](../../examples/java-basics/runtime-lab/src/main/java/dev/javafornestjs/runtime/InitializationLab.java)在新进程中先取得Lazy.class，再两次读取非编译期常量Lazy.VALUE。foundations:verify固定断言`INITIALIZATIONS=0,1;VALUES=42,42;TYPE=Lazy`：class字面量后尚未初始化Lazy，第一次主动读取初始化一次，第二次不重做。MemoryLab另实际new Box，区分类初始化与对象创建。TS参照的observeMemory是函数，导入含函数声明的模块与调用该函数也不同；不声称这就是Java初始化规则。完整触发规则仍以JLS12.4为准。
 
 #### 6. 原理与流程图
 
@@ -249,7 +249,7 @@ MemoryLab包含嵌套Box类型；javac产物中有MemoryLab与Box的class，启�
 
 ## 章末验收与审查记录
 
-固定语义用双端测试验证，GC用受控真实进程日志，类初始化规则按官方来源审查而非伪造日志。四点各十段，作者证据与独立评分见[P2-01](../progress/P2-01.md)，当前draft。
+固定语义用双端测试验证，GC用受控真实进程日志，类初始化用独立进程断言字面量/主动读取差异，并按官方来源核对范围。四点各十段，作者证据见[P2-01](../progress/P2-01.md)，分轴评分见[独立审查](../reviews/P2-01.md)，当前in_review。
 
 ## 参考资料与变更
 

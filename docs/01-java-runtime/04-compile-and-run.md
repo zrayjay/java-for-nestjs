@@ -2,7 +2,7 @@
 title: 04 · Java编译和执行
 description: 从源码到class与可执行JAR，理解二进制类名、classpath和Module Path的不同责任。
 chapter_id: '04'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Node22.20.0 / TS5.9.3
 ---
 
@@ -196,7 +196,7 @@ package名不自动下载依赖。JPMS强封装也不是权限沙箱或业务授
 
 ## 章末验收与审查记录
 
-foundations:verify同时验证javac目标、调试信息、classpath、JAR和两个启动负例；模块部分仅观察java.base。独立审查与实测见[P2-01](../progress/P2-01.md)，当前draft。
+foundations:verify同时验证javac目标、调试信息、classpath、JAR和两个启动负例；模块部分仅观察java.base。实测见[P2-01](../progress/P2-01.md)，[独立审查](../reviews/P2-01.md)无剩余阻断，当前in_review。
 
 ## 参考资料与变更
 

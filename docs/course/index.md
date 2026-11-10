@@ -9,7 +9,7 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 45章，9个部分。从运行时差异出发，走向可交付的Java后端。
 
 ::: info 建设状态
-当前已验收 0/45 章。计划索引不计作完成章节。第02、08、18、27章作为首轮试点；先完成样章及独立审查，再扩展其余内容。
+当前已验收 4/45 章。计划索引不计作完成章节。第02、08、18、27章作为首轮试点；先完成样章及独立审查，再扩展其余内容。
 :::
 
 [了解如何学习](../00-introduction/learning-guide.md) · [查看已验证的技术版本](../00-introduction/compatibility-matrix.md)
@@ -18,11 +18,11 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 
 | 章节 | 主题 | 核心知识点 | 认知参照 | 状态 |
 |---|---|---|---|---|
-| 01 | [Java 生态地图](../../docs/01-java-runtime/01-java-ecosystem.md) | JDK/JRE/JVM、Java SE、Spring、Spring Boot | Node、V8、npm、NestJS | 编写中 |
-| 02 | [Node.js 与 JVM 运行模型](../../docs/01-java-runtime/02-runtime-model.md) | 编译、字节码、JIT、GC、事件循环与线程 | V8 / Event Loop | 待独立审查 |
-| 03 | [开发环境与调试](../../docs/01-java-runtime/03-development-environment.md) | JDK 安装、IDEA/VS Code、断点、调试器 | nvm/fnm、VS Code | 编写中 |
-| 04 | [Java 编译和执行](../../docs/01-java-runtime/04-compile-and-run.md) | `javac`、`java`、JAR、Classpath、Module Path | `tsc`、Node ESM/CJS | 编写中 |
-| 05 | [内存与对象模型](../../docs/01-java-runtime/05-memory-model.md) | 堆/栈、引用、GC、类加载初识 | JS GC、对象与引用 | 编写中 |
+| 01 | [Java 生态地图](../../docs/01-java-runtime/01-java-ecosystem.md) | JDK/JRE/JVM、Java SE、Spring、Spring Boot | Node、V8、npm、NestJS | 待独立审查 |
+| 02 | [Node.js 与 JVM 运行模型](../../docs/01-java-runtime/02-runtime-model.md) | 编译、字节码、JIT、GC、事件循环与线程 | V8 / Event Loop | 已验收 |
+| 03 | [开发环境与调试](../../docs/01-java-runtime/03-development-environment.md) | JDK 安装、IDEA/VS Code、断点、调试器 | nvm/fnm、VS Code | 待独立审查 |
+| 04 | [Java 编译和执行](../../docs/01-java-runtime/04-compile-and-run.md) | `javac`、`java`、JAR、Classpath、Module Path | `tsc`、Node ESM/CJS | 待独立审查 |
+| 05 | [内存与对象模型](../../docs/01-java-runtime/05-memory-model.md) | 堆/栈、引用、GC、类加载初识 | JS GC、对象与引用 | 待独立审查 |
 
 ## Part 02 · 现代 Java 语言 {#part-02}
 
@@ -30,7 +30,7 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 |---|---|---|---|---|
 | 06 | 类型系统 | 原始类型、引用类型、装箱、`var`、可空性 | TS 类型系统 | 待编写 |
 | 07 | 类、接口与 record | 封装、继承、多态、抽象类、record、sealed | TS class/interface/type | 待编写 |
-| 08 | [泛型](../../docs/02-java-language/08-generics.md) | 类型擦除、边界、通配符、PECS | TS Generics | 待独立审查 |
+| 08 | [泛型](../../docs/02-java-language/08-generics.md) | 类型擦除、边界、通配符、PECS | TS Generics | 已验收 |
 | 09 | 集合与数据结构 | List/Set/Map、相等性、HashMap | JS Array/Map/Set | 待编写 |
 | 10 | Lambda 与 Stream | 函数式接口、流管道、Optional | JS map/filter/reduce | 待编写 |
 | 11 | 异常与注解 | checked/unchecked、反射、注解 | JS Error、Decorators | 待编写 |
@@ -50,7 +50,7 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 | 章节 | 主题 | 核心知识点 | 认知参照 | 状态 |
 |---|---|---|---|---|
 | 17 | 启动过程与自动配置 | SpringApplication、Starter、Auto Configuration | NestFactory/bootstrap | 待编写 |
-| 18 | [IoC、DI 与 Bean](../../docs/04-spring-boot/18-dependency-injection.md) | 容器、构造器注入、作用域、生命周期 | Providers/Modules | 待独立审查 |
+| 18 | [IoC、DI 与 Bean](../../docs/04-spring-boot/18-dependency-injection.md) | 容器、构造器注入、作用域、生命周期 | Providers/Modules | 已验收 |
 | 19 | Controller / REST API | MVC、路由、参数绑定、响应、异常状态 | Controller/Decorator | 待编写 |
 | 20 | DTO 与参数校验 | Bean Validation、嵌套校验、校验分组 | DTO/Pipes/class-validator | 待编写 |
 | 21 | 请求处理链 | Servlet、Filter、Interceptor、Security Filter | Middleware/Guard/Interceptor | 待编写 |
@@ -64,7 +64,7 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 | 24 | JDBC 与连接池 | Driver、DataSource、HikariCP、连接生命周期 | Prisma 连接池概念 | 待编写 |
 | 25 | MyBatis / MyBatis-Plus | Mapper、Wrapper、XML SQL、分页、N+1 防范 | Prisma Client | 待编写 |
 | 26 | JPA / Hibernate / jOOQ | Entity、Persistence Context、脏检查、类型安全 SQL | Prisma ORM 与查询 API | 待编写 |
-| 27 | [事务机制](../../docs/05-database/27-transactions.md) | ACID、传播、隔离、代理陷阱、回滚规则 | `$transaction` | 待独立审查 |
+| 27 | [事务机制](../../docs/05-database/27-transactions.md) | ACID、传播、隔离、代理陷阱、回滚规则 | `$transaction` | 已验收 |
 | 28 | 数据库工程化 | Flyway、索引、执行计划、慢 SQL、schema 管理 | Prisma Migrate | 待编写 |
 
 ## Part 06 · 安全与企业业务 {#part-06}

@@ -2,7 +2,7 @@
 title: '08 · 泛型：TS类型消失与Java擦除'
 description: 用真实编译器、PECS复制和堆污染反例，认识泛型能保证与不能保证的事。
 chapter_id: '08'
-teaching_status: in_review
+teaching_status: done
 baseline: Java21 / JDK21与25 / TypeScript5.9.3 / Node22.20.0
 ---
 

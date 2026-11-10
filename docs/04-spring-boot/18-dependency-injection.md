@@ -2,7 +2,7 @@
 title: '18 · IoC、DI与Bean'
 description: 用真实Spring和Nest容器验证装配、模块可见性、作用域、生命周期与代理边界。
 chapter_id: '18'
-teaching_status: in_review
+teaching_status: done
 baseline: Java21 / Spring Boot3.5.16管理的Spring / Nest11.2.9 / Node22.20.0
 ---
 

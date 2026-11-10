@@ -9,7 +9,7 @@
         "topics": "JDK/JRE/JVM、Java SE、Spring、Spring Boot",
         "reference": "Node、V8、npm、NestJS",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/01-java-runtime/01-java-ecosystem.md"
       },
       {
@@ -18,7 +18,7 @@
         "topics": "编译、字节码、JIT、GC、事件循环与线程",
         "reference": "V8 / Event Loop",
         "pilot": true,
-        "status": "in_review",
+        "status": "done",
         "path": "docs/01-java-runtime/02-runtime-model.md"
       },
       {
@@ -27,7 +27,7 @@
         "topics": "JDK 安装、IDEA/VS Code、断点、调试器",
         "reference": "nvm/fnm、VS Code",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/01-java-runtime/03-development-environment.md"
       },
       {
@@ -36,7 +36,7 @@
         "topics": "`javac`、`java`、JAR、Classpath、Module Path",
         "reference": "`tsc`、Node ESM/CJS",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/01-java-runtime/04-compile-and-run.md"
       },
       {
@@ -45,7 +45,7 @@
         "topics": "堆/栈、引用、GC、类加载初识",
         "reference": "JS GC、对象与引用",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/01-java-runtime/05-memory-model.md"
       }
     ]
@@ -78,7 +78,7 @@
         "topics": "类型擦除、边界、通配符、PECS",
         "reference": "TS Generics",
         "pilot": true,
-        "status": "in_review",
+        "status": "done",
         "path": "docs/02-java-language/08-generics.md"
       },
       {
@@ -180,7 +180,7 @@
         "topics": "容器、构造器注入、作用域、生命周期",
         "reference": "Providers/Modules",
         "pilot": true,
-        "status": "in_review",
+        "status": "done",
         "path": "docs/04-spring-boot/18-dependency-injection.md"
       },
       {
@@ -267,7 +267,7 @@
         "topics": "ACID、传播、隔离、代理陷阱、回滚规则",
         "reference": "`$transaction`",
         "pilot": true,
-        "status": "in_review",
+        "status": "done",
         "path": "docs/05-database/27-transactions.md"
       },
       {

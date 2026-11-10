@@ -28,3 +28,5 @@ jdb -classpath examples/java-basics/runtime-lab/target/foundations dev.javaforne
 ## 内存与GC
 
 MemoryLab只证明传值、共享对象修改和局部重新绑定的语义，不测对象物理地址/对象布局/回收时刻。可回收分配与GC沿用runtime:verify的受控SerialGC实验，见[运行时实验](README.md)。GC可达性与文件/socket关闭是不同问题，本实验不以null赋值证明资源关闭。
+
+InitializationLab在每次新的Java进程中验证：取得Lazy.class不会初始化Lazy；第一次读取非编译期常量字段时初始化，第二次不重复。固定输出`INITIALIZATIONS=0,1;VALUES=42,42;TYPE=Lazy`由foundations:verify断言。没有测试初始化失败/并发或自定义加载器。

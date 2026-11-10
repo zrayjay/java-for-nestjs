@@ -2,7 +2,7 @@
 title: 03 · 开发环境与调试
 description: 核对完整工具链、在真实断点查看变量，并区分构建、启动和应用失败。
 chapter_id: '03'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Node22.20.0 / pnpm10.34.9 / Maven3.9.11
 ---
 
@@ -40,6 +40,33 @@ Nest项目可能终端Node22、IDE却用另一版本；Java也可能java来自PA
 TS的[package.json](../../examples/nestjs-reference/package.json)与根锁文件固定构建依赖；Java的[根POM](../../pom.xml)声明release21及Boot基线。[verify-foundations.mjs](../../scripts/verify-foundations.mjs)使用JAVA_HOME下同一组java/javac/javap/jar工具，未设置时才使用PATH。
 
 Windows运行`Get-Command java,javac`、`$env:JAVA_HOME`及`.\mvnw.cmd -version`；Linux运行`command -v java`、`command -v javac`及`./mvnw -version`。Node运行`node --version`，pnpm使用固定的`npx --yes pnpm@10.34.9`。记录输出后再构建实验。
+
+尚未安装Java时，先访问[Temurin官方发行页](https://adoptium.net/temurin/releases/?version=21)，选择Java21、操作系统和CPU架构，下载JDK而非JRE。核对发行页提供的校验值后安装或解压到独立目录；Windows可用ZIP免管理员解压，Linux可用对应架构的tar.gz。目录应包含bin/java、bin/javac、bin/javap、bin/jar、bin/jdb；归档通常还有一层版本目录，JAVA_HOME必须指到实际JDK根，不能指ZIP文件或bin本身。下载时补丁版本以官方安全更新为准；课程已运行基线另见兼容矩阵，不伪称本章刚下载或安装了最新补丁。
+
+例如将实际JDK根整理为Windows的`C:\Tools\jdk-21`或Linux的`$HOME/tools/jdk-21`后，在当前终端设置：
+
+```powershell
+$env:JAVA_HOME = 'C:\Tools\jdk-21'
+$env:PATH = (Join-Path $env:JAVA_HOME 'bin') + [IO.Path]::PathSeparator + $env:PATH
+Get-Command java,javac,javap,jar,jdb
+java -version
+javac -version
+.\mvnw.cmd -version
+```
+
+```sh
+export JAVA_HOME="$HOME/tools/jdk-21"
+export PATH="$JAVA_HOME/bin:$PATH"
+command -v java
+command -v javac
+java -version
+javac -version
+./mvnw -version
+```
+
+这些目录是约定示例，先按实际安装根修改；仅影响当前终端及子进程。新终端不会继承旧终端的局部修改，应重设或通过系统的用户环境设置持久化后重新打开终端，再重复版本核对。不要覆盖PATH原有内容，也不需要删除已有JDK。
+
+IDE可选其一：IntelliJ IDEA打开仓库根pom.xml，在Project Structure的SDK处添加同一JDK，核对Maven Runner使用的JRE及运行配置JRE；VS Code安装Java开发支持后打开仓库根，使用`Java: Configure Java Runtime`核对项目JDK，避免只设置语言服务器自己的运行JDK。将MemoryLab作为Java主类运行，在change第一行设断点并Debug；看到变量面板和调用栈后才算IDE调试成功。这里给出设置入口，本次实际验证的是命令行jdb，未声称两种IDE均已操作验证。
 
 #### 6. 原理与流程图
 
@@ -191,7 +218,7 @@ CI区分安装、编译、测试、启动检查，便于定位责任边界。排
 
 ## 章末验收与审查记录
 
-工具链、调试、错误分层三点均需按各自证据判断。自动化范围与手动调试范围分开，见[P2-01](../progress/P2-01.md)。当前draft，独立审查待执行。
+工具链、调试、错误分层三点均需按各自证据判断。自动化范围与手动调试范围分开，见[P2-01](../progress/P2-01.md)。[独立审查](../reviews/P2-01.md)原安装/IDE指引缺口已关闭，当前in_review。
 
 ## 参考资料与变更
 

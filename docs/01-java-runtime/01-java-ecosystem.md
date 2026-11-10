@@ -2,7 +2,7 @@
 title: 01 · Java生态地图
 description: 区分语言规范、运行平台、开发工具和应用框架，找到NestJS经验的迁移边界。
 chapter_id: '01'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Boot3.5.16 / Node22.20.0 / Nest11.2.9
 ---
 
@@ -199,7 +199,7 @@ Maven父POM继承Boot的依赖管理，不会让每个子模块在运行时自�
 
 ## 章末验收与审查记录
 
-三点的自检重点分别是工具/运行环境、规范/实现、构建/容器。真实验证及独立评分见[P2-01记录](../progress/P2-01.md)；当前draft，不用结构完整冒充教学效果通过。
+三点的自检重点分别是工具/运行环境、规范/实现、构建/容器。真实验证见[P2-01记录](../progress/P2-01.md)，分轴评分见[独立审查](../reviews/P2-01.md)；当前in_review，不用结构完整冒充教学效果通过。
 
 ## 参考资料与变更
 
