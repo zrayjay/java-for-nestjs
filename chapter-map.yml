@@ -1,4 +1,3 @@
-# 课程映射唯一数据源。planned允许缺少正文，不计作完成。
 schemaVersion: 1
 baseline:
   java: '21'
@@ -58,18 +57,25 @@ chapters:
     part: '01'
     title: Node.js 与 JVM 运行模型
     path: docs/01-java-runtime/02-runtime-model.md
-    status: planned
+    status: draft
     prerequisites:
       - '01'
     tags:
       - java-runtime
+      - node-runtime
+      - hotspot
     topics: 编译、字节码、JIT、GC、事件循环与线程
     reference: V8 / Event Loop
     pilot: true
-    examples: []
-    tests: []
+    examples:
+      - examples/java-basics/runtime-lab/src/main/java/dev/javafornestjs/runtime/RuntimeLab.java
+      - examples/nestjs-reference/src/runtime/runtime-lab.ts
+    tests:
+      - examples/java-basics/runtime-lab/src/test/java/dev/javafornestjs/runtime/RuntimeLabTest.java
+      - examples/nestjs-reference/src/runtime/runtime-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P1-01.md
     reviews: []
   - id: '03'
     part: '01'

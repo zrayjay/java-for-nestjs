@@ -13,5 +13,6 @@
   <modules>
     <module>greeting-core</module>
     <module>greeting-cli</module>
+    <module>runtime-lab</module>
   </modules>
 </project>
