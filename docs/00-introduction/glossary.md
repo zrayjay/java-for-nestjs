@@ -17,5 +17,11 @@
 | 不变性 | List的元素继承关系不自动变成容器赋值关系 | `List<Integer>`必然可赋给`List<Number>` | [第08章](../02-java-language/08-generics.md) |
 | 通配符 / PECS | 根据生产/消费T的数据流表达Java使用点约束 | extends等于不可变，super读到的总是T | [第08章](../02-java-language/08-generics.md) |
 | raw type / 堆污染 | 绕过泛型检查等路径可能破坏参数化引用的元素承诺 | 泛型正常检查没有价值，或运行时自动拒绝全部错误写入 | [第08章](../02-java-language/08-generics.md) |
+| IoC / DI | 对象创建/协作由外部组合，依赖通过明确声明装配 | 业务方法每次主动查容器就等于构造注入 | [第18章](../04-spring-boot/18-dependency-injection.md) |
+| Bean / Provider | 特定框架容器中的管理定义及其对象 | 一个类文件存在就自动被所有容器管理 | [第18章](../04-spring-boot/18-dependency-injection.md) |
+| singleton / prototype | Spring同一容器/定义共享与按查找等创建的作用域 | 全局唯一；prototype每次业务方法调用自动重注入 | [第18章](../04-spring-boot/18-dependency-injection.md) |
+| 注入令牌 | 按框架规则定位依赖的运行时身份 | 两个同描述Symbol必然相同；TS接口自动成为运行时令牌 | [第18章](../04-spring-boot/18-dependency-injection.md) |
+| BeanPostProcessor | Spring Bean初始化前后等后处理扩展，可返回包装对象 | 完全等价于Nest请求Interceptor | [第18章](../04-spring-boot/18-dependency-injection.md) |
+| 代理自调用边界 | 本例target内部调用未重新经过JDK代理 | 方法没执行；所有织入/代理技术必然同样处理 | [第18章](../04-spring-boot/18-dependency-injection.md) |
 
 自动链接检查核对路径，概念与类比边界仍需独立技术审查。

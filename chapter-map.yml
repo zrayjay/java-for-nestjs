@@ -372,23 +372,27 @@ chapters:
     part: '04'
     title: IoC、DI 与 Bean
     path: docs/04-spring-boot/18-dependency-injection.md
-    status: planned
+    status: draft
     prerequisites:
       - '07'
       - '17'
     tags:
-      - spring-boot
+      - spring-di
+      - nestjs-di
+      - scopes
+      - lifecycle
     topics: 容器、构造器注入、作用域、生命周期
     reference: Providers/Modules
     pilot: true
     examples:
-      - examples/spring-boot-examples/src/main/java/dev/javafornestjs/spring/GreetingService.java
-      - examples/nestjs-reference/src/greeting/greeting.service.ts
+      - examples/spring-boot-examples/src/main/java/dev/javafornestjs/ioc/IocLab.java
+      - examples/nestjs-reference/src/ioc/ioc-lab.ts
     tests:
-      - examples/spring-boot-examples/src/test/java/dev/javafornestjs/spring/GreetingApplicationTest.java
-      - examples/nestjs-reference/src/greeting/greeting.service.test.ts
+      - examples/spring-boot-examples/src/test/java/dev/javafornestjs/ioc/IocLabTest.java
+      - examples/nestjs-reference/src/ioc/ioc-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P1-03.md
     reviews: []
   - id: '19'
     part: '04'
