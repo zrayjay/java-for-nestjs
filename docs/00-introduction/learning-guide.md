@@ -32,4 +32,6 @@
 
 ## 当前可以做什么
 
-当前尚未交付课程正文或站点。可先阅读 [仓库说明](../../README.md)、[贡献指南](../../CONTRIBUTING.md) 和 [任务清单](../../TASKBOARD.md)。环境版本见[兼容矩阵](compatibility-matrix.md)；有Java/Maven/Docker环境的贡献者可以运行[兼容探针](../../examples/compatibility-probe/README.md)。正式课程工作区由P0-05建立。
+文档站已可运行，课程正文尚在建设。可先浏览[45章目录](../course/index.md)、[图表说明](diagrams.md)、[兼容矩阵](compatibility-matrix.md)，有Java/Maven/Docker环境的贡献者可以[运行兼容探针](run-probe.md)。
+
+贡献者可继续阅读[仓库说明](../../README.md)、[贡献指南](../../CONTRIBUTING.md)和[任务清单](../../TASKBOARD.md)。本站运行方式见[文档站指南](docs-site.md)，正式课程工作区由P0-05建立。

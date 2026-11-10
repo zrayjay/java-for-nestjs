@@ -15,11 +15,22 @@
 
 ## 当前可运行内容
 
-已交付 P0-01 仓库基础；P0-02 增加了技术兼容矩阵、选型 ADR 和 [兼容集成探针](examples/compatibility-probe/README.md)。探针可验证真实数据库、缓存、认证、事务与 OpenAPI 的装配，尚未提供正式课程章节、文档站或毕业项目。
+已交付仓库基础、兼容矩阵与[兼容集成探针](examples/compatibility-probe/README.md)。P0-03增加VitePress文档站，提供学习指南、45章计划索引、本地搜索与Mermaid图表。正式课程正文与毕业项目尚未交付。
 
-后续任务将分别交付 VitePress 站点（P0-03）、教学模板（P0-04）、双端工程（P0-05）、全仓库 CI（P0-06）及章节映射校验（P0-07）。P0-02 的窄 CI 仅验证兼容探针。
+后续任务将分别交付教学模板（P0-04）、双端工作区（P0-05）、全仓库 CI（P0-06）及章节映射校验（P0-07）。当前已有兼容探针与文档站各自的窄范围CI。
 
-现阶段可获取仓库并阅读文档：
+## 启动文档站
+
+使用Node22.20.0，在仓库根目录执行：
+
+```sh
+npx --yes pnpm@10.34.9 install --frozen-lockfile
+npx --yes pnpm@10.34.9 docs:dev
+```
+
+开发地址默认为`http://127.0.0.1:5173/`。构建使用`npx --yes pnpm@10.34.9 docs:build`，预览使用`npx --yes pnpm@10.34.9 docs:preview`，默认预览端口4173。详见[文档站运行指南](docs/00-introduction/docs-site.md)。
+
+首次获取仓库：
 
 ```sh
 git clone https://github.com/zrayjay/java-for-nestjs.git
