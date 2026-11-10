@@ -372,7 +372,7 @@ chapters:
     part: '04'
     title: IoC、DI 与 Bean
     path: docs/04-spring-boot/18-dependency-injection.md
-    status: draft
+    status: in_review
     prerequisites:
       - '07'
       - '17'
@@ -393,7 +393,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P1-03.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P1-03.md
+        reviewer: g0_standards_review
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P1-03.md
+        reviewer: g0_spec_review
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '19'
     part: '04'
     title: Controller / REST API

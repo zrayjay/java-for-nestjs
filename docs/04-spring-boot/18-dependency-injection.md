@@ -2,7 +2,7 @@
 title: '18 · IoC、DI与Bean'
 description: 用真实Spring和Nest容器验证装配、模块可见性、作用域、生命周期与代理边界。
 chapter_id: '18'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Spring Boot3.5.16管理的Spring / Nest11.2.9 / Node22.20.0
 ---
 
@@ -252,7 +252,7 @@ flowchart LR
 
 #### 1. 一句话定义
 
-容器可在对象创建前后执行初始化、后处理和销毁流程，返回对象也可能是代理；这些阶段及适用范围不能只按两个框架的Hook名称配对。
+容器在实例化、依赖装配、初始化和销毁等阶段管理对象，后处理还可能返回代理；这些阶段及适用范围不能只按两个框架的Hook名称配对。
 
 #### 2. 为什么需要它
 
@@ -332,12 +332,12 @@ sequenceDiagram
 
 | 知识点 | 运行证据 | 独立审查 |
 |---|---|---|
-| ch18-kp01 | 双端同题装配、Nest缺export及Spring跨容器身份 | 待审 |
-| ch18-kp02 | 构造注入成功、Spring缺依赖刷新失败 | 待审 |
-| ch18-kp03 | prototype/Holder/ObjectProvider及Nest ContextId身份测试 | 待审 |
-| ch18-kp04 | Spring生命周期/真实代理/自调用与Nest单例/request Hook测试 | 待审 |
+| ch18-kp01 | 双端同题装配、Nest缺export及Spring跨容器身份 | 独立评分10，待CI与用户接受 |
+| ch18-kp02 | 构造注入成功、Spring缺依赖刷新失败 | 独立评分10，待CI与用户接受 |
+| ch18-kp03 | prototype/Holder/ObjectProvider及Nest ContextId身份测试 | 独立评分9，待CI与用户接受 |
+| ch18-kp04 | Spring生命周期/真实代理/自调用与Nest单例/request Hook测试 | 独立评分9，待CI与用户接受 |
 
-版本、命令、实际结果及作者逐点自检见[P1-03验证记录](../progress/P1-03.md)。当前初稿不计完成，不把测试小容器通过扩写成完整Web/数据库兼容或G1验收。
+版本、命令、实际结果及作者自检见[P1-03验证记录](../progress/P1-03.md)，独立评分见[审查记录](../reviews/P1-03.md)。当前in_review，不计完成，不把测试小容器通过扩写成完整Web/数据库兼容或G1验收。
 
 ## 参考资料与变更
 

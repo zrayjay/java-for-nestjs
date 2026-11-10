@@ -180,7 +180,7 @@
         "topics": "容器、构造器注入、作用域、生命周期",
         "reference": "Providers/Modules",
         "pilot": true,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/04-spring-boot/18-dependency-injection.md"
       },
       {

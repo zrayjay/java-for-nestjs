@@ -50,7 +50,7 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 | 章节 | 主题 | 核心知识点 | 认知参照 | 状态 |
 |---|---|---|---|---|
 | 17 | 启动过程与自动配置 | SpringApplication、Starter、Auto Configuration | NestFactory/bootstrap | 待编写 |
-| 18 | [IoC、DI 与 Bean](../../docs/04-spring-boot/18-dependency-injection.md) | 容器、构造器注入、作用域、生命周期 | Providers/Modules | 编写中 |
+| 18 | [IoC、DI 与 Bean](../../docs/04-spring-boot/18-dependency-injection.md) | 容器、构造器注入、作用域、生命周期 | Providers/Modules | 待独立审查 |
 | 19 | Controller / REST API | MVC、路由、参数绑定、响应、异常状态 | Controller/Decorator | 待编写 |
 | 20 | DTO 与参数校验 | Bean Validation、嵌套校验、校验分组 | DTO/Pipes/class-validator | 待编写 |
 | 21 | 请求处理链 | Servlet、Filter、Interceptor、Security Filter | Middleware/Guard/Interceptor | 待编写 |
