@@ -62,7 +62,7 @@ public static <T> T identity(T value) {
 
 #### 7. 类比边界与错误直觉
 
-不能推出“运行时没有任何泛型信息”，也不能推出“反射看见某字段是List<String>，就证明外部传来的每个元素都是String”。擦除到最左上界也不总是Object；下一节的Number上界方法反射结果就是Number。JLS4.6及真实反射断言是本节依据。
+不能推出“运行时没有任何泛型信息”，也不能推出“反射看见某字段是`List<String>`，就证明外部传来的每个元素都是String”。擦除到最左上界也不总是Object；下一节的Number上界方法反射结果就是Number。JLS4.6及真实反射断言是本节依据。
 
 #### 8. 企业应用场景与选型
 
@@ -140,7 +140,7 @@ Java测试验证整数2/4得到4；TS验证两个带value对象返回value4的�
 
 #### 7. 类比边界与错误直觉
 
-`T extends Number`不表示List<T>自动能赋给List<Number>；容器的赋值关系是另一个问题。`Comparable<? super T>`也不是“任意两个Number都能混比”；T仍要满足同一次调用的推断约束。基本类型`List<int>`在Java21不合法，自动装箱解决值的转换，不取消引用类型实参限制。
+`T extends Number`不表示`List<T>`自动能赋给`List<Number>`；容器的赋值关系是另一个问题。`Comparable<? super T>`也不是“任意两个Number都能混比”；T仍要满足同一次调用的推断约束。基本类型`List<int>`在Java21不合法，自动装箱解决值的转换，不取消引用类型实参限制。
 
 #### 8. 企业应用场景与选型
 
@@ -174,7 +174,7 @@ Java普通泛型容器不因元素继承而自动协变；`? extends T`适合从
 
 #### 2. 为什么需要它
 
-若List<Integer>能直接当成List<Number>，接收方就可能写入Double，破坏原列表的元素承诺。通配符让“只需要安全读取/写入某种值”的API表达得更准确，而不是用强制转换压掉错误。
+若`List<Integer>`能直接当成`List<Number>`，接收方就可能写入Double，破坏原列表的元素承诺。通配符让“只需要安全读取/写入某种值”的API表达得更准确，而不是用强制转换压掉错误。
 
 #### 3. 生活类比
 
@@ -208,7 +208,7 @@ public static <T> void copyValues(List<? extends T> source, List<? super T> dest
 }
 ```
 
-Java运行测试将List<Integer>复制到List<Number>及List<Object>，均得到[1,2]；TS同题目标得到[1,2]。JavaCompiler另拒绝不变List直接赋值及向extends生产方添加任意Integer；TS测试如实展示自己的可变数组规则，没有假称两者都拒绝相同赋值。
+Java运行测试将`List<Integer>`复制到`List<Number>`及`List<Object>`，均得到[1,2]；TS同题目标得到[1,2]。JavaCompiler另拒绝不变List直接赋值及向extends生产方添加任意Integer；TS测试如实展示自己的可变数组规则，没有假称两者都拒绝相同赋值。
 
 #### 6. 原理与流程图
 
@@ -232,7 +232,7 @@ flowchart LR
 
 | 触发 | 现象 | 根因 | 修复与回归 |
 |---|---|---|---|
-| 将List<Integer>直接赋给List<Number> | javac拒绝 | 不变性保护写入契约 | 用适合数据流的extends参数或复制，不做未检查转换 |
+| 将`List<Integer>`直接赋给`List<Number>` | javac拒绝 | 不变性保护写入契约 | 用适合数据流的extends参数或复制，不做未检查转换 |
 | 在extends源中add(Integer) | javac拒绝 | 实际捕获子类型未知 | 修改API职责或写入已知消费者；真实编译负例验证 |
 
 #### 10. 实操练习与验收
