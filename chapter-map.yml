@@ -57,7 +57,7 @@ chapters:
     part: '01'
     title: Node.js 与 JVM 运行模型
     path: docs/01-java-runtime/02-runtime-model.md
-    status: draft
+    status: in_review
     prerequisites:
       - '01'
     tags:
@@ -76,7 +76,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P1-01.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P1-01.md
+        reviewer: g0_standards_review
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P1-01.md
+        reviewer: g0_spec_review
+        date: 2026-11-10
+        independent: true
+        conclusion: approved
   - id: '03'
     part: '01'
     title: 开发环境与调试

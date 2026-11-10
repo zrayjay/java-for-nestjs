@@ -19,7 +19,7 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 | 章节 | 主题 | 核心知识点 | 认知参照 | 状态 |
 |---|---|---|---|---|
 | 01 | Java 生态地图 | JDK/JRE/JVM、Java SE、Spring、Spring Boot | Node、V8、npm、NestJS | 待编写 |
-| 02 | [Node.js 与 JVM 运行模型](../../docs/01-java-runtime/02-runtime-model.md) | 编译、字节码、JIT、GC、事件循环与线程 | V8 / Event Loop | 编写中 |
+| 02 | [Node.js 与 JVM 运行模型](../../docs/01-java-runtime/02-runtime-model.md) | 编译、字节码、JIT、GC、事件循环与线程 | V8 / Event Loop | 待独立审查 |
 | 03 | 开发环境与调试 | JDK 安装、IDEA/VS Code、断点、调试器 | nvm/fnm、VS Code | 待编写 |
 | 04 | Java 编译和执行 | `javac`、`java`、JAR、Classpath、Module Path | `tsc`、Node ESM/CJS | 待编写 |
 | 05 | 内存与对象模型 | 堆/栈、引用、GC、类加载初识 | JS GC、对象与引用 | 待编写 |

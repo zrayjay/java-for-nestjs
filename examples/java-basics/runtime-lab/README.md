@@ -1,6 +1,6 @@
 # 第02章运行时实验
 
-工作目录均为仓库根。Java语言级别21，实测Microsoft21.0.13.0.2/JBR25.0.4.1；CI使用Temurin21/25。JIT/GC参数针对HotSpot系JVM，不声称适用于所有JVM。
+工作目录均为仓库根。Java语言级别21，本机完整实验已验证Microsoft21.0.13.0.2；JBR25缺javap未完成本章完整验收，Java25完整工具链结果以Temurin25 CI为准。JIT/GC参数针对HotSpot系JVM，不声称适用于所有JVM。
 
 ```sh
 ./mvnw --batch-mode --no-transfer-progress -pl examples/java-basics/runtime-lab -am verify

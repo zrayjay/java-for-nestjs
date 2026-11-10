@@ -18,6 +18,7 @@ const source = await loadMap(root)
 const fresh = () => {
   const map = structuredClone(source)
   for (const c of map.chapters) {
+    c.status = 'planned'
     c.examples = []
     c.tests = []
     c.verification = []

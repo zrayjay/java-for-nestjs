@@ -18,7 +18,7 @@
         "topics": "编译、字节码、JIT、GC、事件循环与线程",
         "reference": "V8 / Event Loop",
         "pilot": true,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/01-java-runtime/02-runtime-model.md"
       },
       {
