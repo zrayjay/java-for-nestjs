@@ -47,17 +47,22 @@ chapters:
     part: '01'
     title: Java 生态地图
     path: docs/01-java-runtime/01-java-ecosystem.md
-    status: planned
+    status: draft
     prerequisites: []
     tags:
       - java-runtime
     topics: JDK/JRE/JVM、Java SE、Spring、Spring Boot
     reference: Node、V8、npm、NestJS
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/java-basics/runtime-lab/src/main/java/dev/javafornestjs/runtime/MemoryLab.java
+      - examples/nestjs-reference/src/runtime/memory-lab.ts
+    tests:
+      - examples/java-basics/runtime-lab/src/test/java/dev/javafornestjs/runtime/MemoryLabTest.java
+      - examples/nestjs-reference/src/runtime/memory-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P2-01.md
     reviews: []
   - id: '02'
     part: '01'
@@ -97,7 +102,7 @@ chapters:
     part: '01'
     title: 开发环境与调试
     path: docs/01-java-runtime/03-development-environment.md
-    status: planned
+    status: draft
     prerequisites:
       - '01'
     tags:
@@ -105,16 +110,21 @@ chapters:
     topics: JDK 安装、IDEA/VS Code、断点、调试器
     reference: nvm/fnm、VS Code
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/java-basics/runtime-lab/src/main/java/dev/javafornestjs/runtime/MemoryLab.java
+      - examples/nestjs-reference/src/runtime/memory-lab.ts
+    tests:
+      - examples/java-basics/runtime-lab/src/test/java/dev/javafornestjs/runtime/MemoryLabTest.java
+      - examples/nestjs-reference/src/runtime/memory-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P2-01.md
     reviews: []
   - id: '04'
     part: '01'
     title: Java 编译和执行
     path: docs/01-java-runtime/04-compile-and-run.md
-    status: planned
+    status: draft
     prerequisites:
       - '03'
     tags:
@@ -122,16 +132,21 @@ chapters:
     topics: '`javac`、`java`、JAR、Classpath、Module Path'
     reference: '`tsc`、Node ESM/CJS'
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/java-basics/runtime-lab/src/main/java/dev/javafornestjs/runtime/MemoryLab.java
+      - examples/nestjs-reference/src/runtime/memory-lab.ts
+    tests:
+      - examples/java-basics/runtime-lab/src/test/java/dev/javafornestjs/runtime/MemoryLabTest.java
+      - examples/nestjs-reference/src/runtime/memory-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P2-01.md
     reviews: []
   - id: '05'
     part: '01'
     title: 内存与对象模型
     path: docs/01-java-runtime/05-memory-model.md
-    status: planned
+    status: draft
     prerequisites:
       - '04'
     tags:
@@ -139,10 +154,15 @@ chapters:
     topics: 堆/栈、引用、GC、类加载初识
     reference: JS GC、对象与引用
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/java-basics/runtime-lab/src/main/java/dev/javafornestjs/runtime/MemoryLab.java
+      - examples/nestjs-reference/src/runtime/memory-lab.ts
+    tests:
+      - examples/java-basics/runtime-lab/src/test/java/dev/javafornestjs/runtime/MemoryLabTest.java
+      - examples/nestjs-reference/src/runtime/memory-lab.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P2-01.md
     reviews: []
   - id: '06'
     part: '02'
