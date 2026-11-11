@@ -2,7 +2,7 @@
 title: '25 · MyBatis / MyBatis-Plus'
 description: 用真实Mapper SQL、参数化Wrapper、分页与查询计数理解数据映射边界。
 chapter_id: '25'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Spring Boot3.5.16 / MyBatis-Plus3.5.18 / Prisma7.10.1
 ---
 
@@ -158,4 +158,6 @@ Java真实计数4→1，Prisma真实SELECT4→2，两个优化版本必须保留
 
 ## 章末验收与审查记录
 
-上述Mapper、分页、N+1双端SQL已在Linux21/25的MySQL8.4.7通过，见[记录](../progress/P3-02.md)。本章draft，独立审查待完成。官方参考：[MyBatis Mapper XML](https://mybatis.org/mybatis-3/sqlmap-xml.html)、[MyBatis-Plus分页](https://baomidou.com/en/plugins/pagination/)、[Wrapper](https://baomidou.com/en/guides/wrapper/)、[Prisma查询优化](https://www.prisma.io/docs/orm/prisma-client/queries/query-optimization-performance)。
+真实MySQL8.4.7、Linux Temurin21/25每组11Java项（8数据、1Schema生成、2URL守卫）与3Node项通过，受控计划及精确故障诊断增补亦通过。两轴独立审查无剩余阻断，当前in_review，未自动用户验收，详见[实施证据](../progress/P3-02.md)和[审查归档](../reviews/P3-02.md)。本机不冒充SQL执行，生产安全/容量/读者效果仍不在当前通过范围。
+
+官方参考：[MyBatis Mapper XML](https://mybatis.org/mybatis-3/sqlmap-xml.html)、[MyBatis-Plus分页](https://baomidou.com/en/plugins/pagination/)、[Wrapper](https://baomidou.com/en/guides/wrapper/)、[Prisma查询优化](https://www.prisma.io/docs/orm/prisma-client/queries/query-optimization-performance)。

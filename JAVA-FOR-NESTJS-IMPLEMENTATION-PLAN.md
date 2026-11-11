@@ -3,8 +3,8 @@
 > 文档性质：可执行的课程建设与工程落地计划（不是教程正文）  
 > 适用读者：已有 Node.js、TypeScript、NestJS 经验的前端/全栈/后端开发者  
 > 适用执行者：维护者、技术作者、Claude Code / Codex / OpenCode 等开发 Agent  
-> 版本：v1.5 · 2026-11-11  
-> 状态：待实施
+> 版本：v1.6 · 2026-11-11  
+> 状态：实施中，P3技术准入通过
 
 ---
 
@@ -423,10 +423,12 @@ java-for-nestjs-developers/
 
 双端HTTP参照固定版本及隔离边界见[ADR-0006](docs/adr/0006-http-reference-runtime.md)，继续Boot3.5.16/Nest11主线，不因npm最新Swagger要求Nest12而隐式升级。
 
-- [ ] P3-01 完成 17~23，建立 Controller → Service → Mapper 的主路径。
-- [ ] P3-02 完成 24~28，接入 MySQL、Flyway 和 ORM。
-- [ ] P3-03 演示与验证：Bean 缺失、循环依赖、事务自调用、异常回滚、连接池耗尽等典型场景。
-- [ ] P3-04 NestJS 对照端提供同名资源和匹配 API 行为。
+- [x] P3-01 完成 17~23，建立 Controller → Service → Mapper 的主路径。
+- [x] P3-02 完成 24~28，接入 MySQL、Flyway 和 ORM。
+- [x] P3-03 演示与验证：Bean 缺失、循环依赖、事务自调用、异常回滚、连接池耗尽等典型场景。
+- [x] P3-04 NestJS 对照端提供同名资源和匹配 API 行为。
+
+技术准入与证据见[G3](docs/progress/G3.md)；数据运行时见[ADR-0007](docs/adr/0007-data-access-runtime.md)。勾选代表实现/技术检查闭环，不自动接受in_review章节或替代P7真实读者反馈。
 
 **验收**：两端 API 契约一致；事务和校验负例覆盖；能讲清 Filter、AOP、事务代理与数据库连接边界。
 

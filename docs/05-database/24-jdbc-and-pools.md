@@ -2,7 +2,7 @@
 title: '24 · JDBC与连接池'
 description: 区分驱动、DataSource、物理连接和逻辑借用，真实验证耗尽与释放。
 chapter_id: '24'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Spring Boot3.5.16 / MySQL8.4.7 / Prisma7.10.1
 ---
 
@@ -166,4 +166,6 @@ DataAccessTest嵌套try-with-resources运行SELECT1；DataConfiguration的Bean�
 
 ## 章末验收与审查记录
 
-Java11项（含2项URL守卫）及Node3项已通过Linux21/25，含新增池关闭负例，见[证据](../progress/P3-02.md)。本章draft，独立审查待完成。官方参考：[JDBC基础](https://docs.oracle.com/javase/tutorial/jdbc/basics/)、[HikariCP参数](https://github.com/brettwooldridge/HikariCP#configuration-knobs-baby)、[Prisma连接管理](https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-management)。
+真实MySQL8.4.7、Linux Temurin21/25每组11Java项（8数据、1Schema生成、2URL守卫）与3Node项通过，受控计划及精确故障诊断增补亦通过。两轴独立审查无剩余阻断，当前in_review，未自动用户验收，详见[实施证据](../progress/P3-02.md)和[审查归档](../reviews/P3-02.md)。本机不冒充SQL执行，生产安全/容量/读者效果仍不在当前通过范围。
+
+官方参考：[JDBC基础](https://docs.oracle.com/javase/tutorial/jdbc/basics/)、[HikariCP参数](https://github.com/brettwooldridge/HikariCP#configuration-knobs-baby)、[Prisma连接管理](https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-management)。

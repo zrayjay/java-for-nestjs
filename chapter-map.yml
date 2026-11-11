@@ -833,7 +833,7 @@ chapters:
     part: '05'
     title: JDBC 与连接池
     path: docs/05-database/24-jdbc-and-pools.md
-    status: draft
+    status: in_review
     prerequisites:
       - '14'
       - '18'
@@ -852,12 +852,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P3-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P3-02.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P3-02.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
   - id: '25'
     part: '05'
     title: MyBatis / MyBatis-Plus
     path: docs/05-database/25-mybatis.md
-    status: draft
+    status: in_review
     prerequisites:
       - '24'
     tags:
@@ -875,12 +885,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P3-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P3-02.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P3-02.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
   - id: '26'
     part: '05'
     title: JPA / Hibernate / jOOQ
     path: docs/05-database/26-persistence-alternatives.md
-    status: draft
+    status: in_review
     prerequisites:
       - '24'
     tags:
@@ -898,7 +918,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P3-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P3-02.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P3-02.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
   - id: '27'
     part: '05'
     title: 事务机制
@@ -943,7 +973,7 @@ chapters:
     part: '05'
     title: 数据库工程化
     path: docs/05-database/28-database-engineering.md
-    status: draft
+    status: in_review
     prerequisites:
       - '24'
       - '27'
@@ -962,7 +992,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P3-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P3-02.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P3-02.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
   - id: '29'
     part: '06'
     title: Spring Security

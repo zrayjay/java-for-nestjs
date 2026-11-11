@@ -2,7 +2,7 @@
 title: '26 · JPA / Hibernate / jOOQ'
 description: 真实验证托管实体、脏检查与生成Schema查询类型，比较而不混用持久化模型。
 chapter_id: '26'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Spring Boot3.5.16 / Hibernate6.6.53.Final / jOOQ3.19.35 / Prisma7.10.1
 ---
 
@@ -159,4 +159,6 @@ SQL复杂且希望保留组合表达与类型提示时可评估jOOQ。生成步�
 
 ## 章末验收与审查记录
 
-JPA状态和jOOQ实际生成/编译/执行已通过MySQL8.4.7、Linux Temurin21/25，见[实施记录](../progress/P3-02.md)。本章draft，独立审查待完成。官方参考：[Jakarta Persistence3.1](https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1)、[Hibernate6.6指南](https://docs.jboss.org/hibernate/orm/6.6/userguide/html_single/Hibernate_User_Guide.html)、[jOOQ代码生成](https://www.jooq.org/doc/3.19/manual/code-generation/)、[Prisma Client生成](https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/generating-prisma-client)。
+真实MySQL8.4.7、Linux Temurin21/25每组11Java项（8数据、1Schema生成、2URL守卫）与3Node项通过，受控计划及精确故障诊断增补亦通过。两轴独立审查无剩余阻断，当前in_review，未自动用户验收，详见[实施证据](../progress/P3-02.md)和[审查归档](../reviews/P3-02.md)。本机不冒充SQL执行，生产安全/容量/读者效果仍不在当前通过范围。
+
+官方参考：[Jakarta Persistence3.1](https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1)、[Hibernate6.6指南](https://docs.jboss.org/hibernate/orm/6.6/userguide/html_single/Hibernate_User_Guide.html)、[jOOQ代码生成](https://www.jooq.org/doc/3.19/manual/code-generation/)、[Prisma Client生成](https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/generating-prisma-client)。

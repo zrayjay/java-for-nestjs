@@ -240,7 +240,7 @@
         "topics": "Driver、DataSource、HikariCP、连接生命周期",
         "reference": "Prisma 连接池概念",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/05-database/24-jdbc-and-pools.md"
       },
       {
@@ -249,7 +249,7 @@
         "topics": "Mapper、Wrapper、XML SQL、分页、N+1 防范",
         "reference": "Prisma Client",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/05-database/25-mybatis.md"
       },
       {
@@ -258,7 +258,7 @@
         "topics": "Entity、Persistence Context、脏检查、类型安全 SQL",
         "reference": "Prisma ORM 与查询 API",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/05-database/26-persistence-alternatives.md"
       },
       {
@@ -276,7 +276,7 @@
         "topics": "Flyway、索引、执行计划、慢 SQL、schema 管理",
         "reference": "Prisma Migrate",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/05-database/28-database-engineering.md"
       }
     ]

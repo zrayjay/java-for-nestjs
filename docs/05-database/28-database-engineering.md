@@ -2,7 +2,7 @@
 title: '28 · 数据库工程化'
 description: 以Flyway单一迁移、真实索引计划和可追溯SQL排障建立工程边界。
 chapter_id: '28'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Spring Boot3.5.16 / Flyway11.20.3 / MySQL8.4.7 / Prisma7.10.1
 ---
 
@@ -157,4 +157,6 @@ Java N+1真实4→1，Node批量4→2；池耗尽测试表明即使没发出第�
 
 ## 章末验收与审查记录
 
-迁移幂等、真实索引候选、双端SQL流程及checksum负例已过Linux21/25，见[记录](../progress/P3-02.md)。本章draft，独立审查待完成。官方参考：[Flyway验证](https://documentation.red-gate.com/flyway/reference/commands/validate)、[MySQL EXPLAIN](https://dev.mysql.com/doc/refman/8.4/en/explain.html)、[慢查询日志](https://dev.mysql.com/doc/refman/8.4/en/slow-query-log.html)、[Prisma Migrate概览](https://www.prisma.io/docs/orm/prisma-migrate)。
+真实MySQL8.4.7、Linux Temurin21/25每组11Java项（8数据、1Schema生成、2URL守卫）与3Node项通过，受控计划及精确故障诊断增补亦通过。两轴独立审查无剩余阻断，当前in_review，未自动用户验收，详见[实施证据](../progress/P3-02.md)和[审查归档](../reviews/P3-02.md)。本机不冒充SQL执行，生产安全/容量/读者效果仍不在当前通过范围。
+
+官方参考：[Flyway验证](https://documentation.red-gate.com/flyway/reference/commands/validate)、[MySQL EXPLAIN](https://dev.mysql.com/doc/refman/8.4/en/explain.html)、[慢查询日志](https://dev.mysql.com/doc/refman/8.4/en/slow-query-log.html)、[Prisma Migrate概览](https://www.prisma.io/docs/orm/prisma-migrate)。
