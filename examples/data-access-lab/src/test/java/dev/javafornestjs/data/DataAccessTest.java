@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.CoreErrorCode;
 import org.flywaydb.core.api.exception.FlywayValidateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -192,6 +193,13 @@ class DataAccessTest {
         }
         var changed = Flyway.configure().dataSource(source).locations("filesystem:" + directory.toAbsolutePath())
                 .table("data_schema_history").cleanDisabled(true).load();
+        var result = changed.validateWithResult();
+        assertFalse(result.validationSuccessful);
+        assertEquals(1, result.invalidMigrations.size());
+        var invalid = result.invalidMigrations.getFirst();
+        assertEquals("1", invalid.version);
+        assertEquals(CoreErrorCode.CHECKSUM_MISMATCH, invalid.errorDetails.errorCode);
+        assertTrue(invalid.filepath.endsWith("V1__tasks.sql"));
         assertThrows(FlywayValidateException.class, changed::validate);
         migration.validate();
     }
