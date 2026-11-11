@@ -16,6 +16,21 @@ test('actual Nest container rejects a missing dependency', async () => {
     }).compile(),
     /can't resolve dependencies/i,
   )
+  const repaired = await Test.createTestingModule({
+    providers: [
+      { provide: 'missing-port', useValue: {} },
+      {
+        provide: 'consumer',
+        useFactory: (port: unknown) => ({ port }),
+        inject: ['missing-port'],
+      },
+    ],
+  }).compile()
+  try {
+    assert.equal(repaired.get('consumer').port, repaired.get('missing-port'))
+  } finally {
+    await repaired.close()
+  }
 })
 
 test('actual Nest container rejects a circular pair of factory providers', async () => {
@@ -36,4 +51,24 @@ test('actual Nest container rejects a circular pair of factory providers', async
     }).compile(),
     /circular dependency/i,
   )
+  const repaired = await Test.createTestingModule({
+    providers: [
+      { provide: 'shared-port', useValue: {} },
+      {
+        provide: 'first',
+        useFactory: (port: unknown) => ({ port }),
+        inject: ['shared-port'],
+      },
+      {
+        provide: 'second',
+        useFactory: (port: unknown) => ({ port }),
+        inject: ['shared-port'],
+      },
+    ],
+  }).compile()
+  try {
+    assert.equal(repaired.get('first').port, repaired.get('second').port)
+  } finally {
+    await repaired.close()
+  }
 })

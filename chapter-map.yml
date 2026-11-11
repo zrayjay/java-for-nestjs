@@ -833,7 +833,7 @@ chapters:
     part: '05'
     title: JDBC 与连接池
     path: docs/05-database/24-jdbc-and-pools.md
-    status: planned
+    status: draft
     prerequisites:
       - '14'
       - '18'
@@ -842,16 +842,22 @@ chapters:
     topics: Driver、DataSource、HikariCP、连接生命周期
     reference: Prisma 连接池概念
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/data-access-lab/src/main/java/dev/javafornestjs/data/DataConfiguration.java
+      - examples/nestjs-data-reference/src/tasks.ts
+    tests:
+      - examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java
+      - examples/data-access-lab/src/test/java/dev/javafornestjs/data/GeneratedSchemaTest.java
+      - examples/nestjs-data-reference/src/tasks.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P3-02.md
     reviews: []
   - id: '25'
     part: '05'
     title: MyBatis / MyBatis-Plus
     path: docs/05-database/25-mybatis.md
-    status: planned
+    status: draft
     prerequisites:
       - '24'
     tags:
@@ -859,16 +865,22 @@ chapters:
     topics: Mapper、Wrapper、XML SQL、分页、N+1 防范
     reference: Prisma Client
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/data-access-lab/src/main/java/dev/javafornestjs/data/DataConfiguration.java
+      - examples/nestjs-data-reference/src/tasks.ts
+    tests:
+      - examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java
+      - examples/data-access-lab/src/test/java/dev/javafornestjs/data/GeneratedSchemaTest.java
+      - examples/nestjs-data-reference/src/tasks.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P3-02.md
     reviews: []
   - id: '26'
     part: '05'
     title: JPA / Hibernate / jOOQ
     path: docs/05-database/26-persistence-alternatives.md
-    status: planned
+    status: draft
     prerequisites:
       - '24'
     tags:
@@ -876,10 +888,16 @@ chapters:
     topics: Entity、Persistence Context、脏检查、类型安全 SQL
     reference: Prisma ORM 与查询 API
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/data-access-lab/src/main/java/dev/javafornestjs/data/DataConfiguration.java
+      - examples/nestjs-data-reference/src/tasks.ts
+    tests:
+      - examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java
+      - examples/data-access-lab/src/test/java/dev/javafornestjs/data/GeneratedSchemaTest.java
+      - examples/nestjs-data-reference/src/tasks.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P3-02.md
     reviews: []
   - id: '27'
     part: '05'
@@ -925,7 +943,7 @@ chapters:
     part: '05'
     title: 数据库工程化
     path: docs/05-database/28-database-engineering.md
-    status: planned
+    status: draft
     prerequisites:
       - '24'
       - '27'
@@ -934,10 +952,16 @@ chapters:
     topics: Flyway、索引、执行计划、慢 SQL、schema 管理
     reference: Prisma Migrate
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/data-access-lab/src/main/java/dev/javafornestjs/data/DataConfiguration.java
+      - examples/nestjs-data-reference/src/tasks.ts
+    tests:
+      - examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java
+      - examples/data-access-lab/src/test/java/dev/javafornestjs/data/GeneratedSchemaTest.java
+      - examples/nestjs-data-reference/src/tasks.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P3-02.md
     reviews: []
   - id: '29'
     part: '06'

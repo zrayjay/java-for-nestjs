@@ -21,6 +21,8 @@
     "runtime:verify": "node scripts/verify-runtime-lab.mjs",
     "transactions:build": "pnpm --filter @java-for-nestjs/prisma-reference build",
     "transactions:test": "pnpm --filter @java-for-nestjs/prisma-reference test",
+    "data:build": "pnpm --filter @java-for-nestjs/nestjs-data-reference... build",
+    "data:test": "pnpm --filter @java-for-nestjs/nestjs-data-reference test",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
     "deps:audit": "pnpm audit --audit-level high",
