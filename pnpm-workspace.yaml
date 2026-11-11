@@ -1,3 +1,4 @@
 packages:
   - examples/nestjs-reference
   - examples/prisma-reference
+  - examples/nestjs-data-reference

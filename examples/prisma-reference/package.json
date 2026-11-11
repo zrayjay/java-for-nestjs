@@ -2,6 +2,12 @@
   "name": "@java-for-nestjs/prisma-reference",
   "private": true,
   "type": "module",
+  "exports": {
+    "./data-client": {
+      "types": "./dist/data-client.d.ts",
+      "import": "./dist/data-client.js"
+    }
+  },
   "scripts": {
     "generate": "prisma generate",
     "build": "pnpm generate && tsc -p tsconfig.json",

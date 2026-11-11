@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "commonjs",
+  "exports": {
+    "./api": {
+      "types": "./dist/api/api.d.ts",
+      "default": "./dist/api/api.js"
+    }
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "node --test dist/**/*.test.js",

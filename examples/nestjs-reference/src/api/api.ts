@@ -75,7 +75,7 @@ export class ValidationProbe {
   @Matches(titlePattern, { groups: ['publish'] })
   title!: string
 }
-interface Task {
+export interface Task {
   id: number
   title: string
   details: { priority: number }
@@ -88,7 +88,15 @@ function positive(raw: string, maximum = 2147483647): number {
   return value
 }
 @Injectable()
-export class TaskRepository {
+export abstract class TaskStorage {
+  abstract list(limit: number): Task[] | Promise<Task[]>
+  abstract find(id: number): Task | Promise<Task>
+  abstract create(input: TaskWrite): Task | Promise<Task>
+  abstract replace(id: number, input: TaskWrite): Task | Promise<Task>
+  abstract delete(id: number): void | Promise<void>
+}
+@Injectable()
+export class TaskRepository extends TaskStorage {
   private readonly items = new Map<number, Task>()
   private nextId = 0
   list(limit: number): Task[] {
@@ -126,21 +134,21 @@ export class TaskRepository {
 }
 @Injectable()
 export class TaskService {
-  constructor(private readonly repository: TaskRepository) {}
-  list(limit: string): Task[] {
+  constructor(private readonly repository: TaskStorage) {}
+  async list(limit: string): Promise<Task[]> {
     return this.repository.list(positive(limit, 100))
   }
-  find(id: string): Task {
+  async find(id: string): Promise<Task> {
     return this.repository.find(positive(id))
   }
-  create(input: TaskWrite): Task {
+  async create(input: TaskWrite): Promise<Task> {
     return this.repository.create(input)
   }
-  replace(id: string, input: TaskWrite): Task {
+  async replace(id: string, input: TaskWrite): Promise<Task> {
     return this.repository.replace(positive(id), input)
   }
-  delete(id: string): void {
-    this.repository.delete(positive(id))
+  async delete(id: string): Promise<void> {
+    await this.repository.delete(positive(id))
   }
 }
 interface LocationResponse {
@@ -153,31 +161,34 @@ class TasksController {
     private readonly trace: RequestTrace,
   ) {}
   @Get()
-  list(@Query('limit') limit = '20', @Req() request: TraceRequest): Task[] {
+  list(
+    @Query('limit') limit = '20',
+    @Req() request: TraceRequest,
+  ): Promise<Task[]> {
     this.trace.add(request, 'controller')
     return this.service.list(limit)
   }
   @Get(':id')
-  find(@Param('id') id: string): Task {
+  find(@Param('id') id: string): Promise<Task> {
     return this.service.find(id)
   }
   @Post()
-  create(
+  async create(
     @Body() input: TaskWrite,
     @Res({ passthrough: true }) response: LocationResponse,
-  ): Task {
-    const task = this.service.create(input)
+  ): Promise<Task> {
+    const task = await this.service.create(input)
     response.setHeader('Location', `/tasks/${task.id}`)
     return task
   }
   @Put(':id')
-  replace(@Param('id') id: string, @Body() input: TaskWrite): Task {
+  replace(@Param('id') id: string, @Body() input: TaskWrite): Promise<Task> {
     return this.service.replace(id, input)
   }
   @Delete(':id')
   @HttpCode(204)
-  delete(@Param('id') id: string): void {
-    this.service.delete(id)
+  delete(@Param('id') id: string): Promise<void> {
+    return this.service.delete(id)
   }
 }
 @Controller()
@@ -237,6 +248,7 @@ class ApiErrors implements ExceptionFilter {
     },
     LifecycleProbe,
     TaskRepository,
+    { provide: TaskStorage, useExisting: TaskRepository },
     TaskService,
     RequestTrace,
     { provide: APP_GUARD, useClass: TraceGuard },
@@ -245,8 +257,14 @@ class ApiErrors implements ExceptionFilter {
   ],
 })
 class ApiModule {}
-export async function createApi(port = 0) {
-  const app = await NestFactory.create(ApiModule, {
+export async function createApi(port = 0, storage?: TaskStorage) {
+  const module = storage
+    ? {
+        module: ApiModule,
+        providers: [{ provide: TaskStorage, useValue: storage }],
+      }
+    : ApiModule
+  const app = await NestFactory.create(module, {
     logger: false,
     rawBody: true,
   })

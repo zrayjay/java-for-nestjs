@@ -15,6 +15,23 @@ model Entry {
   @@map("tx_lab_entries")
 }
 
+model DataTask {
+  id       Int    @id @default(autoincrement())
+  title    String @db.VarChar(80)
+  priority Int    @db.TinyInt
+  ownerId  Int    @default(1) @map("owner_id")
+  owner    DataOwner @relation(fields: [ownerId], references: [id])
+  @@index([title, id], map: "ix_data_tasks_title")
+  @@map("data_tasks")
+}
+
+model DataOwner {
+  id    Int @id
+  name  String @db.VarChar(40)
+  tasks DataTask[]
+  @@map("data_owners")
+}
+
 model Balance {
   id     Int @id
   amount Int

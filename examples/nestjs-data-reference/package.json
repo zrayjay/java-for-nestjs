@@ -1,0 +1,19 @@
+{
+  "name": "@java-for-nestjs/nestjs-data-reference",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test dist/*.test.js"
+  },
+  "dependencies": {
+    "@java-for-nestjs/nestjs-reference": "workspace:*",
+    "@java-for-nestjs/prisma-reference": "workspace:*",
+    "@nestjs/common": "11.2.9"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "22.19.3"
+  }
+}
