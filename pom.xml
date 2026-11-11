@@ -19,6 +19,7 @@
   <modules>
     <module>examples/java-basics</module>
     <module>examples/spring-boot-examples</module>
+    <module>examples/spring-web-lab</module>
   </modules>
   <build>
     <plugins>

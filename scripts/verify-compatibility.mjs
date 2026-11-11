@@ -11,6 +11,14 @@ export async function verifyCompatibility(root) {
     await read('examples/prisma-reference/package.json'),
   )
   const transactionPom = await read('examples/transaction-lab/pom.xml')
+  const nest = JSON.parse(
+    await read('examples/nestjs-reference/package.json'),
+  ).dependencies
+  if (
+    nest['@nestjs/platform-express'] !== nest['@nestjs/core'] ||
+    nest['@nestjs/common'] !== nest['@nestjs/core']
+  )
+    throw new Error('Nest平台/core/common版本漂移')
   const pom = await read('pom.xml')
   const properties = await read('.mvn/wrapper/maven-wrapper.properties')
   const matrix = await read('docs/00-introduction/compatibility-matrix.md')
@@ -20,6 +28,10 @@ export async function verifyCompatibility(root) {
     ),
   )
   const actual = {
+    nest: nest['@nestjs/core'],
+    nestSwagger: nest['@nestjs/swagger'],
+    classValidator: nest['class-validator'],
+    classTransformer: nest['class-transformer'],
     java: pom.match(/<java.version>([^<]+)</)?.[1],
     springBoot: pom.match(/<parent>[\s\S]*?<version>([^<]+)</)?.[1],
     node: workflows[0].match(/node-version: ([\d.]+)/)?.[1],

@@ -1,0 +1,14 @@
+server:
+  address: 127.0.0.1
+  port: 8085
+lab:
+  label: lesson
+  storage: memory
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+springdoc:
+  api-docs:
+    path: /openapi.json

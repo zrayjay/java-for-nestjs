@@ -38,6 +38,8 @@ VitePress1文档的Node下限与VitePress2文档不同，应查阅[稳定版安�
 
 ## 官方兼容声明
 
+P3 HTTP参照（2026-11-11）：Nest common/core/platform-express固定11.2.9，Swagger11.4.8，class-validator0.15.1及class-transformer0.5.1，见[ADR-0006](../adr/0006-http-reference-runtime.md)。Windows/Microsoft JDK21的Spring Web新增13项测试通过；Nest真实环回HTTP测试通过；两个独立打包进程的共同HTTP契约通过。它们使用内存仓库，尚不代表数据库、JWT或RBAC验证。
+
 第27章新增独立参照（[ADR-0003](../adr/0003-transaction-reference-runtime.md)）：Prisma CLI / Client / @prisma/adapter-mariadb均固定7.10.1，JS驱动mariadb3.5.4，数据库MySQL8.4.7。Node22.20.0满足^22.12约束。Flyway11.20.3独占表结构迁移，不同时用Prisma Migrate。[事务CI 42777751014](https://github.com/zrayjay/java-for-nestjs/actions/runs/42777751014)在Linux Temurin21/25各通过Java9项及Prisma7项真实SQL测试和2项连接守卫；本机仅编译/生成/守卫通过，不冒充本机数据库验证。后续增补断言以[P1-04记录](../progress/P1-04.md)为准。
 
 - [Boot3.5系统要求](https://docs.spring.io/spring-boot/3.5/system-requirements.html)：该版本线支持本课程选择的Java21/25，构建工具满足其最低要求。

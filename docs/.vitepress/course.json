@@ -171,7 +171,7 @@
         "topics": "SpringApplication、Starter、Auto Configuration",
         "reference": "NestFactory/bootstrap",
         "pilot": false,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/04-spring-boot/17-startup-and-autoconfiguration.md"
       },
       {
@@ -189,7 +189,7 @@
         "topics": "MVC、路由、参数绑定、响应、异常状态",
         "reference": "Controller/Decorator",
         "pilot": false,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/04-spring-boot/19-rest-api.md"
       },
       {
@@ -198,7 +198,7 @@
         "topics": "Bean Validation、嵌套校验、校验分组",
         "reference": "DTO/Pipes/class-validator",
         "pilot": false,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/04-spring-boot/20-dto-validation.md"
       },
       {
@@ -207,7 +207,7 @@
         "topics": "Servlet、Filter、Interceptor、Security Filter",
         "reference": "Middleware/Guard/Interceptor",
         "pilot": false,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/04-spring-boot/21-request-pipeline.md"
       },
       {
@@ -216,7 +216,7 @@
         "topics": "JDK/CGLIB 代理、自调用、Advice、ControllerAdvice",
         "reference": "Interceptor/ExceptionFilter",
         "pilot": false,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/04-spring-boot/22-aop-and-exceptions.md"
       },
       {
@@ -225,7 +225,7 @@
         "topics": "Profiles、Properties、Configuration、Actuator",
         "reference": "ConfigModule/Lifecycle Hooks",
         "pilot": false,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/04-spring-boot/23-configuration-and-lifecycle.md"
       }
     ]

@@ -222,6 +222,7 @@ test('version drift is blocked against actual package/POM/wrapper/CI sources', a
     '.github/workflows/foundation.yml',
     '.github/workflows/transactions.yml',
     'examples/prisma-reference/package.json',
+    'examples/nestjs-reference/package.json',
     'examples/transaction-lab/pom.xml',
   ]
   for (const path of paths) {

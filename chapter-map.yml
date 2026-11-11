@@ -15,6 +15,10 @@ baseline:
   mariadb: 3.5.4
   flyway: 11.20.3
   mysql: 8.4.7
+  nest: 11.2.9
+  nestSwagger: 11.4.8
+  classValidator: 0.15.1
+  classTransformer: 0.5.1
 parts:
   - id: '01'
     title: 运行时与工具入门
@@ -581,7 +585,7 @@ chapters:
     part: '04'
     title: 启动过程与自动配置
     path: docs/04-spring-boot/17-startup-and-autoconfiguration.md
-    status: planned
+    status: draft
     prerequisites:
       - '07'
       - '11'
@@ -591,10 +595,17 @@ chapters:
     topics: SpringApplication、Starter、Auto Configuration
     reference: NestFactory/bootstrap
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/spring-web-lab/src/main/java/dev/javafornestjs/web/ApiApplication.java
+      - examples/nestjs-reference/src/api/api.ts
+    tests:
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/WebApiTest.java
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/BootModelTest.java
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/ProxyModelTest.java
+      - examples/nestjs-reference/src/api/api.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P3-01.md
     reviews: []
   - id: '18'
     part: '04'
@@ -636,7 +647,7 @@ chapters:
     part: '04'
     title: Controller / REST API
     path: docs/04-spring-boot/19-rest-api.md
-    status: planned
+    status: draft
     prerequisites:
       - '18'
     tags:
@@ -644,16 +655,23 @@ chapters:
     topics: MVC、路由、参数绑定、响应、异常状态
     reference: Controller/Decorator
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/spring-web-lab/src/main/java/dev/javafornestjs/web/ApiApplication.java
+      - examples/nestjs-reference/src/api/api.ts
+    tests:
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/WebApiTest.java
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/BootModelTest.java
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/ProxyModelTest.java
+      - examples/nestjs-reference/src/api/api.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P3-01.md
     reviews: []
   - id: '20'
     part: '04'
     title: DTO 与参数校验
     path: docs/04-spring-boot/20-dto-validation.md
-    status: planned
+    status: draft
     prerequisites:
       - '19'
     tags:
@@ -661,16 +679,23 @@ chapters:
     topics: Bean Validation、嵌套校验、校验分组
     reference: DTO/Pipes/class-validator
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/spring-web-lab/src/main/java/dev/javafornestjs/web/ApiApplication.java
+      - examples/nestjs-reference/src/api/api.ts
+    tests:
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/WebApiTest.java
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/BootModelTest.java
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/ProxyModelTest.java
+      - examples/nestjs-reference/src/api/api.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P3-01.md
     reviews: []
   - id: '21'
     part: '04'
     title: 请求处理链
     path: docs/04-spring-boot/21-request-pipeline.md
-    status: planned
+    status: draft
     prerequisites:
       - '19'
       - '20'
@@ -679,16 +704,23 @@ chapters:
     topics: Servlet、Filter、Interceptor、Security Filter
     reference: Middleware/Guard/Interceptor
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/spring-web-lab/src/main/java/dev/javafornestjs/web/ApiApplication.java
+      - examples/nestjs-reference/src/api/api.ts
+    tests:
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/WebApiTest.java
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/BootModelTest.java
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/ProxyModelTest.java
+      - examples/nestjs-reference/src/api/api.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P3-01.md
     reviews: []
   - id: '22'
     part: '04'
     title: AOP、代理与异常
     path: docs/04-spring-boot/22-aop-and-exceptions.md
-    status: planned
+    status: draft
     prerequisites:
       - '11'
       - '18'
@@ -698,16 +730,23 @@ chapters:
     topics: JDK/CGLIB 代理、自调用、Advice、ControllerAdvice
     reference: Interceptor/ExceptionFilter
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/spring-web-lab/src/main/java/dev/javafornestjs/web/ApiApplication.java
+      - examples/nestjs-reference/src/api/api.ts
+    tests:
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/WebApiTest.java
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/BootModelTest.java
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/ProxyModelTest.java
+      - examples/nestjs-reference/src/api/api.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P3-01.md
     reviews: []
   - id: '23'
     part: '04'
     title: 配置与生命周期
     path: docs/04-spring-boot/23-configuration-and-lifecycle.md
-    status: planned
+    status: draft
     prerequisites:
       - '17'
       - '18'
@@ -716,10 +755,17 @@ chapters:
     topics: Profiles、Properties、Configuration、Actuator
     reference: ConfigModule/Lifecycle Hooks
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/spring-web-lab/src/main/java/dev/javafornestjs/web/ApiApplication.java
+      - examples/nestjs-reference/src/api/api.ts
+    tests:
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/WebApiTest.java
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/BootModelTest.java
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/ProxyModelTest.java
+      - examples/nestjs-reference/src/api/api.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P3-01.md
     reviews: []
   - id: '24'
     part: '05'
