@@ -1,0 +1,7 @@
+lab:
+  storage: mysql
+spring:
+  flyway:
+    enabled: false
+mybatis-plus:
+  mapper-locations: classpath*:mapper/data/*.xml

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dev.javafornestjs.data.TaskMapper">
+  <select id="listLimited" resultType="dev.javafornestjs.data.TaskRow">
+    SELECT id,title,priority,owner_id FROM data_tasks ORDER BY id LIMIT #{limit}
+  </select>
+  <select id="ownerName" resultType="string">
+    SELECT name FROM data_owners WHERE id=#{id}
+  </select>
+  <select id="joinedOwners" resultType="dev.javafornestjs.data.TaskMapper$OwnedTask">
+    SELECT t.id,t.title,o.name AS owner FROM data_tasks t
+    JOIN data_owners o ON o.id=t.owner_id ORDER BY t.id
+  </select>
+</mapper>

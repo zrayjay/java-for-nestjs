@@ -1,0 +1,66 @@
+name: Data access teaching labs
+
+on:
+  push:
+    paths:
+      - 'examples/data-access-lab/**'
+      - 'examples/spring-web-lab/**'
+      - 'pom.xml'
+      - 'config/checkstyle.xml'
+      - '.github/workflows/data-access.yml'
+  pull_request:
+    paths:
+      - 'examples/data-access-lab/**'
+      - 'examples/spring-web-lab/**'
+      - 'pom.xml'
+      - 'config/checkstyle.xml'
+      - '.github/workflows/data-access.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mysql:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ['21', '25']
+    services:
+      mysql:
+        image: mysql:8.4.7
+        env:
+          MYSQL_DATABASE: data_lab
+          MYSQL_USER: lab
+          MYSQL_PASSWORD: lab-only-password
+          MYSQL_ROOT_PASSWORD: root-lab-only-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h127.0.0.1 -proot-lab-only-password"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    env:
+      DATA_JDBC_URL: jdbc:mysql://127.0.0.1:3306/data_lab?allowPublicKeyRetrieval=true&useSSL=false
+      DATA_DATABASE_USER: lab
+      DATA_DATABASE_PASSWORD: lab-only-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+          cache-dependency-path: '**/pom.xml'
+      - name: Install reusable HTTP module artifacts
+        run: ./mvnw --batch-mode --no-transfer-progress -pl examples/spring-web-lab -am install -DskipTests
+      - name: Real MySQL Mapper, pool, JPA, generated jOOQ and migration tests
+        run: ./mvnw --batch-mode --no-transfer-progress -f examples/data-access-lab/pom.xml clean verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: data-results-java-${{ matrix.java }}
+          path: |
+            examples/data-access-lab/target/surefire-reports/
+            examples/data-access-lab/target/checkstyle-result.xml
