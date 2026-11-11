@@ -133,7 +133,7 @@ Spring RestControllerAdvice配ExceptionHandler可对照Nest Catch/ExceptionFilte
 
 #### 5. 两端代码对照
 
-Java ApiErrors把绑定/校验/非法参数转400、MissingTask转404、未支持方法转405、其他异常转500。Nest Filter读取HttpException状态并生成稳定code；当前未支持方法默认走404。共同契约只断言双方明确实现的400/404/500码，不声称405完全一致。
+Java ApiErrors把绑定/校验/非法参数转400、MissingTask转404、未支持方法转405、其他异常转500。Nest Filter读取HttpException状态并生成稳定code；当前未支持方法默认走404。打包共同契约断言400/404；两端各自真实HTTP测试另外在测试环境替换仓库写入行为，注入意外异常并断言500和仅含internal_error的响应体。没有为生产入口添加故障路由，也不声称405完全一致。
 
 #### 6. 原理与流程图
 
@@ -159,7 +159,7 @@ Nest请求处理异常 → ExceptionFilter → 受控JSON
 
 #### 10. 实操练习与验收
 
-发送非法JSON得到400且仅code，删除后读取得到404。对照两端未支持方法默认差异。新增一个意外异常故障路由时必须只在测试配置中启用，验证500不泄漏堆栈；本章当前未把该故障路由列为已执行证据。
+发送非法JSON得到400且仅code，删除后读取得到404。对照两端未支持方法默认差异。运行WebApiTest的仓库Spy故障测试和Nest独立故障测试，要求500不泄漏注入的private-database-detail；该替换只存在测试实例，正常打包运行不提供故障入口。
 
 ## 章末验收与审查记录
 

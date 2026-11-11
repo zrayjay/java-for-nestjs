@@ -40,7 +40,7 @@ Java PriorityRequest采用BigDecimal，范围1~5，再用AssertTrue检查stripTr
 {"title":"Learn Java","details":{"priority":1.0}}
 ```
 
-它是合法输入；将1.0换成`"1"`或1.5则非法。完整类及配置均在本章开头源码链接中，不应只复制约束而漏掉JSON策略。
+它是合法输入；将1.0换成`"1"`或1.5则非法。JavaScript会把1.0000000000000001舍入为1，单靠IsInt会与Java精确十进制验证产生差异，因此Nest另用[原始输入边界](../../examples/nestjs-reference/src/api/input-boundary.ts)读取Node22.20的JSON.parse reviver context.source，按数字token的系数与指数检查其精确值是否为1~5整数。原始body由Nest rawBody选项保留，在DTO转换前检查；1.0000000000000001与0.99999999999999999均应400，10e-1则合法。完整类及配置均在源码链接中，不应只复制约束而漏掉转换前检查。这是本例小整数契约的专用检查，不是通用金额或任意精度JSON库。
 
 #### 6. 原理与流程图
 
@@ -83,7 +83,7 @@ DTO不是权限规则，也不是数据库唯一约束。输入格式合法但�
 
 #### 4. Node.js / TypeScript / NestJS 技术对照
 
-Java父字段使用NotNull配合Valid递归验证。Nest用IsObject、ValidateNested和Type把子对象转成可识别DTO，再遍历约束。Nest whitelist与forbidNonWhitelisted配合拒绝未知字段；Spring本例显式开启Jackson FAIL_ON_UNKNOWN_PROPERTIES，而不是把这一行为说成所有Spring默认值。
+Java父字段使用NotNull配合Valid递归验证。Nest用IsObject、ValidateNested和Type把子对象转成可识别DTO，再遍历约束。Nest whitelist与forbidNonWhitelisted负责DTO层的字段规则；class-transformer可能在它们之前移除constructor或__proto__等保留键，因此原始JSON边界还会在转换前检查各层允许键，避免把“先丢弃再成功”误称为拒绝。Spring本例显式开启Jackson FAIL_ON_UNKNOWN_PROPERTIES，而不是把这一行为说成所有Spring默认值。
 
 #### 5. 两端代码对照
 

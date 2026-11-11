@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { createApi } from './api.js'
+import { createApi, TaskRepository } from './api.js'
 import { RequestTrace } from './trace.js'
+import { isPriorityToken } from './input-boundary.js'
 import { LifecycleProbe, readConfiguration } from './configuration.js'
 
 test('real HTTP CRUD, strict nested validation, groups and OpenAPI', async () => {
@@ -53,6 +54,10 @@ test('real HTTP CRUD, strict nested validation, groups and OpenAPI', async () =>
     assert.deepEqual(await missing.json(), { code: 'not_found' })
     for (const body of [
       '{}',
+      '{"title":"Learn","details":{"priority":1.0000000000000001}}',
+      '{"title":"Learn","details":{"priority":0.99999999999999999}}',
+      '{"title":"Learn","details":{"priority":1},"constructor":{}}',
+      '{"title":"Learn","details":{"priority":1},"__proto__":{}}',
       '{"title":"Learn\\n","details":{"priority":1}}',
       '{',
       '{"title":17,"details":{"priority":1}}',
@@ -68,6 +73,7 @@ test('real HTTP CRUD, strict nested validation, groups and OpenAPI', async () =>
       assert.deepEqual(await result.json(), { code: 'invalid_request' })
     }
     for (const invalid of [
+      '/tasks?limit=',
       '/tasks/0',
       '/tasks/01',
       '/tasks/2147483648',
@@ -105,4 +111,49 @@ test('typed configuration rejects blank values before serving requests', () => {
     'test-profile',
   )
   assert.throws(() => readConfiguration({ LAB_LABEL: ' ' }), /nonblank/)
+})
+
+test('unexpected repository failure returns sanitized 500 over real HTTP', async () => {
+  const app = await createApi()
+  try {
+    const repository = app.get(TaskRepository)
+    repository.create = () => {
+      throw new Error('private-database-detail')
+    }
+    const response = await fetch((await app.getUrl()) + '/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{"title":"Crash","details":{"priority":1}}',
+    })
+    assert.equal(response.status, 500)
+    assert.deepEqual(await response.json(), { code: 'internal_error' })
+  } finally {
+    await app.close()
+  }
+})
+
+test('original JSON numeric tokens retain exact decimal integer semantics', () => {
+  for (const value of [
+    '1',
+    '1.0',
+    '1e0',
+    '10e-1',
+    '0.100e1',
+    '5.000',
+    '500e-2',
+  ])
+    assert.equal(isPriorityToken(value), true, value)
+  for (const value of [
+    '0',
+    '-1',
+    '6',
+    '1.0000000000000001',
+    '0.99999999999999999',
+    '1e999999',
+    '1e-999999',
+    '1.5',
+    'NaN',
+    'Infinity',
+  ])
+    assert.equal(isPriorityToken(value), false, value)
 })

@@ -1,4 +1,5 @@
 import 'reflect-metadata'
+import { InputBoundary } from './input-boundary.js'
 import {
   LAB_CONFIGURATION,
   LifecycleProbe,
@@ -47,7 +48,7 @@ import {
   ValidateNested,
 } from 'class-validator'
 
-// Unlike $, this end assertion also rejects a final line terminator.
+// Explicit absolute end assertion; no characters may follow the title.
 const titlePattern = /^[A-Za-z][A-Za-z0-9 _-]{0,79}(?![\s\S])/
 export class TaskDetails {
   @ApiProperty({ minimum: 1, maximum: 5 })
@@ -239,12 +240,16 @@ class ApiErrors implements ExceptionFilter {
     TaskService,
     RequestTrace,
     { provide: APP_GUARD, useClass: TraceGuard },
+    { provide: APP_GUARD, useClass: InputBoundary },
     { provide: APP_INTERCEPTOR, useClass: TraceInterceptor },
   ],
 })
 class ApiModule {}
 export async function createApi(port = 0) {
-  const app = await NestFactory.create(ApiModule, { logger: false })
+  const app = await NestFactory.create(ApiModule, {
+    logger: false,
+    rawBody: true,
+  })
   const trace = app.get(RequestTrace)
   app.use(
     (request: TraceRequest, response: TraceResponse, next: () => void) => {

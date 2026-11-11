@@ -24,6 +24,6 @@ Spring默认8085；Nest默认8086（用PORT环境变量覆盖）。两端均有/
 
 Java WebApiTest验证真实随机端口HTTP、MockMvc、请求链、profile及Actuator；BootModelTest验证条件装配、用户Bean退让、非法配置启动失败及显式关闭；ProxyModelTest用真实JDK/CGLIB代理验证自调用边界。Nest api.test通过真实HTTP及app.close验证契约和生命周期。
 
-请求链是教学范围的观测：Spring Filter/Security Filter/MVC Interceptor，Nest Middleware/Guard/Interceptor；两端不保证所有异常、异步流、重分发的事件顺序相同。跟踪最多保留100条，不是生产可观测性系统。
+请求链是教学范围的观测：Spring Filter/Security Filter/MVC Interceptor，Nest Middleware/Guard/Interceptor；两端不保证所有异常、异步流、重分发的事件顺序相同。跟踪最多保留100条，不是生产可观测性系统。Nest还在转换前用rawBody与Node22.20的JSON.parse源token检查精确整数、原始允许键，防止高精度小数舍入或保留键提前丢弃造成契约差异；不要只复制DTO而漏掉InputBoundary。空limit显式拒绝，只有未提供limit才使用20。
 
 共同契约不包括所有框架默认行为：未支持方法Spring通常405，Nest默认404。Nest显式类型配置Provider用于对照，不声称已执行ConfigModule。安全链permitAll、无JWT/RBAC；Actuator仅公开health/info。后续章节单独验证数据库及权限。

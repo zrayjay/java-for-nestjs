@@ -103,6 +103,11 @@ for (const program of programs) {
     })
     for (const body of [
       '{}',
+      '{"title":"Learn","details":{"priority":1.0000000000000001}}',
+      '{"title":"Learn","details":{"priority":0.99999999999999999}}',
+      '{"title":"Learn","details":{"priority":1},"constructor":{}}',
+      '{"title":"Learn","details":{"priority":1,"constructor":{}}}',
+      '{"title":"Learn","details":{"priority":1},"__proto__":{}}',
       '{"title":"Learn\\n","details":{"priority":1}}',
       '{',
       '{"title":"Learn","details":{"priority":"1"}}',
@@ -115,6 +120,7 @@ for (const program of programs) {
       assert.deepEqual(await invalid.json(), { code: 'invalid_request' })
     }
     for (const path of [
+      '/tasks?limit=',
       '/tasks/01',
       '/tasks/2147483648',
       '/tasks?limit=101',
@@ -126,6 +132,27 @@ for (const program of programs) {
       (await request('/validation/draft', 'POST', '{"title":""}')).status,
       204,
     )
+    assert.equal(
+      (
+        await request(
+          '/validation/draft',
+          'POST',
+          '{"title":"","constructor":{}}',
+        )
+      ).status,
+      400,
+    )
+    for (const priority of ['1.0', '10e-1', '0.100e1', '5.000']) {
+      const valid = await request(
+        '/tasks',
+        'POST',
+        `{"title":"Token","details":{"priority":${priority}}}`,
+      )
+      assert.equal(valid.status, 201, priority)
+      const saved = await valid.json()
+      assert.equal(saved.details.priority, priority === '5.000' ? 5 : 1)
+      assert.equal((await request(`/tasks/${saved.id}`, 'DELETE')).status, 204)
+    }
     assert.equal(
       (await request('/validation/publish', 'POST', '{"title":""}')).status,
       400,

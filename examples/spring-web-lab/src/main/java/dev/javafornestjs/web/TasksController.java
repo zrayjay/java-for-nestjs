@@ -39,9 +39,10 @@ public class TasksController {
         return Integer.parseInt(value);
     }
     @GetMapping
-    public List<Tasks.TaskView> list(@RequestParam(name = "limit", defaultValue = "20") String limit,
+    public List<Tasks.TaskView> list(@RequestParam(name = "limit", required = false) String limit,
                                      HttpServletRequest request) {
         traces.add(request, "controller");
+        if (limit == null) { limit = "20"; }
         if (!limit.matches("[1-9][0-9]{0,2}")) { throw new IllegalArgumentException("Invalid limit"); }
         return service.list(Integer.parseInt(limit)).stream().map(Tasks.TaskView::from).toList();
     }

@@ -3,6 +3,7 @@ package dev.javafornestjs.web;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -22,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(classes = ApiApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -31,7 +33,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class WebApiTest {
     @LocalServerPort int port;
     @Autowired TestRestTemplate http;
-    @Autowired InMemoryTasks repository;
+    @MockitoSpyBean InMemoryTasks repository;
     @Autowired RequestTrace traces;
     @Autowired MockMvc mvc;
 
@@ -68,6 +70,16 @@ class WebApiTest {
         var missing = http.getForEntity(url("/tasks/" + id), JsonNode.class);
         assertEquals(HttpStatus.NOT_FOUND, missing.getStatusCode());
         assertEquals("not_found", missing.getBody().path("code").asText());
+    }
+
+    @Test
+    void unexpectedRepositoryFailureIsSanitizedOnRealHttp() {
+        doThrow(new IllegalStateException("private-database-detail"))
+                .when(repository).create("Crash", 1);
+        var result = send(HttpMethod.POST, "/tasks", "{\"title\":\"Crash\",\"details\":{\"priority\":1}}");
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+        assertEquals("internal_error", result.getBody().path("code").asText());
+        assertEquals(1, result.getBody().size());
     }
 
     @Test

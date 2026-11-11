@@ -124,7 +124,7 @@ WebApiTest中/lab-info必须返回test-profile。手动启动生产JAR加`--lab.
 
 #### 4. Node.js / TypeScript / NestJS 技术对照
 
-Spring本例使用PostConstruct、ApplicationReadyEvent和PreDestroy，Nest使用OnModuleInit、OnApplicationBootstrap、OnModuleDestroy。它们可比较“初始化/就绪/清理”的目的，但不存在所有Bean之间一一对应的全局顺序。Nest enableShutdownHooks处理支持的信号，显式app.close在测试中更可控；Windows进程信号行为也不能照搬Linux假设。
+Spring本例使用@Bean的initMethod="start"、destroyMethod="stop"以及ApplicationReadyEvent，Nest使用OnModuleInit、OnApplicationBootstrap、OnModuleDestroy。Spring还支持PostConstruct/PreDestroy注解，但本例未采用。它们可比较“初始化/就绪/清理”的目的，但不存在所有Bean之间一一对应的全局顺序。Nest enableShutdownHooks处理支持的信号，显式app.close在测试中更可控；Windows进程信号行为也不能照搬Linux假设。
 
 #### 5. 两端代码对照
 
