@@ -2,7 +2,7 @@
 title: '22 · AOP、代理与异常'
 description: 用真实JDK/CGLIB代理、目标自调用和HTTP异常映射区分机制边界。
 chapter_id: '22'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Spring Boot3.5.16 / Nest11.2.9 / Node22.20.0
 ---
 
@@ -163,4 +163,6 @@ Nest请求处理异常 → ExceptionFilter → 受控JSON
 
 ## 章末验收与审查记录
 
-真实JDK/CGLIB、自调用及final类负例通过；400/404通过实际HTTP和共同契约。当前draft，独立审查待完成。官方参考：[Spring AOP代理](https://docs.spring.io/spring-framework/reference/core/aop/proxying.html)、[MVC异常处理](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-exceptionhandler.html)、[Nest异常过滤器](https://docs.nestjs.com/exception-filters)。
+本机新增Java模块14项、Nest全量27项与扩展打包共同HTTP契约通过；两轴增量独立审查及Windows/Linux×Temurin21/25修订CI通过。当前in_review，待用户验收，详见[审查归档](../reviews/P3-01.md)与[实施证据](../progress/P3-01.md)。本章不据此宣称SQL、生产认证或读者效果完成。
+
+官方参考：[Spring AOP代理](https://docs.spring.io/spring-framework/reference/core/aop/proxying.html)、[MVC异常处理](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-exceptionhandler.html)、[Nest异常过滤器](https://docs.nestjs.com/exception-filters)。

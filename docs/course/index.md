@@ -49,13 +49,13 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 
 | 章节 | 主题 | 核心知识点 | 认知参照 | 状态 |
 |---|---|---|---|---|
-| 17 | [启动过程与自动配置](../../docs/04-spring-boot/17-startup-and-autoconfiguration.md) | SpringApplication、Starter、Auto Configuration | NestFactory/bootstrap | 编写中 |
+| 17 | [启动过程与自动配置](../../docs/04-spring-boot/17-startup-and-autoconfiguration.md) | SpringApplication、Starter、Auto Configuration | NestFactory/bootstrap | 待独立审查 |
 | 18 | [IoC、DI 与 Bean](../../docs/04-spring-boot/18-dependency-injection.md) | 容器、构造器注入、作用域、生命周期 | Providers/Modules | 已验收 |
-| 19 | [Controller / REST API](../../docs/04-spring-boot/19-rest-api.md) | MVC、路由、参数绑定、响应、异常状态 | Controller/Decorator | 编写中 |
-| 20 | [DTO 与参数校验](../../docs/04-spring-boot/20-dto-validation.md) | Bean Validation、嵌套校验、校验分组 | DTO/Pipes/class-validator | 编写中 |
-| 21 | [请求处理链](../../docs/04-spring-boot/21-request-pipeline.md) | Servlet、Filter、Interceptor、Security Filter | Middleware/Guard/Interceptor | 编写中 |
-| 22 | [AOP、代理与异常](../../docs/04-spring-boot/22-aop-and-exceptions.md) | JDK/CGLIB 代理、自调用、Advice、ControllerAdvice | Interceptor/ExceptionFilter | 编写中 |
-| 23 | [配置与生命周期](../../docs/04-spring-boot/23-configuration-and-lifecycle.md) | Profiles、Properties、Configuration、Actuator | ConfigModule/Lifecycle Hooks | 编写中 |
+| 19 | [Controller / REST API](../../docs/04-spring-boot/19-rest-api.md) | MVC、路由、参数绑定、响应、异常状态 | Controller/Decorator | 待独立审查 |
+| 20 | [DTO 与参数校验](../../docs/04-spring-boot/20-dto-validation.md) | Bean Validation、嵌套校验、校验分组 | DTO/Pipes/class-validator | 待独立审查 |
+| 21 | [请求处理链](../../docs/04-spring-boot/21-request-pipeline.md) | Servlet、Filter、Interceptor、Security Filter | Middleware/Guard/Interceptor | 待独立审查 |
+| 22 | [AOP、代理与异常](../../docs/04-spring-boot/22-aop-and-exceptions.md) | JDK/CGLIB 代理、自调用、Advice、ControllerAdvice | Interceptor/ExceptionFilter | 待独立审查 |
+| 23 | [配置与生命周期](../../docs/04-spring-boot/23-configuration-and-lifecycle.md) | Profiles、Properties、Configuration、Actuator | ConfigModule/Lifecycle Hooks | 待独立审查 |
 
 ## Part 05 · 数据访问 {#part-05}
 

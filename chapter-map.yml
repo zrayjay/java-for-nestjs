@@ -585,7 +585,7 @@ chapters:
     part: '04'
     title: 启动过程与自动配置
     path: docs/04-spring-boot/17-startup-and-autoconfiguration.md
-    status: draft
+    status: in_review
     prerequisites:
       - '07'
       - '11'
@@ -606,7 +606,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P3-01.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P3-01.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P3-01.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
   - id: '18'
     part: '04'
     title: IoC、DI 与 Bean
@@ -647,7 +657,7 @@ chapters:
     part: '04'
     title: Controller / REST API
     path: docs/04-spring-boot/19-rest-api.md
-    status: draft
+    status: in_review
     prerequisites:
       - '18'
     tags:
@@ -666,12 +676,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P3-01.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P3-01.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P3-01.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
   - id: '20'
     part: '04'
     title: DTO 与参数校验
     path: docs/04-spring-boot/20-dto-validation.md
-    status: draft
+    status: in_review
     prerequisites:
       - '19'
     tags:
@@ -690,12 +710,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P3-01.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P3-01.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P3-01.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
   - id: '21'
     part: '04'
     title: 请求处理链
     path: docs/04-spring-boot/21-request-pipeline.md
-    status: draft
+    status: in_review
     prerequisites:
       - '19'
       - '20'
@@ -715,12 +745,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P3-01.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P3-01.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P3-01.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
   - id: '22'
     part: '04'
     title: AOP、代理与异常
     path: docs/04-spring-boot/22-aop-and-exceptions.md
-    status: draft
+    status: in_review
     prerequisites:
       - '11'
       - '18'
@@ -741,12 +781,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P3-01.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P3-01.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P3-01.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
   - id: '23'
     part: '04'
     title: 配置与生命周期
     path: docs/04-spring-boot/23-configuration-and-lifecycle.md
-    status: draft
+    status: in_review
     prerequisites:
       - '17'
       - '18'
@@ -766,7 +816,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P3-01.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P3-01.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P3-01.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-11
+        independent: true
+        conclusion: approved
   - id: '24'
     part: '05'
     title: JDBC 与连接池

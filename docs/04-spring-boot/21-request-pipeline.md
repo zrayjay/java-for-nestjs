@@ -2,7 +2,7 @@
 title: '21 · 请求处理链'
 description: 用每请求轨迹区分Servlet Filter、安全过滤器与MVC拦截器。
 chapter_id: '21'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Spring Boot3.5.16 / Nest11.2.9 / Node22.20.0
 ---
 
@@ -162,4 +162,6 @@ Filter跑两次先检查重复注册。401/403没有被ControllerAdvice改写时
 
 ## 章末验收与审查记录
 
-Java真实HTTP链路及Nest每请求轨迹测试已通过；本章draft，尚无独立审查结论。官方参考：[Servlet Filter](https://jakarta.ee/specifications/servlet/6.0/jakarta-servlet-spec-6.0)、[MVC拦截器](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-config/interceptors.html)、[Spring Security架构](https://docs.spring.io/spring-security/reference/servlet/architecture.html)、[Nest生命周期](https://docs.nestjs.com/faq/request-lifecycle)。
+本机新增Java模块14项、Nest全量27项与扩展打包共同HTTP契约通过；两轴增量独立审查及Windows/Linux×Temurin21/25修订CI通过。当前in_review，待用户验收，详见[审查归档](../reviews/P3-01.md)与[实施证据](../progress/P3-01.md)。本章不据此宣称SQL、生产认证或读者效果完成。
+
+官方参考：[Servlet Filter](https://jakarta.ee/specifications/servlet/6.0/jakarta-servlet-spec-6.0)、[MVC拦截器](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-config/interceptors.html)、[Spring Security架构](https://docs.spring.io/spring-security/reference/servlet/architecture.html)、[Nest生命周期](https://docs.nestjs.com/faq/request-lifecycle)。

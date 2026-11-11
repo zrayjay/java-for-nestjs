@@ -2,7 +2,7 @@
 title: '20 · DTO与参数校验'
 description: 验证JSON转换、嵌套对象、未知字段和校验分组的迁移边界。
 chapter_id: '20'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Spring Boot3.5.16 / Nest11.2.9 / Node22.20.0
 ---
 
@@ -172,4 +172,6 @@ Nest Pipe有先后执行顺序，方法上的宽松规则不能“撤销”之�
 
 ## 章末验收与审查记录
 
-本机Java13项、Nest25项及打包共同HTTP契约通过；本章draft，独立审查与新矩阵待完成。官方参考：[Jakarta Validation规范](https://jakarta.ee/specifications/bean-validation/3.0/jakarta-bean-validation-spec-3.0.html)、[Spring MVC验证](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-validation.html)、[Nest Validation](https://docs.nestjs.com/techniques/validation)、[class-validator分组](https://github.com/typestack/class-validator#validation-groups)。
+本机新增Java模块14项、Nest全量27项与扩展打包共同HTTP契约通过；两轴增量独立审查及Windows/Linux×Temurin21/25修订CI通过。当前in_review，待用户验收，详见[审查归档](../reviews/P3-01.md)与[实施证据](../progress/P3-01.md)。本章不据此宣称SQL、生产认证或读者效果完成。
+
+官方参考：[Jakarta Validation规范](https://jakarta.ee/specifications/bean-validation/3.0/jakarta-bean-validation-spec-3.0.html)、[Spring MVC验证](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-validation.html)、[Nest Validation](https://docs.nestjs.com/techniques/validation)、[class-validator分组](https://github.com/typestack/class-validator#validation-groups)。

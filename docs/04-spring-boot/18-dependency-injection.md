@@ -12,7 +12,7 @@ baseline: Java21 / Spring Boot3.5.16管理的Spring / Nest11.2.9 / Node22.20.0
 
 目标：能用构造器声明依赖，解释Bean/Provider定义、作用域和容器边界，复现缺失依赖、Nest未导出Provider、prototype固定注入、生命周期及代理自调用反例。
 
-需要能阅读类、接口、函数参数及[第08章](../02-java-language/08-generics.md)中“TS接口不成为普通运行时值”的边界。[第17章](./17-startup-and-autoconfiguration.md)已提供启动与自动配置草稿；本章仍用显式注册的小容器隔离机制，自动配置证据由第17章独立实验提供。实验无需HTTP、Docker或数据库。
+需要能阅读类、接口、函数参数及[第08章](../02-java-language/08-generics.md)中“TS接口不成为普通运行时值”的边界。[第17章](./17-startup-and-autoconfiguration.md)已提供启动与自动配置正文并进入in_review；本章仍用显式注册的小容器隔离机制，自动配置证据由第17章独立实验提供。实验无需HTTP、Docker或数据库。
 
 同题业务是通过TimeSource提供09:00，Greeter输出`Hello @ 09:00`。Spring使用真实AnnotationConfigApplicationContext，Nest使用真实TestingModule；不手写一个字典冒充框架容器。源码在[Spring IocLab](../../examples/spring-boot-examples/src/main/java/dev/javafornestjs/ioc/IocLab.java)和[Nest ioc-lab](../../examples/nestjs-reference/src/ioc/ioc-lab.ts)，运行方式见[IoC实验说明](../../examples/spring-boot-examples/IOC-LAB.md)。
 

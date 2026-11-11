@@ -2,7 +2,7 @@
 title: '23 · 配置与生命周期'
 description: 验证类型化配置、profile覆盖、初始化关闭与最小Actuator暴露。
 chapter_id: '23'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Spring Boot3.5.16 / Nest11.2.9 / Node22.20.0
 ---
 
@@ -158,4 +158,6 @@ Java BootModelTest实际启动非WebBoot上下文，观察construct/init/ready�
 
 ## 章末验收与审查记录
 
-Java配置约束、Profile、生命周期和Actuator测试通过；Nest读取函数及真实app.close通过。未声称ConfigModule、生产Secret管理或强杀恢复已验证。本章draft，独立审查待完成。官方参考：[Boot外部配置](https://docs.spring.io/spring-boot/3.5/reference/features/external-config.html)、[Profiles](https://docs.spring.io/spring-boot/3.5/reference/features/profiles.html)、[Actuator端点](https://docs.spring.io/spring-boot/3.5/reference/actuator/endpoints.html)、[Nest生命周期](https://docs.nestjs.com/fundamentals/lifecycle-events)、[Nest配置](https://docs.nestjs.com/techniques/configuration)。
+本机新增Java模块14项、Nest全量27项与扩展打包共同HTTP契约通过；两轴增量独立审查及Windows/Linux×Temurin21/25修订CI通过。当前in_review，待用户验收，详见[审查归档](../reviews/P3-01.md)与[实施证据](../progress/P3-01.md)。本章不据此宣称SQL、生产认证或读者效果完成。
+
+官方参考：[Boot外部配置](https://docs.spring.io/spring-boot/3.5/reference/features/external-config.html)、[Profiles](https://docs.spring.io/spring-boot/3.5/reference/features/profiles.html)、[Actuator端点](https://docs.spring.io/spring-boot/3.5/reference/actuator/endpoints.html)、[Nest生命周期](https://docs.nestjs.com/fundamentals/lifecycle-events)、[Nest配置](https://docs.nestjs.com/techniques/configuration)。

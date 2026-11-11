@@ -2,7 +2,7 @@
 title: '17 · 启动过程与自动配置'
 description: 用真实Boot上下文验证启动、条件装配和用户Bean退让。
 chapter_id: '17'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Spring Boot3.5.16 / Nest11.2.9 / Node22.20.0
 ---
 
@@ -120,4 +120,6 @@ Nest [API模块](../../examples/nestjs-reference/src/api/api.ts)显式列出Task
 
 ## 章末验收与审查记录
 
-本机已执行Java模块verify，13项测试通过；Nest全量25项通过；打包进程共同契约通过。当前为draft，独立审查及新增CI矩阵证据尚需补齐，未作课程验收通过声明。官方参考：[Boot启动](https://docs.spring.io/spring-boot/3.5/reference/features/spring-application.html)、[自动配置](https://docs.spring.io/spring-boot/3.5/reference/using/auto-configuration.html)、[创建自动配置](https://docs.spring.io/spring-boot/3.5/reference/features/developing-auto-configuration.html)、[Nest第一步](https://docs.nestjs.com/first-steps)。
+本机新增Java模块14项、Nest全量27项与扩展打包共同HTTP契约通过；两轴增量独立审查及Windows/Linux×Temurin21/25修订CI通过。当前in_review，待用户验收，详见[审查归档](../reviews/P3-01.md)与[实施证据](../progress/P3-01.md)。本章不据此宣称SQL、生产认证或读者效果完成。
+
+官方参考：[Boot启动](https://docs.spring.io/spring-boot/3.5/reference/features/spring-application.html)、[自动配置](https://docs.spring.io/spring-boot/3.5/reference/using/auto-configuration.html)、[创建自动配置](https://docs.spring.io/spring-boot/3.5/reference/features/developing-auto-configuration.html)、[Nest第一步](https://docs.nestjs.com/first-steps)。
