@@ -1,0 +1,11 @@
+lab:
+  security:
+    mode: secured
+security:
+  issuer: https://java-for-nestjs.example
+  audience: teaching-api
+  access-seconds: 300
+  refresh-seconds: 604800
+server:
+  address: 127.0.0.1
+  port: 8089
