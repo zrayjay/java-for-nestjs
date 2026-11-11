@@ -1,8 +1,9 @@
 package dev.javafornestjs.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.ByteArrayOutputStream;
@@ -10,6 +11,11 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
@@ -79,10 +85,20 @@ class GeneratedSchemaTest {
                 import dev.javafornestjs.generated.Tables;
                 class WrongQuery { Object wrong() { return Tables.DATA_TASKS.ID.eq("not-an-int"); } }
                 """);
-        diagnostics.reset();
-        try {
-            assertNotEquals(0, compiler.run(null, diagnostics, diagnostics, "--release", "21", "-classpath",
-                    classpath + java.io.File.pathSeparator + classes, "-d", classes.toString(), wrong.toString()));
+        var failures = new DiagnosticCollector<JavaFileObject>();
+        try (var files = compiler.getStandardFileManager(failures, Locale.ROOT, java.nio.charset.StandardCharsets.UTF_8)) {
+            var options = List.of("--release", "21", "-proc:none", "-classpath",
+                    classpath + java.io.File.pathSeparator + classes, "-d", classes.toString());
+            assertFalse(compiler.getTask(null, files, failures, options, null,
+                    files.getJavaFileObjects(wrong.toFile())).call());
+            assertTrue(failures.getDiagnostics().stream().anyMatch(failure ->
+                    failure.getKind() == Diagnostic.Kind.ERROR
+                    && failure.getCode().startsWith("compiler.err.cant.apply.symbol")
+                    && failure.getSource() != null && failure.getSource().toUri().equals(wrong.toUri())
+                    && failure.getLineNumber() == 2 && failure.getColumnNumber() > 0
+                    && failure.getMessage(Locale.ROOT).contains("eq")
+                    && failure.getMessage(Locale.ROOT).contains("String")
+                    && failure.getMessage(Locale.ROOT).contains("Integer")), failures.getDiagnostics().toString());
         } finally {
             // Prevent a previous negative source from entering the next positive compilation.
             Files.deleteIfExists(wrong);
