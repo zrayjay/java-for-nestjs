@@ -166,4 +166,4 @@ DataAccessTest嵌套try-with-resources运行SELECT1；DataConfiguration的Bean�
 
 ## 章末验收与审查记录
 
-SQL11项及Node3项已通过Linux21/25，含新增池关闭负例，见[证据](../progress/P3-02.md)。本章draft，独立审查待完成。官方参考：[JDBC基础](https://docs.oracle.com/javase/tutorial/jdbc/basics/)、[HikariCP参数](https://github.com/brettwooldridge/HikariCP#configuration-knobs-baby)、[Prisma连接管理](https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-management)。
+Java11项（含2项URL守卫）及Node3项已通过Linux21/25，含新增池关闭负例，见[证据](../progress/P3-02.md)。本章draft，独立审查待完成。官方参考：[JDBC基础](https://docs.oracle.com/javase/tutorial/jdbc/basics/)、[HikariCP参数](https://github.com/brettwooldridge/HikariCP#configuration-knobs-baby)、[Prisma连接管理](https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-management)。

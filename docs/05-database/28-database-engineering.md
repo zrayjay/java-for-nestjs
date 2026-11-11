@@ -81,7 +81,7 @@ Java与Prisma最终访问相同MySQL，索引机制不因客户端语言改变�
 
 #### 5. 两端代码对照
 
-真实测试先插Alpha，再EXPLAIN按title查找，检查possible_keys含ix_data_tasks_title，SHOW INDEX核对title/id两列。它没有断言当前一定选择该key，更没有用一次小表计划证明大表最优。Node过滤/分页测试使用相同表结构；未单独将驱动差异伪装成索引差异。
+真实测试先检查possible_keys和SHOW INDEX，再建立4001行固定夹具、ANALYZE统计信息，对同一title过滤查询比较正常可用索引与IGNORE INDEX受控禁用路径。断言前者实际key为ix_data_tasks_title、后者type为ALL，估计扫描行数下降且查询结果相同；两条EXPLAIN ANALYZE均实际执行并记录。CI产物data-results-java-21/25中的sql-plan-comparison.txt保存完整计划。这不是修改已应用迁移后再改回的DDL实验，也不是生产速度基准。Node过滤/分页测试使用相同表结构，不把驱动差异伪装成索引差异。
 
 #### 6. 原理与流程图
 
@@ -90,7 +90,7 @@ Java与Prisma最终访问相同MySQL，索引机制不因客户端语言改变�
 计划 + 实际数据/缓存/锁/并发 → 实际执行表现
 ```
 
-possible_keys是候选，key是选中索引；rows通常是估计，不能当实际扫描精确行数。EXPLAIN ANALYZE会实际执行相应查询并展示运行信息，使用时也需评估影响，本实验尚未把它作为已执行证据。
+possible_keys是候选，key是选中索引；rows通常是估计，不能当实际扫描精确行数。EXPLAIN ANALYZE会实际执行相应查询并展示运行信息，使用时也需评估影响。本例CI实际显示覆盖索引查找与Table scan两条路径：前者匹配1行，后者实际扫描4001行后过滤为1行，详见[P3-02记录](../progress/P3-02.md)。单次actual time不是稳定吞吐基准。
 
 #### 7. 类比边界与错误直觉
 
@@ -106,7 +106,7 @@ possible_keys为空时查列、类型、函数和索引左前缀；选ALL时检�
 
 #### 10. 实操练习与验收
 
-能解释possible_keys与key差别，找到V2实际索引及顺序，运行已有真实EXPLAIN测试。另行扩展到代表性大数据量需要重新记录环境和计划，不沿用本章通过结果宣称性能提升百分比。
+能解释possible_keys与key差别，找到V2实际索引及顺序，运行已有真实EXPLAIN/ANALYZE对照并核对结果一致。说明IGNORE INDEX表示受控禁用访问路径，不是历史生产上线前快照。扩展到代表性大数据量需要重新记录环境和计划，不沿用本章通过结果宣称性能提升百分比。
 
 ### ch28-kp03 · 慢SQL排查与Schema交付顺序
 

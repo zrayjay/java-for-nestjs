@@ -53,3 +53,26 @@
 | Reactor | 本次所选Maven项目及构建排序 | 按目录逐个执行；-am自动包含全部下游 | [第15章](../03-build-tools/15-maven-and-gradle.md) |
 | 缓存分层 | 下载、增量判定、配置及构建输出分别分析 | cache命中等于测试或业务正确性通过 | [第15章](../03-build-tools/15-maven-and-gradle.md) |
 | 模块边界 / 部署单元 | 构建依赖方向与运行部署责任分层 | 每个Maven模块都要拆成微服务 | [第16章](../03-build-tools/16-java-monorepo.md) |
+
+Spring与数据访问扩展：
+
+| 术语 | 本教程用法 | 常见误解 | 正文 |
+|---|---|---|---|
+| Starter / 自动配置 | 依赖组合与运行时条件注册分别分析，已有Bean可使默认定义退让 | 引入Starter就是Maven启动了服务器；注册后每请求重新评估条件 | [第17章](../04-spring-boot/17-startup-and-autoconfiguration.md) |
+| MVC / DispatcherServlet | Servlet栈中协调路由、参数解析及返回值处理 | 等同于Express；Controller存在就一定注册路由 | [第19章](../04-spring-boot/19-rest-api.md) |
+| DTO / 转换 / 校验 | 结构表达、输入转换、约束检查分层 | TS类型天然验证JSON；强制转换总能修复输入 | [第20章](../04-spring-boot/20-dto-validation.md) |
+| 原始数值token | JSON解析器舍入前的十进制源表示，本例用来核验精确小整数 | JS number保持任意JSON数值的十进制精度 | [第20章](../04-spring-boot/20-dto-validation.md) |
+| 校验分组 | 服务端操作选择约束集合，基础组与发布组明确配置 | 客户端能选择跳过规则；两端分组继承完全相同 | [第20章](../04-spring-boot/20-dto-validation.md) |
+| Filter / MVC Interceptor | Servlet外层与已识别Handler后的不同扩展位置 | 两者等同；到preHandle就表示Controller已执行 | [第21章](../04-spring-boot/21-request-pipeline.md) |
+| SecurityFilterChain | Security代理所选链的内部过滤器顺序 | addFilterBefore等同于Servlet注册order；permitAll证明认证完成 | [第21章](../04-spring-boot/21-request-pipeline.md) |
+| JDK / CGLIB代理 | 接口代理与子类代理均需核对真实调用路径 | 切成CGLIB自然修复目标自调用；final任意可拦截 | [第22章](../04-spring-boot/22-aop-and-exceptions.md) |
+| Advice / ControllerAdvice | 方法增强与MVC异常/绑定扩展分开 | 名称相近就处理相同范围；MVC能兜底所有Filter异常 | [第22章](../04-spring-boot/22-aop-and-exceptions.md) |
+| Profile / 属性源 | 激活配置组与最终覆盖优先级分别判断 | NODE_ENV天然等同Boot Profile；Profile文件适合提交密钥 | [第23章](../04-spring-boot/23-configuration-and-lifecycle.md) |
+| DataSource / 逻辑连接 | 连接入口与有限物理池的借用句柄分别拥有生命周期 | 每次close都关闭整个池；池借用超时等于SQL执行超时 | [第24章](../05-database/24-jdbc-and-pools.md) |
+| Mapper / Wrapper | SQL方法映射及结构化条件，不提供自动脏检查 | 改TaskRow自动落库；任意原始SQL片段天然安全 | [第25章](../05-database/25-mybatis.md) |
+| N+1 / 批量读取 | 用真实语句计数观察逐条关联读取，分别核对结果 | async/await自动消除往返；少查询必然更快 | [第25章](../05-database/25-mybatis.md) |
+| 持久化上下文 / 托管 | JPA当前工作单元的实体身份与状态跟踪 | 全局缓存；等同Nest单例或Prisma普通结果对象 | [第26章](../05-database/26-persistence-alternatives.md) |
+| detach / merge | 解除跟踪及把状态复制到返回的托管实例 | detach删除行；merge把原对象本身变成唯一受管实例 | [第26章](../05-database/26-persistence-alternatives.md) |
+| 生成Schema类型 | 从Schema生成查询字段及编译约束，仍可能与运行库漂移 | 动态SQL字符串也有同等Schema类型检查；编译通过就等于业务安全 | [第26章](../05-database/26-persistence-alternatives.md) |
+| Flyway / generate | 迁移改变数据库，客户端生成改变代码，唯一DDL所有者明确 | Prisma generate创建表；多个迁移系统可不协调地共同写同一Schema | [第28章](../05-database/28-database-engineering.md) |
+| possible_keys / key | 候选索引与实际所选索引，rows通常为估计 | 候选即必用；一次EXPLAIN就是生产加速保证 | [第28章](../05-database/28-database-engineering.md) |
