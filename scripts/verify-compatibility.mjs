@@ -11,6 +11,10 @@ export async function verifyCompatibility(root) {
     await read('examples/prisma-reference/package.json'),
   )
   const transactionPom = await read('examples/transaction-lab/pom.xml')
+  const dataPom = await read('examples/data-access-lab/pom.xml')
+  const webPom = await read('examples/spring-web-lab/pom.xml')
+  if (dataPom.match(/<flyway.version>([^<]+)</)?.[1] !== b.flyway)
+    throw new Error('数据实验Flyway版本漂移')
   const nest = JSON.parse(
     await read('examples/nestjs-reference/package.json'),
   ).dependencies
@@ -23,11 +27,15 @@ export async function verifyCompatibility(root) {
   const properties = await read('.mvn/wrapper/maven-wrapper.properties')
   const matrix = await read('docs/00-introduction/compatibility-matrix.md')
   const workflows = await Promise.all(
-    ['docs', 'foundation', 'transactions'].map((n) =>
+    ['docs', 'foundation', 'transactions', 'data-access'].map((n) =>
       read(`.github/workflows/${n}.yml`),
     ),
   )
   const actual = {
+    mybatisPlus: dataPom.match(/<mybatis-plus.version>([^<]+)</)?.[1],
+    springdoc: webPom.match(
+      /<artifactId>springdoc-openapi-starter-webmvc-api<\/artifactId><version>([^<]+)</,
+    )?.[1],
     nest: nest['@nestjs/core'],
     nestSwagger: nest['@nestjs/swagger'],
     classValidator: nest['class-validator'],
@@ -48,6 +56,8 @@ export async function verifyCompatibility(root) {
     flyway: transactionPom.match(/<flyway.version>([^<]+)</)?.[1],
     mysql: workflows[2].match(/image:\s+mysql:([\d.]+)/)?.[1],
   }
+  if (workflows[3].match(/image:\s+mysql:([\d.]+)/)?.[1] !== b.mysql)
+    throw new Error('数据实验MySQL版本漂移')
   for (const [name, value] of Object.entries(actual)) {
     if (!value || b?.[name] !== value)
       throw new Error(`版本漂移 ${name}: map=${b?.[name]}, source=${value}`)

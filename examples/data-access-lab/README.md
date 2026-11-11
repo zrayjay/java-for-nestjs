@@ -19,6 +19,6 @@ $env:DATA_DATABASE_PASSWORD='lab-only-password'
 .\mvnw.cmd --batch-mode --no-transfer-progress -f examples/data-access-lab/pom.xml clean verify
 ```
 
-需要已存在且可用的MySQL8.4.7空data_lab及仅用于该库的账号。缺少环境变量或数据库时应失败，不跳过、不换H2。Windows本机的Docker限制仍未解决，本机目前仅编译/打包及两项URL守卫通过；完整SQL结果以专用CI为准，当前尚待首轮结果。
+需要已存在且可用的MySQL8.4.7空data_lab及仅用于该库的账号。缺少环境变量或数据库时应失败，不跳过、不换H2。Windows本机的Docker限制仍未解决，本机目前仅编译/打包及两项URL守卫通过；完整SQL已在Linux Temurin21/25通过，见[实施记录](../../docs/progress/P3-02.md)，新增负例以对应后续修订为准。
 
 实验覆盖：真实HTTP→Service→Mapper→MySQL；XML绑定参数、Lambda Wrapper、分页；3个不同owner的N+1四次SQL与Join一次SQL；Hikari两连接耗尽/归还；Flyway历史/校验/幂等；EXPLAIN possible_keys与实际索引；JPA同上下文身份/脏检查/分离/合并；jOOQ从迁移后MySQL生成Java源码、编译正确类型查询并真实执行，再验证错误字段类型不能编译。不提供生产容量或任意SQL计划最优承诺。

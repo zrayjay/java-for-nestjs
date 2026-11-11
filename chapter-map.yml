@@ -19,6 +19,8 @@ baseline:
   nestSwagger: 11.4.8
   classValidator: 0.15.1
   classTransformer: 0.5.1
+  mybatisPlus: 3.5.18
+  springdoc: 2.10.0
 parts:
   - id: '01'
     title: 运行时与工具入门

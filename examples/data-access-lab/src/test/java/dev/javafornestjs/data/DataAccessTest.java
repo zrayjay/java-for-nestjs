@@ -12,14 +12,19 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariConfig;
 import dev.javafornestjs.data.jpa.TaskEntity;
 import java.sql.SQLTransientConnectionException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.exception.FlywayValidateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -174,5 +179,37 @@ class DataAccessTest {
             manager.getTransaction().commit();
             assertEquals("Detached change", jdbc.queryForObject("SELECT title FROM data_tasks WHERE id=?", String.class, task.getId()));
         }
+    }
+
+    @Test
+    void modifyingAnAppliedMigrationFailsChecksumValidation(@TempDir Path directory) throws Exception {
+        for (String file : List.of("V1__tasks.sql", "V2__task_title_index.sql")) {
+            try (var resource = getClass().getResourceAsStream("/db/data-migration/" + file)) {
+                assertNotNull(resource);
+                String sql = new String(resource.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                Files.writeString(directory.resolve(file), sql.replace("VARCHAR(40)", "VARCHAR(41)"));
+            }
+        }
+        var changed = Flyway.configure().dataSource(source).locations("filesystem:" + directory.toAbsolutePath())
+                .table("data_schema_history").cleanDisabled(true).load();
+        assertThrows(FlywayValidateException.class, changed::validate);
+        migration.validate();
+    }
+
+    @Test
+    void closingAnOwnedPoolReleasesItsLifecycleAndRejectsFurtherBorrows() throws Exception {
+        var configuration = new HikariConfig();
+        configuration.setJdbcUrl(DatabaseUrl.dedicated(System.getenv("DATA_JDBC_URL")));
+        configuration.setUsername(System.getenv("DATA_DATABASE_USER"));
+        configuration.setPassword(System.getenv("DATA_DATABASE_PASSWORD"));
+        configuration.setMaximumPoolSize(1);
+        configuration.setMinimumIdle(0);
+        var owned = new HikariDataSource(configuration);
+        try (owned; var connection = owned.getConnection()) {
+            assertFalse(owned.isClosed());
+            assertFalse(connection.isClosed());
+        }
+        assertTrue(owned.isClosed());
+        assertThrows(java.sql.SQLException.class, owned::getConnection);
     }
 }

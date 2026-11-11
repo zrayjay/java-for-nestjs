@@ -80,9 +80,12 @@ class GeneratedSchemaTest {
                 class WrongQuery { Object wrong() { return Tables.DATA_TASKS.ID.eq("not-an-int"); } }
                 """);
         diagnostics.reset();
-        assertNotEquals(0, compiler.run(null, diagnostics, diagnostics, "--release", "21", "-classpath",
-                classpath + java.io.File.pathSeparator + classes, "-d", classes.toString(), wrong.toString()));
-        // Prevent a previous negative source from entering the next positive compilation.
-        Files.delete(wrong);
+        try {
+            assertNotEquals(0, compiler.run(null, diagnostics, diagnostics, "--release", "21", "-classpath",
+                    classpath + java.io.File.pathSeparator + classes, "-d", classes.toString(), wrong.toString()));
+        } finally {
+            // Prevent a previous negative source from entering the next positive compilation.
+            Files.deleteIfExists(wrong);
+        }
     }
 }
