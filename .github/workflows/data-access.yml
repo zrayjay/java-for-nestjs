@@ -83,3 +83,4 @@ jobs:
           path: |
             examples/data-access-lab/target/surefire-reports/
             examples/data-access-lab/target/checkstyle-result.xml
+            examples/data-access-lab/target/sql-plan-comparison.txt

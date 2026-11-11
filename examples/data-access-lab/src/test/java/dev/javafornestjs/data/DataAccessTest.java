@@ -132,7 +132,7 @@ class DataAccessTest {
         }
     }
     @Test
-    void migrationsAreVersionedValidatedAndExposeAnActualMysqlExecutionPlan() {
+    void migrationsAreVersionedValidatedAndExposeAnActualMysqlExecutionPlan() throws Exception {
         row("Alpha", 1);
         migration.validate();
         assertEquals(2, migration.info().applied().length);
@@ -144,6 +144,26 @@ class DataAccessTest {
         assertTrue(plan.getFirst().get("possible_keys").toString().contains("ix_data_tasks_title"));
         var index = jdbc.queryForList("SHOW INDEX FROM data_tasks WHERE Key_name='ix_data_tasks_title'");
         assertEquals(2, index.size());
+        var rows = java.util.stream.IntStream.range(0, 4000)
+                .mapToObj(number -> new Object[]{"Plan " + number, 2, 1}).toList();
+        jdbc.batchUpdate("INSERT INTO data_tasks(title,priority,owner_id) VALUES (?,?,?)", rows);
+        jdbc.execute("ANALYZE TABLE data_tasks");
+        String indexed = "SELECT id,title FROM data_tasks WHERE title=?";
+        String ignored = "SELECT id,title FROM data_tasks IGNORE INDEX (ix_data_tasks_title) WHERE title=?";
+        var availablePlan = jdbc.queryForMap("EXPLAIN " + indexed, "Plan 1999");
+        var ignoredPlan = jdbc.queryForMap("EXPLAIN " + ignored, "Plan 1999");
+        assertEquals("ix_data_tasks_title", availablePlan.get("key"));
+        assertEquals("ALL", ignoredPlan.get("type"));
+        assertTrue(((Number) availablePlan.get("rows")).longValue() < ((Number) ignoredPlan.get("rows")).longValue());
+        assertEquals(jdbc.queryForList(indexed, "Plan 1999"), jdbc.queryForList(ignored, "Plan 1999"));
+        String availableActual = jdbc.queryForObject("EXPLAIN ANALYZE " + indexed, String.class, "Plan 1999");
+        String ignoredActual = jdbc.queryForObject("EXPLAIN ANALYZE " + ignored, String.class, "Plan 1999");
+        assertTrue(availableActual.contains("actual time="));
+        assertTrue(ignoredActual.contains("actual time="));
+        Files.writeString(Path.of("target", "sql-plan-comparison.txt"), "Fixture: 4001 tasks; one title match.\n"
+                + "Available index EXPLAIN: " + availablePlan + "\n" + availableActual + "\n"
+                + "Ignored index EXPLAIN: " + ignoredPlan + "\n" + ignoredActual + "\n"
+                + "Controlled access-path comparison, not a production speed guarantee.\n");
     }
 
     @Test
