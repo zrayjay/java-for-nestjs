@@ -10,5 +10,5 @@
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-oauth2-resource-server</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
   </dependencies>
-  <build><plugins><plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId><configuration><classifier>exec</classifier></configuration></plugin></plugins></build>
+  <build><plugins><plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId><configuration><classifier>exec</classifier><mainClass>dev.javafornestjs.security.SecurityApplication</mainClass></configuration></plugin></plugins></build>
 </project>
