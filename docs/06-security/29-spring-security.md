@@ -68,6 +68,17 @@ Nest完整app.ts在setup中先验证Authorization，再调用SecurityContext.aut
 
 执行SecurityApiTest与Node security.test：匿名/tasks拒绝，合法用户/me成功，reader直接POST拒绝。另发送未登录的非法正文，确认认证先于业务校验。解释P3开放实验仍可运行为何不表示安全模块退回开放模式。
 
+基础题：区分401、403与表单400。迁移题：把Guard拒绝映射到安全链入口拒绝。思考题：有效证件为什么仍可能不能进楼？
+
+可执行验收（仓库根目录，先完成章首README的独立教学库、依赖构建和环境变量准备）：
+
+```powershell
+.\mvnw.cmd --batch-mode --no-transfer-progress -f examples/security-lab/pom.xml '-Dtest=SecurityApiTest#passwordsAreHashedAndOnlyExplicitBearerCredentialsAuthenticate' test
+node --test examples/nestjs-security-reference/dist/security.test.js
+```
+
+Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
+
 ### ch29-kp02 · Authentication、Principal与上下文
 
 #### 1. 一句话定义
@@ -122,6 +133,17 @@ JWT只携sub/sid/ver等发行合同，不信任客户端自己提交的部门或
 
 同时发Alice与Bob的创建请求，分别核对MySQL owner、audit.actor以及响应X-Request-Id；之后匿名/me仍拒绝。该新增两端回归以对应修订CI为准。能解释为什么同一个用户的两次刷新并发通过并不等于跨用户隔离已验证。
 
+基础题：画出Authentication与SecurityContext的关系。迁移题：对照AsyncLocalStorage说明并发身份隔离。思考题：为什么ThreadLocal不能自动传播到所有异步任务？
+
+可执行验收（仓库根目录，先完成章首README的独立教学库、依赖构建和环境变量准备）：
+
+```powershell
+.\mvnw.cmd --batch-mode --no-transfer-progress -f examples/security-lab/pom.xml '-Dtest=SecurityApiTest#concurrentDifferentUsersKeepOwnershipAndAuditCorrelationIsolated' test
+node --test examples/nestjs-security-reference/dist/security.test.js
+```
+
+Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
+
 ### ch29-kp03 · 认证、权限与资源范围的不同拒绝
 
 #### 1. 一句话定义
@@ -170,6 +192,17 @@ Java [PolicyTaskRepository](../../examples/security-lab/src/main/java/dev/javafo
 #### 10. 实操练习与验收
 
 验证匿名401、reader写403、跨部门读404、同部门非本人写404、admin按权限跨部门成功。直接发送请求，不依赖页面按钮。记录每个拒绝发生在认证、动作还是资源范围层，再到第31章核对数据库模型。
+
+基础题：列出动作许可与记录范围的区别。迁移题：将Nest权限判断迁移为条件SQL。思考题：为什么403与隐藏存在性的404不能互相替代？
+
+可执行验收（仓库根目录，先完成章首README的独立教学库、依赖构建和环境变量准备）：
+
+```powershell
+.\mvnw.cmd --batch-mode --no-transfer-progress -f examples/security-lab/pom.xml '-Dtest=SecurityApiTest#departmentAndOwnershipRestrictionsApplyBeforeLimitAndWrites' test
+node --test examples/nestjs-security-reference/dist/security.test.js
+```
+
+Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
 
 ## 章末验收与审查记录
 

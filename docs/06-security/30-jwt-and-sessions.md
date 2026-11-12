@@ -68,6 +68,17 @@ JWS签名不加密payload，不能存密码或需要保密的字段。验证公�
 
 运行两端签名/声明负例及密钥匹配测试，全部错误令牌都应401。固定Clock推进到exp边界即拒绝。解释合法签名为什么仍可能因受众或会话状态失败，并指出本例密钥测试与真实SQL测试分别证明什么。
 
+基础题：列出本例9项必需声明并区分JWT规范要求。迁移题：对照jose与Nimbus的验签及声明验证入口。思考题：签名正确为什么仍会401？
+
+可执行验收（仓库根目录，先完成章首README的独立教学库、依赖构建和环境变量准备）：
+
+```powershell
+.\mvnw.cmd --batch-mode --no-transfer-progress -f examples/security-lab/pom.xml '-Dtest=SecurityApiTest#signatureAlgorithmIssuerAudienceAndRequiredClaimsAreValidated' test
+node --test examples/nestjs-security-reference/dist/security.test.js
+```
+
+Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
+
 ### ch30-kp02 · Refresh轮换、重放与凭据版本
 
 #### 1. 一句话定义
@@ -124,6 +135,17 @@ Java和Node完整源码均按这些步骤实施；旧V1族默认绑定0，不回
 
 先轮换再重放旧值，要求新旧Access/Refresh都被拒；验证数据库撤销已提交。提升auth_version后旧两类凭据都拒绝，新登录绑定新版本。两个身份并发与两个刷新并发分别测试，不把它们当相同场景。锁等待测试的短超时只说明未提前返回，源码锁定读与最终数据库结果才构成完整依据。
 
+基础题：画出Refresh消费及族撤销状态。迁移题：将Prisma事务外抛错规则迁移到TransactionTemplate。思考题：为什么事务内抛异常可能恢复已经撤销的会话？
+
+可执行验收（仓库根目录，先完成章首README的独立教学库、依赖构建和环境变量准备）：
+
+```powershell
+.\mvnw.cmd --batch-mode --no-transfer-progress -f examples/security-lab/pom.xml '-Dtest=SecurityApiTest#refreshRotationRejectsReplayAndCommitsFamilyRevocation' test
+node --test examples/nestjs-security-reference/dist/security.test.js
+```
+
+Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
+
 ### ch30-kp03 · 会话状态、浏览器存储与CSRF取舍
 
 #### 1. 一句话定义
@@ -178,6 +200,17 @@ Java配置SessionCreationPolicy.STATELESS，只是不使用HTTP Session保存认
 #### 10. 实操练习与验收
 
 明确Cookie不认证、有效Bearer成功、失效Bearer拒绝、注销后双凭据失效四条预期。检查审计记录不含密码/Access/Refresh，并解释该断言不等于所有代理与外部日志系统都已审计。写出改用Cookie时需要重新验证的CSRF和来源边界。
+
+基础题：说明Cookie不认证与Bearer入口。迁移题：把Cookie/BFF方案所需CSRF校验列为迁移差异。思考题：HttpOnly为什么不能直接解决所有XSS与CSRF风险？
+
+可执行验收（仓库根目录，先完成章首README的独立教学库、依赖构建和环境变量准备）：
+
+```powershell
+.\mvnw.cmd --batch-mode --no-transfer-progress -f examples/security-lab/pom.xml '-Dtest=SecurityApiTest#logoutAndDisabledAccountRevokeUseOfAccessAndRefresh' test
+node --test examples/nestjs-security-reference/dist/security.test.js
+```
+
+Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
 
 ## 章末验收与审查记录
 

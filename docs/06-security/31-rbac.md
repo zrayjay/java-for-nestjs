@@ -69,6 +69,17 @@ admin  → 全局读 + 全局写 + 管理角色分配
 
 将Alice从member改reader，继续使用旧Access直接POST任务，应403；/me仍可成功且权限已更新。普通reader不能给自己分配admin。提交未知角色999或重复角色时400，原角色关系不被破坏；不能只断言HTTP失败而不核对数据库。
 
+基础题：画出用户角色权限多对多关系。迁移题：把Nest permission集合迁移到GrantedAuthority。思考题：为什么角色名不能直接替代当前权限集合？
+
+可执行验收（仓库根目录，先完成章首README的独立教学库、依赖构建和环境变量准备）：
+
+```powershell
+.\mvnw.cmd --batch-mode --no-transfer-progress -f examples/security-lab/pom.xml '-Dtest=SecurityApiTest#permissionChangesApplyToTheExistingAccessToken' test
+node --test examples/nestjs-security-reference/dist/security.test.js
+```
+
+Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
+
 ### ch31-kp02 · 按钮、接口与能力元数据
 
 #### 1. 一句话定义
@@ -124,6 +135,17 @@ const canCreate = permissions.includes('task:write:own')
 
 reader的/me没有写权限，直接POST仍403且数据库没有新增任务；直接调用管理员角色接口也403。保留member/admin合法对照，避免“所有请求都拒绝”的实现也通过测试。真正页面与按钮联调在P6补充，不能提前标完。
 
+基础题：区分按钮元数据与实际管理页面交付。迁移题：绕过UI直接请求两端写接口并比较拒绝。思考题：为什么隐藏按钮不构成服务端安全控制？
+
+可执行验收（仓库根目录，先完成章首README的独立教学库、依赖构建和环境变量准备）：
+
+```powershell
+.\mvnw.cmd --batch-mode --no-transfer-progress -f examples/security-lab/pom.xml '-Dtest=SecurityApiTest#buttonPermissionMetadataDoesNotReplaceDirectServerRejection' test
+node --test examples/nestjs-security-reference/dist/security.test.js
+```
+
+Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
+
 ### ch31-kp03 · 部门读、本人写与条件SQL
 
 #### 1. 一句话定义
@@ -177,6 +199,17 @@ any与owner来自已验证主体/当前权限，不来自请求体。Node Policy
 #### 10. 实操练习与验收
 
 先创建Bob的较小id，再创建Alice任务；Alice limit1必须得到本部门任务，而不是取到Bob后过滤为空。Alice不能读/改/删Bob，Erin同部门可读Alice但不能改删；admin具备全局权限时可操作。合法本人写与审计故障回滚都要保留正反例，并核对数据库最终状态。
+
+基础题：列出部门读与本人写的正反例。迁移题：把Prisma where迁移为Mapper条件且保留LIMIT次序。思考题：并发撤权为什么不保证取消已经开始的请求？
+
+可执行验收（仓库根目录，先完成章首README的独立教学库、依赖构建和环境变量准备）：
+
+```powershell
+.\mvnw.cmd --batch-mode --no-transfer-progress -f examples/security-lab/pom.xml '-Dtest=SecurityApiTest#departmentAndOwnershipRestrictionsApplyBeforeLimitAndWrites' test
+node --test examples/nestjs-security-reference/dist/security.test.js
+```
+
+Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
 
 ## 章末验收与审查记录
 
