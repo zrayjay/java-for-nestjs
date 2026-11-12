@@ -84,6 +84,7 @@ model SecRolePermission {
 model SecSession {
   id String @id @db.Char(36)
   userId Int @map("user_id")
+  authVersion Int @default(0) @map("auth_version")
   expiresAt BigInt @map("expires_at")
   revokedAt BigInt? @map("revoked_at")
   user SecUser @relation(fields: [userId], references: [id])

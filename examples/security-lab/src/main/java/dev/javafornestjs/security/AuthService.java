@@ -30,7 +30,7 @@ public class AuthService {
     public static final class UnknownUser extends RuntimeException { }
     public record Tokens(String accessToken, String refreshToken, long expiresIn, String tokenType) { }
     private record User(int id, String username, String hash, int department, boolean enabled, int version) { }
-    private record Session(int userId, long expires, Long revoked) { }
+    private record Session(int userId, long expires, Long revoked, int version) { }
     private record Refresh(String sessionId, long expires, Long consumed, Long revoked) { }
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transactions;
@@ -53,17 +53,20 @@ public class AuthService {
     }
     private long now() { return clock.instant().getEpochSecond(); }
     private User user(String condition, Object parameter) {
+        return user(condition, parameter, false);
+    }
+    private User user(String condition, Object parameter, boolean lock) {
         // condition is selected only by the two fixed internal call sites below.
         var users = jdbc.query("SELECT id,username,password_hash,department_id,enabled,auth_version FROM sec_users WHERE "
-                + condition, (row, index) -> new User(row.getInt("id"), row.getString("username"),
+                + condition + (lock ? " FOR UPDATE" : ""), (row, index) -> new User(row.getInt("id"), row.getString("username"),
                 row.getString("password_hash"), row.getInt("department_id"), row.getBoolean("enabled"),
                 row.getInt("auth_version")), parameter);
         return users.isEmpty() ? null : users.getFirst();
     }
     private Session session(String id, boolean lock) {
-        var sessions = jdbc.query("SELECT user_id,expires_at,revoked_at FROM sec_sessions WHERE id=?"
+        var sessions = jdbc.query("SELECT user_id,expires_at,revoked_at,auth_version FROM sec_sessions WHERE id=?"
                 + (lock ? " FOR UPDATE" : ""), (row, index) -> new Session(row.getInt("user_id"),
-                row.getLong("expires_at"), row.getObject("revoked_at", Long.class)), id);
+                row.getLong("expires_at"), row.getObject("revoked_at", Long.class), row.getInt("auth_version")), id);
         return sessions.isEmpty() ? null : sessions.getFirst();
     }
     private String hash(String token) {
@@ -102,14 +105,22 @@ public class AuthService {
             audit(null, "auth.login.denied", null);
             throw new Failure();
         }
-        return transactions.execute(status -> {
+        Tokens result = transactions.execute(status -> {
+            User current = user("id=?", user.id(), true);
+            if (current == null || !current.enabled() || current.version() != user.version() || !current.hash().equals(user.hash())) {
+                audit(null, "auth.login.denied", null);
+                return null;
+            }
             String sessionId = UUID.randomUUID().toString();
             long expiry = Math.addExact(now(), properties.refreshSeconds());
-            jdbc.update("INSERT INTO sec_sessions(id,user_id,expires_at) VALUES (?,?,?)", sessionId, user.id(), expiry);
-            Tokens tokens = issue(user, sessionId, expiry);
+            jdbc.update("INSERT INTO sec_sessions(id,user_id,expires_at,auth_version) VALUES (?,?,?,?)",
+                    sessionId, current.id(), expiry, current.version());
+            Tokens tokens = issue(current, sessionId, expiry);
             audit(user.id(), "auth.login", null);
             return tokens;
         });
+        if (result == null) { throw new Failure(); }
+        return result;
     }
     private void revoke(String sessionId, int actor, String event) {
         jdbc.update("UPDATE sec_sessions SET revoked_at=? WHERE id=? AND revoked_at IS NULL", now(), sessionId);
@@ -123,16 +134,20 @@ public class AuthService {
             var ids = jdbc.queryForList("SELECT session_id FROM sec_refresh_tokens WHERE token_hash=?", String.class, digest);
             if (ids.isEmpty()) { return null; }
             String id = ids.getFirst();
-            // Every operation in a family locks the session before token rows.
+            Session routing = session(id, false);
+            if (routing == null) { return null; }
+            // Current locking read avoids an earlier MySQL RR consistent-read snapshot.
+            // Global lock order: user state -> session family -> refresh token rows.
+            User user = user("id=?", routing.userId(), true);
             Session family = session(id, true);
             var rows = jdbc.query("SELECT session_id,expires_at,consumed_at,revoked_at FROM sec_refresh_tokens WHERE token_hash=? FOR UPDATE",
                     (row, index) -> new Refresh(row.getString("session_id"), row.getLong("expires_at"),
                     row.getObject("consumed_at", Long.class), row.getObject("revoked_at", Long.class)), digest);
             if (family == null || rows.isEmpty()) { return null; }
             Refresh old = rows.getFirst();
-            User user = user("id=?", family.userId());
             if (old.consumed() != null || old.revoked() != null || old.expires() <= now()
-                    || family.revoked() != null || family.expires() <= now() || user == null || !user.enabled()) {
+                    || family.revoked() != null || family.expires() <= now() || user == null || !user.enabled()
+                    || family.userId() != user.id() || family.version() != user.version() || !old.sessionId().equals(id)) {
                 revoke(id, family.userId(), "auth.refresh.denied");
                 return null;
             }
@@ -157,7 +172,8 @@ public class AuthService {
             User user = user("id=?", id);
             Object version = jwt.getClaims().get("ver");
             return family != null && family.userId() == id && family.revoked() == null && family.expires() > now()
-                    && user != null && user.enabled() && version instanceof Number number && number.doubleValue() == user.version();
+                    && user != null && user.enabled() && family.version() == user.version()
+                    && version instanceof Number number && number.doubleValue() == user.version();
         } catch (IllegalArgumentException error) { return false; }
     }
     public UsernamePasswordAuthenticationToken authenticate(Jwt jwt) {
@@ -173,6 +189,7 @@ public class AuthService {
     public void logout() {
         var user = AuthContext.current();
         transactions.executeWithoutResult(status -> {
+            user("id=?", user.id(), true);
             session(user.sessionId(), true);
             revoke(user.sessionId(), user.id(), "auth.logout");
         });

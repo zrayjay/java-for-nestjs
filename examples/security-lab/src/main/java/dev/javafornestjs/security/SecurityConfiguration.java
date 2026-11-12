@@ -96,7 +96,8 @@ public class SecurityConfiguration {
         var decoder = NimbusJwtDecoder.withPublicKey((RSAPublicKey) pair.getPublic()).signatureAlgorithm(SignatureAlgorithm.RS256).build();
         var timestamps = new JwtTimestampValidator(Duration.ZERO);
         timestamps.setClock(clock);
-        OAuth2TokenValidator<Jwt> liveSession = jwt -> jwt.getAudience().contains(properties.audience()) && auth.valid(jwt)
+        OAuth2TokenValidator<Jwt> liveSession = jwt -> jwt.getAudience() != null
+                && jwt.getAudience().contains(properties.audience()) && auth.valid(jwt)
                 ? OAuth2TokenValidatorResult.success()
                 : OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token", "Invalid token", null));
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(timestamps, new JwtIssuerValidator(properties.issuer()), liveSession));

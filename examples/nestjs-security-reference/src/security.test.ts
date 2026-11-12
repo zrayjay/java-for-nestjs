@@ -408,6 +408,95 @@ test('refresh expiry rejects exactly at the session lifetime boundary', async ()
   clock.value += 604800
   assert.equal((await refresh(first.refreshToken)).status, 401)
 })
+
+test('credential version invalidates both tokens and a new login binds the new version', async () => {
+  const first = await login('alice')
+  await client.secUser.update({
+    where: { id: 1 },
+    data: { authVersion: { increment: 1 } },
+  })
+  assert.equal((await request('GET', '/me', first.accessToken)).status, 401)
+  assert.equal((await refresh(first.refreshToken)).status, 401)
+  const next = await login('alice')
+  assert.equal(decodeJwt(next.accessToken).ver, 1)
+  assert.equal((await request('GET', '/me', next.accessToken)).status, 200)
+  assert.equal(
+    (await client.secSession.findFirstOrThrow({ where: { revokedAt: null } }))
+      .authVersion,
+    1,
+  )
+})
+
+test('refresh observes current user state after a concurrent credential update lock', async () => {
+  const first = await login('alice')
+  let locked!: () => void, release!: () => void
+  const acquired = new Promise<void>((resolve) => {
+    locked = resolve
+  })
+  const proceed = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  const update = client.$transaction(async (tx) => {
+    await tx.secUser.update({
+      where: { id: 1 },
+      data: { authVersion: { increment: 1 } },
+    })
+    locked()
+    await proceed
+  })
+  await Promise.race([acquired, update])
+  const attempt = refresh(first.refreshToken)
+  let timeout: ReturnType<typeof setTimeout> | undefined
+  try {
+    const completedEarly = await Promise.race([
+      attempt.then(() => true),
+      new Promise<boolean>((resolve) => {
+        timeout = setTimeout(() => resolve(false), 200)
+      }),
+    ])
+    assert.equal(completedEarly, false)
+  } finally {
+    clearTimeout(timeout)
+    release()
+    await update
+  }
+  assert.equal((await attempt).status, 401)
+  assert.equal((await request('GET', '/me', first.accessToken)).status, 401)
+})
+
+test('concurrent identities retain their own task owner and audit request', async () => {
+  const alice = await login('alice'),
+    bob = await login('bob')
+  const responses = await Promise.all([
+    request(
+      'POST',
+      '/tasks',
+      alice.accessToken,
+      '{"title":"Alice concurrent","details":{"priority":2}}',
+    ),
+    request(
+      'POST',
+      '/tasks',
+      bob.accessToken,
+      '{"title":"Bob concurrent","details":{"priority":2}}',
+    ),
+  ])
+  for (const [index, response] of responses.entries()) {
+    assert.equal(response.status, 201)
+    const row = (await response.json()) as { id: number }
+    assert.equal(
+      (await client.dataTask.findUniqueOrThrow({ where: { id: row.id } }))
+        .ownerId,
+      index + 1,
+    )
+    const event = await client.secAudit.findFirstOrThrow({
+      where: { eventCode: 'task.created', resourceId: String(row.id) },
+    })
+    assert.equal(event.actorId, index + 1)
+    assert.equal(event.requestId, response.headers.get('x-request-id'))
+  }
+  assert.equal((await request('GET', '/me')).status, 401)
+})
 test('RS256 signature, issuer, audience and mandatory claims are enforced', async () => {
   const first = await login('alice')
   const payload = decodeJwt(first.accessToken)
@@ -433,6 +522,25 @@ test('RS256 signature, issuer, audience and mandatory claims are enforced', asyn
     ['future', await sign({ ...payload, nbf: clock.now() + 60 })],
   ])
     assert.equal((await request('GET', '/me', token)).status, 401, name)
+  for (const missing of [
+    'aud',
+    'iss',
+    'exp',
+    'iat',
+    'nbf',
+    'sub',
+    'jti',
+    'sid',
+    'ver',
+  ]) {
+    const incomplete = { ...payload }
+    delete incomplete[missing]
+    assert.equal(
+      (await request('GET', '/me', await sign(incomplete))).status,
+      401,
+      missing,
+    )
+  }
   assert.equal(payload.iss, ISSUER)
   assert.equal(payload.aud, AUDIENCE)
 })

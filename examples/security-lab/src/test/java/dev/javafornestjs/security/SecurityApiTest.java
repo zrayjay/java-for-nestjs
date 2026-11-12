@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -81,6 +83,10 @@ class SecurityApiTest {
     @BeforeEach
     void fixture() {
         clock.reset();
+        var requests = new SimpleClientHttpRequestFactory();
+        requests.setConnectTimeout(Duration.ofSeconds(5));
+        requests.setReadTimeout(Duration.ofSeconds(10));
+        http.getRestTemplate().setRequestFactory(requests);
         SecurityContextHolder.clearContext();
         for (String table : List.of("sec_audit", "sec_refresh_tokens", "sec_sessions", "sec_user_roles",
                 "sec_role_permissions", "sec_permissions", "sec_roles", "sec_users", "sec_departments", "data_tasks", "data_owners")) {
@@ -128,10 +134,17 @@ class SecurityApiTest {
         return json.readTree(Base64.getUrlDecoder().decode(access(tokens).split("\\.")[1]));
     }
     private String signed(String session, String issuer, String audience, Instant notBefore) {
-        var values = JwtClaimsSet.builder().issuer(issuer).audience(List.of(audience)).subject("1")
+        var values = JwtClaimsSet.builder().issuer(issuer).subject("1")
                 .issuedAt(clock.instant()).expiresAt(clock.instant().plusSeconds(300)).id("test-jti")
                 .claim("sid", session).claim("ver", 0);
         if (notBefore != null) { values.notBefore(notBefore); }
+        if (audience != null) { values.audience(List.of(audience)); }
+        return encoder.encode(JwtEncoderParameters.from(JwsHeader.with(SignatureAlgorithm.RS256).build(), values.build())).getTokenValue();
+    }
+    private String missingClaim(String session, String missing) {
+        var values = JwtClaimsSet.builder().issuer("https://java-for-nestjs.example").audience(List.of("teaching-api"))
+                .subject("1").issuedAt(clock.instant()).notBefore(clock.instant()).expiresAt(clock.instant().plusSeconds(300))
+                .id("test-jti").claim("sid", session).claim("ver", 0).claims(claims -> claims.remove(missing));
         return encoder.encode(JwtEncoderParameters.from(JwsHeader.with(SignatureAlgorithm.RS256).build(), values.build())).getTokenValue();
     }
     @Test
@@ -267,6 +280,60 @@ class SecurityApiTest {
         assertEquals(HttpStatus.UNAUTHORIZED, refresh(first.path("refreshToken").asText()).getStatusCode());
     }
     @Test
+    void credentialVersionInvalidatesBothTokenKindsAndNewLoginBindsTheNewVersion() throws Exception {
+        var first = login("alice");
+        jdbc.update("UPDATE sec_users SET auth_version=auth_version+1 WHERE id=1");
+        assertEquals(HttpStatus.UNAUTHORIZED, request(HttpMethod.GET, "/me", access(first), null).getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, refresh(first.path("refreshToken").asText()).getStatusCode());
+        var next = login("alice");
+        assertEquals(1, claims(next).path("ver").asInt());
+        assertEquals(HttpStatus.OK, request(HttpMethod.GET, "/me", access(next), null).getStatusCode());
+        assertEquals(1, jdbc.queryForObject("SELECT auth_version FROM sec_sessions WHERE revoked_at IS NULL", Integer.class));
+    }
+    @Test
+    void refreshUsesTheCurrentLockedUserVersionInsteadOfAnEarlierRrSnapshot() throws Exception {
+        var first = login("alice");
+        try (var updating = jdbc.getDataSource().getConnection(); var executor = Executors.newSingleThreadExecutor()) {
+            updating.setAutoCommit(false);
+            try (var statement = updating.prepareStatement("UPDATE sec_users SET auth_version=auth_version+1 WHERE id=1")) {
+                statement.executeUpdate();
+            }
+            var started = new CountDownLatch(1);
+            var attempt = executor.submit(() -> {
+                started.countDown();
+                return refresh(first.path("refreshToken").asText());
+            });
+            try {
+                assertTrue(started.await(5, TimeUnit.SECONDS));
+                assertThrows(TimeoutException.class, () -> attempt.get(200, TimeUnit.MILLISECONDS));
+            } finally { updating.commit(); }
+            assertEquals(HttpStatus.UNAUTHORIZED, attempt.get(10, TimeUnit.SECONDS).getStatusCode());
+        }
+        assertEquals(HttpStatus.UNAUTHORIZED, request(HttpMethod.GET, "/me", access(first), null).getStatusCode());
+    }
+    @Test
+    void concurrentDifferentUsersKeepOwnershipAndAuditCorrelationIsolated() throws Exception {
+        String alice = access(login("alice"));
+        String bob = access(login("bob"));
+        try (var executor = Executors.newFixedThreadPool(2)) {
+            var left = executor.submit(() -> request(HttpMethod.POST, "/tasks", alice,
+                    "{\"title\":\"Alice concurrent\",\"details\":{\"priority\":2}}"));
+            var right = executor.submit(() -> request(HttpMethod.POST, "/tasks", bob,
+                    "{\"title\":\"Bob concurrent\",\"details\":{\"priority\":2}}"));
+            var values = List.of(left.get(10, TimeUnit.SECONDS), right.get(10, TimeUnit.SECONDS));
+            for (int index = 0; index < values.size(); index++) {
+                var response = values.get(index);
+                assertEquals(HttpStatus.CREATED, response.getStatusCode());
+                int id = response.getBody().path("id").asInt();
+                assertEquals(index + 1, jdbc.queryForObject("SELECT owner_id FROM data_tasks WHERE id=?", Integer.class, id));
+                assertEquals(index + 1, jdbc.queryForObject("SELECT actor_id FROM sec_audit WHERE event_code='task.created' AND resource_id=?", Integer.class, Integer.toString(id)));
+                assertEquals(response.getHeaders().getFirst("X-Request-Id"), jdbc.queryForObject(
+                        "SELECT request_id FROM sec_audit WHERE event_code='task.created' AND resource_id=?", String.class, Integer.toString(id)));
+            }
+        }
+        assertEquals(HttpStatus.UNAUTHORIZED, request(HttpMethod.GET, "/me", null, null).getStatusCode());
+    }
+    @Test
     void signatureAlgorithmIssuerAudienceAndRequiredClaimsAreValidated() throws Exception {
         var first = login("alice");
         String valid = access(first);
@@ -278,9 +345,13 @@ class SecurityApiTest {
         for (String invalid : List.of(String.join(".", parts), unsigned,
                 signed(session, "wrong-issuer", "teaching-api", clock.instant()),
                 signed(session, "https://java-for-nestjs.example", "wrong-audience", clock.instant()),
+                signed(session, "https://java-for-nestjs.example", null, clock.instant()),
                 signed(session, "https://java-for-nestjs.example", "teaching-api", null),
                 signed(session, "https://java-for-nestjs.example", "teaching-api", clock.instant().plusSeconds(60)))) {
             assertEquals(HttpStatus.UNAUTHORIZED, request(HttpMethod.GET, "/me", invalid, null).getStatusCode());
+        }
+        for (String missing : List.of("aud", "iss", "exp", "iat", "nbf", "sub", "jti", "sid", "ver")) {
+            assertEquals(HttpStatus.UNAUTHORIZED, request(HttpMethod.GET, "/me", missingClaim(session, missing), null).getStatusCode(), missing);
         }
     }
     @Test

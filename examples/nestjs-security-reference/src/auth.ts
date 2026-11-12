@@ -31,7 +31,12 @@ export interface Tokens {
   tokenType: 'Bearer'
 }
 type User = NonNullable<Awaited<ReturnType<Client['secUser']['findUnique']>>>
-type Session = { userId: number; expiresAt: bigint; revokedAt: bigint | null }
+type Session = {
+  userId: number
+  expiresAt: bigint
+  revokedAt: bigint | null
+  authVersion: number
+}
 type Refresh = {
   sessionId: string
   expiresAt: bigint
@@ -64,6 +69,26 @@ export class AuthService {
         occurredAt: BigInt(this.clock.now()),
       },
     })
+  }
+  private async lockUser(
+    tx: DataTransaction,
+    id: number,
+  ): Promise<User | null> {
+    const rows = await tx.$queryRaw<
+      (Omit<User, 'enabled'> & { enabled: boolean | number })[]
+    >`
+      SELECT id,username,password_hash AS passwordHash,department_id AS departmentId,
+      enabled,auth_version AS authVersion FROM sec_users WHERE id=${id} FOR UPDATE`
+    const row = rows[0]
+    return row
+      ? {
+          ...row,
+          id: Number(row.id),
+          departmentId: Number(row.departmentId),
+          authVersion: Number(row.authVersion),
+          enabled: Boolean(row.enabled),
+        }
+      : null
   }
   private async issue(
     tx: DataTransaction,
@@ -110,16 +135,32 @@ export class AuthService {
       )
       throw new UnauthorizedException()
     }
-    return this.client.$transaction(async (tx) => {
+    const result = await this.client.$transaction(async (tx) => {
+      const current = await this.lockUser(tx, user.id)
+      if (
+        !current?.enabled ||
+        current.authVersion !== user.authVersion ||
+        current.passwordHash !== user.passwordHash
+      ) {
+        await this.audit(tx, null, 'auth.login.denied', null)
+        return null
+      }
       const sessionId = randomUUID()
       const expiry = BigInt(this.clock.now() + REFRESH_SECONDS)
       await tx.secSession.create({
-        data: { id: sessionId, userId: user.id, expiresAt: expiry },
+        data: {
+          id: sessionId,
+          userId: current.id,
+          expiresAt: expiry,
+          authVersion: current.authVersion,
+        },
       })
-      const tokens = await this.issue(tx, user, sessionId, expiry)
+      const tokens = await this.issue(tx, current, sessionId, expiry)
       await this.audit(tx, user.id, 'auth.login', null)
       return tokens
     })
+    if (!result) throw new UnauthorizedException()
+    return result
   }
   private async revoke(
     tx: DataTransaction,
@@ -148,17 +189,29 @@ export class AuthService {
       })
       if (!oldIdentity) return null
       const id = oldIdentity.sessionId
-      // Match Java's family-first lock ordering; all state is re-read under locks.
+      const routing = await tx.secSession.findUnique({
+        where: { id },
+        select: { userId: true },
+      })
+      if (!routing) return null
+      // Current locking reads avoid an earlier MySQL RR snapshot.
+      // Lock order: user state -> session family -> refresh token rows.
+      const user = await this.lockUser(tx, routing.userId)
       const sessions = await tx.$queryRaw<
         Session[]
-      >`SELECT user_id AS userId,expires_at AS expiresAt,revoked_at AS revokedAt FROM sec_sessions WHERE id=${id} FOR UPDATE`
+      >`SELECT user_id AS userId,expires_at AS expiresAt,revoked_at AS revokedAt,auth_version AS authVersion FROM sec_sessions WHERE id=${id} FOR UPDATE`
       const rows = await tx.$queryRaw<
         Refresh[]
       >`SELECT session_id AS sessionId,expires_at AS expiresAt,consumed_at AS consumedAt,revoked_at AS revokedAt FROM sec_refresh_tokens WHERE token_hash=${tokenHash} FOR UPDATE`
-      const family = sessions[0],
+      const family = sessions[0]
+          ? {
+              ...sessions[0],
+              userId: Number(sessions[0].userId),
+              authVersion: Number(sessions[0].authVersion),
+            }
+          : undefined,
         old = rows[0]
       if (!family || !old) return null
-      const user = await tx.secUser.findUnique({ where: { id: family.userId } })
       const now = BigInt(this.clock.now())
       if (
         old.consumedAt !== null ||
@@ -166,7 +219,10 @@ export class AuthService {
         old.expiresAt <= now ||
         family.revokedAt !== null ||
         family.expiresAt <= now ||
-        !user?.enabled
+        !user?.enabled ||
+        Number(family.userId) !== user.id ||
+        Number(family.authVersion) !== user.authVersion ||
+        old.sessionId !== id
       ) {
         await this.revoke(tx, id, family.userId, 'auth.refresh.denied')
         return null
@@ -248,6 +304,7 @@ export class AuthService {
       family.revokedAt !== null ||
       family.expiresAt <= BigInt(this.clock.now()) ||
       !family.user.enabled ||
+      family.authVersion !== family.user.authVersion ||
       family.user.authVersion !== payload.ver
     )
       throw new UnauthorizedException()
@@ -266,6 +323,7 @@ export class AuthService {
   async logout(): Promise<void> {
     const user = this.context.current()
     await this.client.$transaction(async (tx) => {
+      await this.lockUser(tx, user.id)
       await tx.$queryRaw`SELECT id FROM sec_sessions WHERE id=${user.sessionId} FOR UPDATE`
       await this.revoke(tx, user.sessionId, user.id, 'auth.logout')
     })
