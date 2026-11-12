@@ -1,0 +1,61 @@
+name: Redis cache teaching labs
+on:
+  push:
+    paths:
+      - 'examples/cache-lab/**'
+      - 'examples/nestjs-security-reference/**'
+      - 'pnpm-lock.yaml'
+      - 'pom.xml'
+      - '.github/workflows/cache.yml'
+  pull_request:
+    paths:
+      - 'examples/cache-lab/**'
+      - 'examples/nestjs-security-reference/**'
+      - 'pnpm-lock.yaml'
+      - 'pom.xml'
+      - '.github/workflows/cache.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cache:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ['21', '25']
+    services:
+      redis:
+        image: redis:7.4.6
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s --health-timeout=3s --health-retries=20
+    env:
+      CACHE_REDIS_URL: redis://127.0.0.1:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+          cache-dependency-path: '**/pom.xml'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
+      - run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/nestjs-security-reference... build
+      - name: Actual Redis Java TTL, isolation, concurrency and stale-fill tests
+        run: ./mvnw --batch-mode --no-transfer-progress -f examples/cache-lab/pom.xml verify
+      - name: Actual Redis Node paired tests
+        run: node --test examples/nestjs-security-reference/dist/cache.spec.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cache-results-java-${{ matrix.java }}
+          path: |
+            examples/cache-lab/target/surefire-reports/
+            examples/cache-lab/target/checkstyle-result.xml
