@@ -291,7 +291,7 @@
         "topics": "FilterChain、Authentication、SecurityContext",
         "reference": "Nest Passport / Guard",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/06-security/29-spring-security.md"
       },
       {
@@ -300,7 +300,7 @@
         "topics": "Access/Refresh Token、过期、轮换、撤销、CSRF 取舍",
         "reference": "Nest JWT",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/06-security/30-jwt-and-sessions.md"
       },
       {
@@ -309,7 +309,7 @@
         "topics": "用户/角色/权限、按钮/接口/数据权限、越权防范",
         "reference": "Nest RBAC",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/06-security/31-rbac.md"
       },
       {
@@ -318,7 +318,7 @@
         "topics": "TTL、穿透/击穿/雪崩、一致性、并发",
         "reference": "ioredis / cache-manager",
         "pilot": false,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/06-security/32-redis-and-cache.md"
       },
       {

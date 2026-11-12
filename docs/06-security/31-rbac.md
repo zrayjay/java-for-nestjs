@@ -2,7 +2,7 @@
 title: '31 · RBAC权限系统'
 description: 分开验证角色权限、界面能力与部门/本人数据范围，拒绝直接请求越权。
 chapter_id: '31'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Boot3.5.16 / MySQL8.4.7 / Nest11.2.9 / Prisma7.10.1
 ---
 
@@ -213,4 +213,4 @@ Java命令定位本点关键场景，Node命令执行完整16场景以包含对�
 
 ## 章末验收与审查记录
 
-本章draft。已实现RBAC与部门范围、能力元数据、实时撤权、直接HTTP拒绝及SQL审计回滚。真实执行按[进度](../progress/P4-01.md)逐提交记录，未声称租户、前端管理页面或G4已完成。官方参考：[Spring授权架构](https://docs.spring.io/spring-security/reference/6.5/servlet/authorization/architecture.html)、[请求授权](https://docs.spring.io/spring-security/reference/6.5/servlet/authorization/authorize-http-requests.html)、[Nest Authorization](https://docs.nestjs.com/security/authorization)、[OWASP授权指南](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html)。
+本章in_review，独立[两轴审查](../reviews/P4-01-auth.md)已归档。已实现RBAC与部门范围、能力元数据、实时撤权、直接HTTP拒绝及SQL审计回滚。真实执行按[进度](../progress/P4-01.md)逐提交记录，未声称租户、前端管理页面或G4已完成。官方参考：[Spring授权架构](https://docs.spring.io/spring-security/reference/6.5/servlet/authorization/architecture.html)、[请求授权](https://docs.spring.io/spring-security/reference/6.5/servlet/authorization/authorize-http-requests.html)、[Nest Authorization](https://docs.nestjs.com/security/authorization)、[OWASP授权指南](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html)。

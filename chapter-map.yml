@@ -23,6 +23,8 @@ baseline:
   springdoc: 2.10.0
   jose: 6.2.17
   bcryptjs: 3.0.3
+  ioredis: 5.8.2
+  redis: 7.4.6
 parts:
   - id: '01'
     title: 运行时与工具入门
@@ -1009,7 +1011,7 @@ chapters:
     part: '06'
     title: Spring Security
     path: docs/06-security/29-spring-security.md
-    status: draft
+    status: in_review
     prerequisites:
       - '21'
       - '22'
@@ -1029,12 +1031,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P4-01.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P4-01-auth.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-12
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P4-01-auth.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-12
+        independent: true
+        conclusion: approved
   - id: '30'
     part: '06'
     title: JWT 与会话
     path: docs/06-security/30-jwt-and-sessions.md
-    status: draft
+    status: in_review
     prerequisites:
       - '29'
     tags:
@@ -1053,12 +1065,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P4-01.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P4-01-auth.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-12
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P4-01-auth.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-12
+        independent: true
+        conclusion: approved
   - id: '31'
     part: '06'
     title: RBAC 权限系统
     path: docs/06-security/31-rbac.md
-    status: draft
+    status: in_review
     prerequisites:
       - '30'
     tags:
@@ -1077,12 +1099,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P4-01.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P4-01-auth.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-12
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P4-01-auth.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-12
+        independent: true
+        conclusion: approved
   - id: '32'
     part: '06'
     title: Redis 与缓存设计
     path: docs/06-security/32-redis-and-cache.md
-    status: planned
+    status: draft
     prerequisites:
       - '23'
       - '27'
@@ -1091,10 +1123,15 @@ chapters:
     topics: TTL、穿透/击穿/雪崩、一致性、并发
     reference: ioredis / cache-manager
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/cache-lab/src/main/java/dev/javafornestjs/cache/ScopedCache.java
+      - examples/nestjs-security-reference/src/cache.ts
+    tests:
+      - examples/cache-lab/src/test/java/dev/javafornestjs/cache/RedisCacheTest.java
+      - examples/nestjs-security-reference/src/cache.spec.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P4-01.md
     reviews: []
   - id: '33'
     part: '06'

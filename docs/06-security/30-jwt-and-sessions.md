@@ -2,7 +2,7 @@
 title: '30 · JWT与会话'
 description: 验证Access签名声明、Refresh轮换重放、凭据版本和浏览器存储边界。
 chapter_id: '30'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Boot3.5.16 / Security6.5.11选定Nimbus9.37.4 / Nest11.2.9 / jose6.2.17
 ---
 
@@ -214,4 +214,4 @@ Java命令定位本点关键场景，Node命令执行完整16场景以包含对�
 
 ## 章末验收与审查记录
 
-本章draft。版本绑定、缺声明与并发回归已在Security43170418413的Java21/25矩阵通过，每组Java19项及Node19项；后续合法写断言仍需对应提交CI，见[进度](../progress/P4-01.md)。官方参考：[JWT RFC7519](https://www.rfc-editor.org/rfc/rfc7519)、[JWT最佳实践RFC8725](https://www.rfc-editor.org/rfc/rfc8725)、[OAuth安全最佳实践RFC9700](https://www.rfc-editor.org/rfc/rfc9700)、[Spring CSRF](https://docs.spring.io/spring-security/reference/6.5/servlet/exploits/csrf.html)、[jose](https://github.com/panva/jose)。
+本章in_review，独立[两轴审查](../reviews/P4-01-auth.md)已归档。版本绑定、缺声明与并发回归已在Security43170418413的Java21/25矩阵通过，每组Java19项及Node19项；后续合法写断言仍需对应提交CI，见[进度](../progress/P4-01.md)。官方参考：[JWT RFC7519](https://www.rfc-editor.org/rfc/rfc7519)、[JWT最佳实践RFC8725](https://www.rfc-editor.org/rfc/rfc8725)、[OAuth安全最佳实践RFC9700](https://www.rfc-editor.org/rfc/rfc9700)、[Spring CSRF](https://docs.spring.io/spring-security/reference/6.5/servlet/exploits/csrf.html)、[jose](https://github.com/panva/jose)。

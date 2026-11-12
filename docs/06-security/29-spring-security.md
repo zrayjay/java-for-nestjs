@@ -2,7 +2,7 @@
 title: '29 · Spring Security'
 description: 用真实Bearer请求理解安全链、认证身份、上下文隔离与授权边界。
 chapter_id: '29'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Boot3.5.16 / Spring Security6.5.11 / Nest11.2.9 / jose6.2.17
 ---
 
@@ -206,4 +206,4 @@ Java命令定位本点关键场景，Node命令执行完整16场景以包含对�
 
 ## 章末验收与审查记录
 
-本章draft。凭据版本、缺声明及并发修订已在Security43170418413的Java21/25矩阵通过，每组Java19项及Node19项；后续合法写断言仍待对应提交CI；源码审查与完整课程验收不同，见[实施记录](../progress/P4-01.md)。官方参考：[Security架构](https://docs.spring.io/spring-security/reference/6.5/servlet/architecture.html)、[认证架构](https://docs.spring.io/spring-security/reference/6.5/servlet/authentication/architecture.html)、[JWT Resource Server](https://docs.spring.io/spring-security/reference/6.5/servlet/oauth2/resource-server/jwt.html)、[Nest Guards](https://docs.nestjs.com/guards)。
+本章in_review，独立[两轴审查](../reviews/P4-01-auth.md)已归档。凭据版本、缺声明及并发修订已在Security43170418413的Java21/25矩阵通过，每组Java19项及Node19项；后续合法写断言仍待对应提交CI；源码审查与完整课程验收不同，见[实施记录](../progress/P4-01.md)。官方参考：[Security架构](https://docs.spring.io/spring-security/reference/6.5/servlet/architecture.html)、[认证架构](https://docs.spring.io/spring-security/reference/6.5/servlet/authentication/architecture.html)、[JWT Resource Server](https://docs.spring.io/spring-security/reference/6.5/servlet/oauth2/resource-server/jwt.html)、[Nest Guards](https://docs.nestjs.com/guards)。

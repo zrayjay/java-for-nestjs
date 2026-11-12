@@ -39,11 +39,18 @@ export async function verifyCompatibility(root) {
   const properties = await read('.mvn/wrapper/maven-wrapper.properties')
   const matrix = await read('docs/00-introduction/compatibility-matrix.md')
   const workflows = await Promise.all(
-    ['docs', 'foundation', 'transactions', 'data-access', 'security'].map((n) =>
-      read(`.github/workflows/${n}.yml`),
-    ),
+    [
+      'docs',
+      'foundation',
+      'transactions',
+      'data-access',
+      'security',
+      'cache',
+    ].map((n) => read(`.github/workflows/${n}.yml`)),
   )
   const actual = {
+    ioredis: security.ioredis,
+    redis: workflows[5].match(/image:\s+redis:([\d.]+)/)?.[1],
     jose: security.jose,
     bcryptjs: security.bcryptjs,
     mybatisPlus: dataPom.match(/<mybatis-plus.version>([^<]+)</)?.[1],
