@@ -6,6 +6,12 @@ on:
       - 'examples/security-lab/**'
       - 'examples/data-access-lab/**'
       - 'examples/spring-web-lab/**'
+      - 'examples/nestjs-security-reference/**'
+      - 'examples/nestjs-reference/**'
+      - 'examples/prisma-reference/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'package.json'
       - 'pom.xml'
       - '.mvn/**'
       - 'mvnw*'
@@ -16,6 +22,12 @@ on:
       - 'examples/security-lab/**'
       - 'examples/data-access-lab/**'
       - 'examples/spring-web-lab/**'
+      - 'examples/nestjs-security-reference/**'
+      - 'examples/nestjs-reference/**'
+      - 'examples/prisma-reference/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'package.json'
       - 'pom.xml'
       - '.mvn/**'
       - 'mvnw*'
@@ -51,6 +63,7 @@ jobs:
       DATA_JDBC_URL: jdbc:mysql://127.0.0.1:3306/data_lab?allowPublicKeyRetrieval=true&useSSL=false
       DATA_DATABASE_USER: lab
       DATA_DATABASE_PASSWORD: lab-only-password
+      DATA_DATABASE_URL: mysql://lab:lab-only-password@127.0.0.1:3306/data_lab
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -59,12 +72,20 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
           cache-dependency-path: '**/pom.xml'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
+      - name: Build paired Nest security runtime and Prisma client
+        run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/nestjs-security-reference... build
       - name: Prepare reusable HTTP and data artifacts
         run: |
           ./mvnw --batch-mode --no-transfer-progress -pl examples/spring-web-lab -am install -DskipTests
           ./mvnw --batch-mode --no-transfer-progress -f examples/data-access-lab/pom.xml install -DskipTests
       - name: Actual HTTP JWT, refresh replay, SQL scope and audit tests
         run: ./mvnw --batch-mode --no-transfer-progress -f examples/security-lab/pom.xml clean verify
+      - name: Nest actual HTTP JWT, refresh replay and SQL authorization tests
+        run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/nestjs-security-reference test
       - uses: actions/upload-artifact@v4
         if: always()
         with:

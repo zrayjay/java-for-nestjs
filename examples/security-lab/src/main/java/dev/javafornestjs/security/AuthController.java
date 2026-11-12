@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AuthController {
     public record Login(@NotBlank @Pattern(regexp = "[a-z][a-z0-9_-]{0,39}") String username,
-                         @NotBlank @Size(max = 72) String password) { }
+                         @NotNull @Size(min = 1, max = 72) String password) { }
     public record Refresh(@NotNull @Pattern(regexp = "[A-Za-z0-9_-]{43}") String refreshToken) { }
     public record RoleChange(@NotNull @Size(max = 10) List<@NotNull @Positive Integer> roles) { }
     public record Me(int id, String username, int departmentId, List<String> permissions) { }

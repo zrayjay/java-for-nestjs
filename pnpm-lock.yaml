@@ -96,6 +96,37 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  examples/nestjs-security-reference:
+    dependencies:
+      '@java-for-nestjs/nestjs-reference':
+        specifier: workspace:*
+        version: link:../nestjs-reference
+      '@java-for-nestjs/prisma-reference':
+        specifier: workspace:*
+        version: link:../prisma-reference
+      '@nestjs/common':
+        specifier: 11.2.9
+        version: 11.2.9(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/core':
+        specifier: 11.2.9
+        version: 11.2.9(@nestjs/common@11.2.9(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.2.9)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      bcryptjs:
+        specifier: 3.0.3
+        version: 3.0.3
+      class-validator:
+        specifier: 0.15.1
+        version: 0.15.1
+      jose:
+        specifier: 6.2.17
+        version: 6.2.17
+    devDependencies:
+      '@types/node':
+        specifier: 22.19.3
+        version: 22.19.3
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   examples/prisma-reference:
     dependencies:
       '@prisma/adapter-mariadb':
@@ -1189,6 +1220,10 @@ packages:
     resolution: {integrity: sha512-NZKeq9AfyQvEeNlN0zSYAaWrmBffJh3IELMZfRpJVWgrpEbtEpnjvzqBPf+mxoI287JohRDoa+/nsfqqiZmF6g==}
     engines: {node: '>= 6.0.0'}
 
+  bcryptjs@3.0.3:
+    resolution: {integrity: sha512-GlF5wPWnSa/X5LKM1o0wz0suXIINz1iHRLvTS+sLyi7XPbe5ycmYI3DlZqVGZZtDgl4DmasFg7gOB3JYbphV5g==}
+    hasBin: true
+
   better-result@2.10.0:
     resolution: {integrity: sha512-oQhh0y1qo2/ZKdAAEvHZAqKKiHOFU5k/bW96fE2ScgQOVkJRiHwB+nOS1SgFsYqRlxMDWvefXi9Q3px7QvgNDw==}
 
@@ -1797,6 +1832,9 @@ packages:
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
+
+  jose@6.2.17:
+    resolution: {integrity: sha512-wOuK9V1yujQFH5S0ZWmLcDZN7+IKh9bUCC2ZPCf2HDlol3WWHy+PPyNjEI75FXRLMp3vDKQcupP59xhVU95hcg==}
 
   js-yaml@5.5.0:
     resolution: {integrity: sha512-paNr4LFIFPjeeSmwNYdrb8FafLLG/Cr2Af3GjbsHJ5CxIjH4r0c2emlmRdAtpPAieP1gRVzk6buBbVP5gBMGAg==}
@@ -3545,6 +3583,8 @@ snapshots:
 
   aws-ssl-profiles@1.1.2: {}
 
+  bcryptjs@3.0.3: {}
+
   better-result@2.10.0: {}
 
   birpc@2.9.0: {}
@@ -4204,6 +4244,8 @@ snapshots:
   iterare@1.2.1: {}
 
   jiti@2.7.0: {}
+
+  jose@6.2.17: {}
 
   js-yaml@5.5.0:
     dependencies:

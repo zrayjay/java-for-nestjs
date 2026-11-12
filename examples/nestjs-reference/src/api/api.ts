@@ -12,6 +12,7 @@ import {
   Catch,
   Controller,
   Delete,
+  DynamicModule,
   ExceptionFilter,
   Get,
   HttpCode,
@@ -26,6 +27,7 @@ import {
   Req,
   Res,
   ValidationPipe,
+  Type as NestType,
 } from '@nestjs/common'
 import { APP_GUARD, APP_INTERCEPTOR, NestFactory } from '@nestjs/core'
 import {
@@ -227,11 +229,16 @@ class ApiErrors implements ExceptionFilter {
   catch(error: unknown, host: ArgumentsHost): void {
     const status = error instanceof HttpException ? error.getStatus() : 500
     const code =
-      status === 400
-        ? 'invalid_request'
-        : status === 404
-          ? 'not_found'
-          : 'internal_error'
+      (
+        {
+          400: 'invalid_request',
+          401: 'unauthorized',
+          403: 'forbidden',
+          404: 'not_found',
+          413: 'payload_too_large',
+          415: 'unsupported_media_type',
+        } as Record<number, string>
+      )[status] ?? 'internal_error'
     host
       .switchToHttp()
       .getResponse<{ status(value: number): { json(body: unknown): void } }>()
@@ -257,17 +264,24 @@ class ApiErrors implements ExceptionFilter {
   ],
 })
 class ApiModule {}
-export async function createApi(port = 0, storage?: TaskStorage) {
-  const module = storage
-    ? {
-        module: ApiModule,
-        providers: [{ provide: TaskStorage, useValue: storage }],
-      }
-    : ApiModule
+export async function createApi(
+  port = 0,
+  storage?: TaskStorage,
+  feature?: NestType<unknown> | DynamicModule,
+  setup?: (
+    app: import('@nestjs/common').INestApplication,
+  ) => void | Promise<void>,
+) {
+  const module = {
+    module: ApiModule,
+    imports: feature ? [feature] : [],
+    providers: storage ? [{ provide: TaskStorage, useValue: storage }] : [],
+  }
   const app = await NestFactory.create(module, {
     logger: false,
     rawBody: true,
   })
+  if (setup) await setup(app)
   const trace = app.get(RequestTrace)
   app.use(
     (request: TraceRequest, response: TraceResponse, next: () => void) => {

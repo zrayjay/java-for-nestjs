@@ -29,7 +29,85 @@ model DataOwner {
   id    Int @id
   name  String @db.VarChar(40)
   tasks DataTask[]
+  identity SecUser?
   @@map("data_owners")
+}
+
+model SecDepartment {
+  id Int @id
+  name String @db.VarChar(40)
+  users SecUser[]
+  @@map("sec_departments")
+}
+model SecUser {
+  id Int @id
+  username String @unique @db.VarChar(40)
+  passwordHash String @map("password_hash") @db.VarChar(100)
+  departmentId Int @map("department_id")
+  enabled Boolean @default(true)
+  authVersion Int @default(0) @map("auth_version")
+  owner DataOwner @relation(fields: [id], references: [id])
+  department SecDepartment @relation(fields: [departmentId], references: [id])
+  roles SecUserRole[]
+  sessions SecSession[]
+  @@map("sec_users")
+}
+model SecRole {
+  id Int @id
+  name String @unique @db.VarChar(40)
+  users SecUserRole[]
+  permissions SecRolePermission[]
+  @@map("sec_roles")
+}
+model SecPermission {
+  id Int @id
+  code String @unique @db.VarChar(64)
+  roles SecRolePermission[]
+  @@map("sec_permissions")
+}
+model SecUserRole {
+  userId Int @map("user_id")
+  roleId Int @map("role_id")
+  user SecUser @relation(fields: [userId], references: [id])
+  role SecRole @relation(fields: [roleId], references: [id])
+  @@id([userId, roleId])
+  @@map("sec_user_roles")
+}
+model SecRolePermission {
+  roleId Int @map("role_id")
+  permissionId Int @map("permission_id")
+  role SecRole @relation(fields: [roleId], references: [id])
+  permission SecPermission @relation(fields: [permissionId], references: [id])
+  @@id([roleId, permissionId])
+  @@map("sec_role_permissions")
+}
+model SecSession {
+  id String @id @db.Char(36)
+  userId Int @map("user_id")
+  expiresAt BigInt @map("expires_at")
+  revokedAt BigInt? @map("revoked_at")
+  user SecUser @relation(fields: [userId], references: [id])
+  refreshTokens SecRefreshToken[]
+  @@map("sec_sessions")
+}
+model SecRefreshToken {
+  tokenHash String @id @map("token_hash") @db.Char(64)
+  sessionId String @map("session_id") @db.Char(36)
+  expiresAt BigInt @map("expires_at")
+  consumedAt BigInt? @map("consumed_at")
+  revokedAt BigInt? @map("revoked_at")
+  session SecSession @relation(fields: [sessionId], references: [id])
+  @@index([sessionId], map: "ix_sec_refresh_session")
+  @@map("sec_refresh_tokens")
+}
+model SecAudit {
+  id BigInt @id @default(autoincrement())
+  actorId Int? @map("actor_id")
+  eventCode String @map("event_code") @db.VarChar(64)
+  resourceId String? @map("resource_id") @db.VarChar(64)
+  requestId String @map("request_id") @db.VarChar(64)
+  occurredAt BigInt @map("occurred_at")
+  @@map("sec_audit")
 }
 
 model Balance {

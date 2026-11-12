@@ -1,5 +1,6 @@
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
-import { PrismaClient } from './generated/prisma/client.js'
+import { PrismaClient, Prisma } from './generated/prisma/client.js'
+export type DataTransaction = Prisma.TransactionClient
 
 export function dataConnection(value: string | undefined) {
   if (!value) throw new Error('DATA_DATABASE_URL is required')
