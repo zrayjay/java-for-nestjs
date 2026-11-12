@@ -39,7 +39,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -83,10 +83,9 @@ class SecurityApiTest {
     @BeforeEach
     void fixture() {
         clock.reset();
-        var requests = new SimpleClientHttpRequestFactory();
-        requests.setConnectTimeout(Duration.ofSeconds(5));
-        requests.setReadTimeout(Duration.ofSeconds(10));
-        http.getRestTemplate().setRequestFactory(requests);
+        if (http.getRestTemplate().getRequestFactory() instanceof JdkClientHttpRequestFactory requests) {
+            requests.setReadTimeout(Duration.ofSeconds(10));
+        }
         SecurityContextHolder.clearContext();
         for (String table : List.of("sec_audit", "sec_refresh_tokens", "sec_sessions", "sec_user_roles",
                 "sec_role_permissions", "sec_permissions", "sec_roles", "sec_users", "sec_departments", "data_tasks", "data_owners")) {
