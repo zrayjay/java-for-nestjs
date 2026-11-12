@@ -21,6 +21,8 @@ baseline:
   classTransformer: 0.5.1
   mybatisPlus: 3.5.18
   springdoc: 2.10.0
+  jose: 6.2.17
+  bcryptjs: 3.0.3
 parts:
   - id: '01'
     title: 运行时与工具入门
@@ -1007,7 +1009,7 @@ chapters:
     part: '06'
     title: Spring Security
     path: docs/06-security/29-spring-security.md
-    status: planned
+    status: draft
     prerequisites:
       - '21'
       - '22'
@@ -1016,16 +1018,23 @@ chapters:
     topics: FilterChain、Authentication、SecurityContext
     reference: Nest Passport / Guard
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/security-lab/src/main/java/dev/javafornestjs/security/AuthService.java
+      - examples/nestjs-security-reference/src/auth.ts
+    tests:
+      - examples/security-lab/src/test/java/dev/javafornestjs/security/SecurityApiTest.java
+      - examples/security-lab/src/test/java/dev/javafornestjs/security/TokenKeysTest.java
+      - examples/nestjs-security-reference/src/security.test.ts
+      - examples/nestjs-security-reference/src/keys.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P4-01.md
     reviews: []
   - id: '30'
     part: '06'
     title: JWT 与会话
     path: docs/06-security/30-jwt-and-sessions.md
-    status: planned
+    status: draft
     prerequisites:
       - '29'
     tags:
@@ -1033,16 +1042,23 @@ chapters:
     topics: Access/Refresh Token、过期、轮换、撤销、CSRF 取舍
     reference: Nest JWT
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/security-lab/src/main/java/dev/javafornestjs/security/AuthService.java
+      - examples/nestjs-security-reference/src/auth.ts
+    tests:
+      - examples/security-lab/src/test/java/dev/javafornestjs/security/SecurityApiTest.java
+      - examples/security-lab/src/test/java/dev/javafornestjs/security/TokenKeysTest.java
+      - examples/nestjs-security-reference/src/security.test.ts
+      - examples/nestjs-security-reference/src/keys.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P4-01.md
     reviews: []
   - id: '31'
     part: '06'
     title: RBAC 权限系统
     path: docs/06-security/31-rbac.md
-    status: planned
+    status: draft
     prerequisites:
       - '30'
     tags:
@@ -1050,10 +1066,17 @@ chapters:
     topics: 用户/角色/权限、按钮/接口/数据权限、越权防范
     reference: Nest RBAC
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/security-lab/src/main/java/dev/javafornestjs/security/AuthService.java
+      - examples/nestjs-security-reference/src/auth.ts
+    tests:
+      - examples/security-lab/src/test/java/dev/javafornestjs/security/SecurityApiTest.java
+      - examples/security-lab/src/test/java/dev/javafornestjs/security/TokenKeysTest.java
+      - examples/nestjs-security-reference/src/security.test.ts
+      - examples/nestjs-security-reference/src/keys.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P4-01.md
     reviews: []
   - id: '32'
     part: '06'

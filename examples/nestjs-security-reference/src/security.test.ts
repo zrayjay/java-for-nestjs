@@ -260,6 +260,17 @@ test('department filtering precedes limit and ownership is part of the mutation'
     200,
   )
   assert.equal(
+    (
+      await request(
+        'PUT',
+        `/tasks/${foreign.id}`,
+        admin.accessToken,
+        '{"title":"Admin updated","details":{"priority":3}}',
+      )
+    ).status,
+    200,
+  )
+  assert.equal(
     (await request('DELETE', `/tasks/${foreign.id}`, admin.accessToken)).status,
     204,
   )
@@ -267,6 +278,26 @@ test('department filtering precedes limit and ownership is part of the mutation'
     (await client.dataTask.findUniqueOrThrow({ where: { id: own.id } })).title,
     'Alice task',
   )
+  assert.equal(
+    (
+      await request(
+        'PUT',
+        `/tasks/${own.id}`,
+        alice.accessToken,
+        '{"title":"Alice changed","details":{"priority":3}}',
+      )
+    ).status,
+    200,
+  )
+  assert.equal(
+    (await client.dataTask.findUniqueOrThrow({ where: { id: own.id } })).title,
+    'Alice changed',
+  )
+  assert.equal(
+    (await request('DELETE', `/tasks/${own.id}`, alice.accessToken)).status,
+    204,
+  )
+  assert.equal(await client.dataTask.count({ where: { id: own.id } }), 0)
 })
 test('button permission metadata does not replace server-side denial', async () => {
   const reader = await login('cara')

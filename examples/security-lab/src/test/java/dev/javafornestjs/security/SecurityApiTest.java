@@ -190,8 +190,15 @@ class SecurityApiTest {
         assertEquals(HttpStatus.NOT_FOUND, request(HttpMethod.DELETE, "/tasks/" + aliceId, erin, null).getStatusCode());
         String admin = access(login("admin"));
         assertEquals(HttpStatus.OK, request(HttpMethod.GET, "/tasks/" + bobId, admin, null).getStatusCode());
+        assertEquals(HttpStatus.OK, request(HttpMethod.PUT, "/tasks/" + bobId, admin,
+                "{\"title\":\"Admin updated\",\"details\":{\"priority\":3}}").getStatusCode());
         assertEquals(HttpStatus.NO_CONTENT, request(HttpMethod.DELETE, "/tasks/" + bobId, admin, null).getStatusCode());
         assertEquals("Alice task", jdbc.queryForObject("SELECT title FROM data_tasks WHERE id=?", String.class, aliceId));
+        assertEquals(HttpStatus.OK, request(HttpMethod.PUT, "/tasks/" + aliceId, alice,
+                "{\"title\":\"Alice changed\",\"details\":{\"priority\":3}}").getStatusCode());
+        assertEquals("Alice changed", jdbc.queryForObject("SELECT title FROM data_tasks WHERE id=?", String.class, aliceId));
+        assertEquals(HttpStatus.NO_CONTENT, request(HttpMethod.DELETE, "/tasks/" + aliceId, alice, null).getStatusCode());
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM data_tasks WHERE id=?", Integer.class, aliceId));
     }
     @Test
     void buttonPermissionMetadataDoesNotReplaceDirectServerRejection() {

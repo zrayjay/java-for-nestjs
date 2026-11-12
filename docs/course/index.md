@@ -71,9 +71,9 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 
 | 章节 | 主题 | 核心知识点 | 认知参照 | 状态 |
 |---|---|---|---|---|
-| 29 | Spring Security | FilterChain、Authentication、SecurityContext | Nest Passport / Guard | 待编写 |
-| 30 | JWT 与会话 | Access/Refresh Token、过期、轮换、撤销、CSRF 取舍 | Nest JWT | 待编写 |
-| 31 | RBAC 权限系统 | 用户/角色/权限、按钮/接口/数据权限、越权防范 | Nest RBAC | 待编写 |
+| 29 | [Spring Security](../../docs/06-security/29-spring-security.md) | FilterChain、Authentication、SecurityContext | Nest Passport / Guard | 编写中 |
+| 30 | [JWT 与会话](../../docs/06-security/30-jwt-and-sessions.md) | Access/Refresh Token、过期、轮换、撤销、CSRF 取舍 | Nest JWT | 编写中 |
+| 31 | [RBAC 权限系统](../../docs/06-security/31-rbac.md) | 用户/角色/权限、按钮/接口/数据权限、越权防范 | Nest RBAC | 编写中 |
 | 32 | Redis 与缓存设计 | TTL、穿透/击穿/雪崩、一致性、并发 | ioredis / cache-manager | 待编写 |
 | 33 | 企业基础能力 | 文件、对象存储、审计、OpenAPI、脱敏 | Multer / Swagger | 待编写 |
 

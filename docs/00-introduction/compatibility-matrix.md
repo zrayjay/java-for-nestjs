@@ -38,6 +38,8 @@ VitePress1文档的Node下限与VitePress2文档不同，应查阅[稳定版安�
 
 ## 官方兼容声明
 
+P4认证参照（2026-11-12）：Boot3.5.16管理Spring Security6.5.11，其oauth2-jose制品声明选定Nimbus9.37.4（本机实际测试classpath核对），不声称Boot BOM直接管理每个传递依赖。Node jose6.2.17、bcryptjs3.0.3和显式reflect-metadata0.2.2。[Security43170418413](https://github.com/zrayjay/java-for-nestjs/actions/runs/43170418413)在Linux Temurin21/25各完整通过Java19项/Node19项，含V2凭据版本绑定与并发/缺声明负例；新增合法作用域写入对照以其后提交单独记录。Redis/上传与G4尚未据此通过。
+
 P3 HTTP参照（2026-11-11）：Nest common/core/platform-express固定11.2.9，Swagger11.4.8，class-validator0.15.1及class-transformer0.5.1，见[ADR-0006](../adr/0006-http-reference-runtime.md)。Windows/Microsoft JDK21的Spring Web新增13项测试通过；Nest真实环回HTTP测试通过；两个独立打包进程的共同HTTP契约通过。它们使用内存仓库，尚不代表数据库、JWT或RBAC验证。
 
 第27章新增独立参照（[ADR-0003](../adr/0003-transaction-reference-runtime.md)）：Prisma CLI / Client / @prisma/adapter-mariadb均固定7.10.1，JS驱动mariadb3.5.4，数据库MySQL8.4.7。Node22.20.0满足^22.12约束。Flyway11.20.3独占表结构迁移，不同时用Prisma Migrate。[事务CI 42777751014](https://github.com/zrayjay/java-for-nestjs/actions/runs/42777751014)在Linux Temurin21/25各通过Java9项及Prisma7项真实SQL测试和2项连接守卫；本机仅编译/生成/守卫通过，不冒充本机数据库验证。后续增补断言以[P1-04记录](../progress/P1-04.md)为准。
