@@ -2,7 +2,7 @@
 title: '38 · 消息队列'
 description: 用真实RabbitMQ与MySQL区分发布确认、消费者确认、重试死信及事务去重。
 chapter_id: '38'
-teaching_status: draft
+teaching_status: in_review
 baseline: RabbitMQ4.2.2 / AMQP client5.25.0 / amqplib0.10.9 / MySQL8.4.7
 ---
 

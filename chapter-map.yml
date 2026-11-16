@@ -1339,7 +1339,7 @@ chapters:
     part: '08'
     title: 消息队列
     path: docs/08-cloud-native/38-messaging.md
-    status: draft
+    status: in_review
     prerequisites:
       - '12'
       - '27'
@@ -1355,8 +1355,19 @@ chapters:
       - examples/messaging-lab/src/test/java/dev/javafornestjs/messaging/BrokerIntegrationTest.java
       - examples/nestjs-message-reference/src/message.test.ts
     noCodeReason: null
-    verification: []
-    reviews: []
+    verification:
+      - docs/progress/P5-01.md
+    reviews:
+      - path: docs/reviews/P5-01-messaging.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-16
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P5-01-messaging.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-16
+        independent: true
+        conclusion: approved
   - id: '39'
     part: '08'
     title: 分布式可靠性
