@@ -1,0 +1,63 @@
+name: JVM and Node diagnostics labs
+on:
+  push:
+    paths:
+      - 'examples/jvm-diagnostics/**'
+      - 'scripts/measure-jvm-diagnostics.ps1'
+      - 'scripts/measure-node-diagnostics.mjs'
+      - 'scripts/load-http-lab.mjs'
+      - '.github/workflows/diagnostics.yml'
+  pull_request:
+    paths:
+      - 'examples/jvm-diagnostics/**'
+      - 'scripts/measure-jvm-diagnostics.ps1'
+      - 'scripts/measure-node-diagnostics.mjs'
+      - 'scripts/load-http-lab.mjs'
+      - '.github/workflows/diagnostics.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnostics:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+        java: ['21', '25']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+          cache-dependency-path: '**/pom.xml'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
+      - run: npx --yes pnpm@10.34.9 examples:build
+      - name: Prepare actual HTTP package (not test evidence)
+        shell: pwsh
+        run: |
+          $wrapper = if ($IsWindows) { '.\mvnw.cmd' } else { './mvnw' }
+          & $wrapper --batch-mode --no-transfer-progress -pl examples/spring-web-lab -am package -DskipTests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Actual JFR GC heap and thread captures
+        shell: pwsh
+        run: ./scripts/measure-jvm-diagnostics.ps1 -OutputDirectory target/diagnostics
+      - name: Actual V8 CPU allocation heap and GC captures
+        run: node scripts/measure-node-diagnostics.mjs target/node-diagnostics
+      - name: Controlled actual HTTP load observations
+        run: node scripts/load-http-lab.mjs target/http-load
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: diagnostic-evidence-${{ matrix.os }}-java-${{ matrix.java }}
+          retention-days: 7
+          path: |
+            target/diagnostics/
+            target/node-diagnostics/
+            target/http-load/
