@@ -3,3 +3,4 @@ packages:
   - examples/prisma-reference
   - examples/nestjs-data-reference
   - examples/nestjs-security-reference
+  - examples/nestjs-message-reference

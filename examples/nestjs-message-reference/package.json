@@ -1,0 +1,19 @@
+{
+  "name": "@java-for-nestjs/nestjs-message-reference",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test dist/*.test.js"
+  },
+  "dependencies": {
+    "amqplib": "0.10.9",
+    "mariadb": "3.5.4"
+  },
+  "devDependencies": {
+    "@types/amqplib": "0.10.8",
+    "@types/node": "22.19.3",
+    "typescript": "5.9.3"
+  }
+}

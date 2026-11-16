@@ -25,6 +25,8 @@
     "data:test": "pnpm --filter @java-for-nestjs/nestjs-data-reference test",
     "security:build": "pnpm --filter @java-for-nestjs/nestjs-security-reference... build",
     "security:test": "pnpm --filter @java-for-nestjs/nestjs-security-reference test",
+    "messaging:build": "pnpm --filter @java-for-nestjs/nestjs-message-reference build",
+    "messaging:test": "pnpm --filter @java-for-nestjs/nestjs-message-reference test",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
     "deps:audit": "pnpm audit --audit-level high",

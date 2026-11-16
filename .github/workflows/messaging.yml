@@ -1,0 +1,85 @@
+name: Reliable messaging teaching labs
+on:
+  push:
+    paths:
+      - 'examples/messaging-lab/**'
+      - 'examples/nestjs-message-reference/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'pom.xml'
+      - 'config/checkstyle.xml'
+      - '.github/workflows/messaging.yml'
+  pull_request:
+    paths:
+      - 'examples/messaging-lab/**'
+      - 'examples/nestjs-message-reference/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'pom.xml'
+      - 'config/checkstyle.xml'
+      - '.github/workflows/messaging.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  messaging:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ['21', '25']
+    services:
+      mysql:
+        image: mysql:8.4.7
+        env:
+          MYSQL_DATABASE: message_lab
+          MYSQL_USER: lab
+          MYSQL_PASSWORD: lab-only-password
+          MYSQL_ROOT_PASSWORD: root-lab-only-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h127.0.0.1 -proot-lab-only-password"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+      rabbitmq:
+        image: rabbitmq:4.2.2-management
+        env:
+          RABBITMQ_DEFAULT_USER: lab
+          RABBITMQ_DEFAULT_PASS: lab-only-password
+          RABBITMQ_DEFAULT_VHOST: message_lab
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd="rabbitmq-diagnostics -q ping"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    env:
+      MESSAGE_JDBC_URL: jdbc:mysql://127.0.0.1:3306/message_lab?allowPublicKeyRetrieval=true&useSSL=false
+      MESSAGE_DATABASE_USER: lab
+      MESSAGE_DATABASE_PASSWORD: lab-only-password
+      MESSAGE_DATABASE_URL: mysql://lab:lab-only-password@127.0.0.1:3306/message_lab
+      MESSAGE_AMQP_URL: amqp://lab:lab-only-password@127.0.0.1:5672/message_lab?heartbeat=5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+          cache-dependency-path: '**/pom.xml'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
+      - run: npx --yes pnpm@10.34.9 messaging:build
+      - name: Java Flyway and actual broker confirmation, retry, dead-letter and SQL deduplication
+        run: ./mvnw --batch-mode --no-transfer-progress -f examples/messaging-lab/pom.xml verify
+      - name: Paired Node actual broker and MySQL contracts
+        run: npx --yes pnpm@10.34.9 messaging:test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: messaging-results-java-${{ matrix.java }}
+          path: |
+            examples/messaging-lab/target/surefire-reports/
+            examples/messaging-lab/target/checkstyle-result.xml
