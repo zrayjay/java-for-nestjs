@@ -38,17 +38,19 @@ public class AuthService {
     private final JwtEncoder encoder;
     private final Clock clock;
     private final SecurityProperties properties;
+    private final RequestTracing tracing;
     private final SecureRandom random = new SecureRandom();
     private final String dummyHash;
 
     public AuthService(JdbcTemplate jdbc, TransactionTemplate transactions, PasswordEncoder passwords,
-                       JwtEncoder encoder, Clock clock, SecurityProperties properties) {
+                       JwtEncoder encoder, Clock clock, SecurityProperties properties, RequestTracing tracing) {
         this.jdbc = jdbc;
         this.transactions = transactions;
         this.passwords = passwords;
         this.encoder = encoder;
         this.clock = clock;
         this.properties = properties;
+        this.tracing = tracing;
         dummyHash = passwords.encode(UUID.randomUUID().toString());
     }
     private long now() { return clock.instant().getEpochSecond(); }
@@ -80,8 +82,8 @@ public class AuthService {
     }
     public void audit(Integer actor, String event, String resource) {
         String request = MDC.get("requestId");
-        jdbc.update("INSERT INTO sec_audit(actor_id,event_code,resource_id,request_id,occurred_at) VALUES (?,?,?,?,?)",
-                actor, event, resource, request == null ? "non-http" : request, now());
+        tracing.audit(() -> jdbc.update("INSERT INTO sec_audit(actor_id,event_code,resource_id,request_id,occurred_at) VALUES (?,?,?,?,?)",
+                actor, event, resource, request == null ? "non-http" : request, now()));
     }
     private Tokens issue(User user, String sessionId, long sessionExpiry) {
         String refresh = opaque();

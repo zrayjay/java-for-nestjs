@@ -9,6 +9,12 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import dev.javafornestjs.security.mapper.SecuredTaskMapper;
 import dev.javafornestjs.web.TaskRepository;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import io.opentelemetry.sdk.trace.export.SpanExporter;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.context.Scope;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -61,6 +67,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @MapperScan(basePackageClasses = SecuredTaskMapper.class)
 public class SecurityConfiguration {
     @Bean
+    @ConditionalOnMissingBean(SpanExporter.class)
+    SpanExporter traceExporter() { return new RequestTracing.LogExporter(); }
+    @Bean(destroyMethod = "close")
+    SdkTracerProvider tracerProvider(SpanExporter exporter) {
+        return SdkTracerProvider.builder().setSampler(Sampler.alwaysOn())
+                .addSpanProcessor(SimpleSpanProcessor.create(exporter)).build();
+    }
+    @Bean
+    RequestTracing requestTracing(SdkTracerProvider provider) { return new RequestTracing(provider.get("teaching.security")); }
+    @Bean
     @ConditionalOnMissingBean(Clock.class)
     Clock securityClock() { return Clock.systemUTC(); }
     @Bean
@@ -84,8 +100,8 @@ public class SecurityConfiguration {
     @Bean
     @DependsOn("securityMigration")
     AuthService authService(JdbcTemplate jdbc, PlatformTransactionManager transactions, PasswordEncoder passwords,
-                            JwtEncoder encoder, Clock clock, SecurityProperties properties) {
-        return new AuthService(jdbc, new TransactionTemplate(transactions), passwords, encoder, clock, properties);
+                            JwtEncoder encoder, Clock clock, SecurityProperties properties, RequestTracing tracing) {
+        return new AuthService(jdbc, new TransactionTemplate(transactions), passwords, encoder, clock, properties, tracing);
     }
     @Bean
     @Primary
@@ -133,7 +149,7 @@ public class SecurityConfiguration {
                 .build();
     }
     @Bean
-    FilterRegistrationBean<OncePerRequestFilter> correlationFilter() {
+    FilterRegistrationBean<OncePerRequestFilter> correlationFilter(RequestTracing tracing) {
         var filter = new OncePerRequestFilter() {
             @Override
             protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -142,9 +158,21 @@ public class SecurityConfiguration {
                 long started = System.nanoTime();
                 MDC.put("requestId", requestId);
                 response.setHeader("X-Request-Id", requestId);
-                try { chain.doFilter(request, response); }
+                var span = tracing.server(request, requestId);
+                response.setHeader("X-Trace-Id", span.getSpanContext().getTraceId());
+                response.setHeader("X-Span-Id", span.getSpanContext().getSpanId());
+                try (Scope scope = span.makeCurrent()) { chain.doFilter(request, response); }
+                catch (IOException | ServletException | RuntimeException | Error error) {
+                    span.setStatus(StatusCode.ERROR);
+                    throw error;
+                }
                 finally {
-                    try { RequestTelemetry.completed(request.getMethod(), request.getRequestURI(), response.getStatus(), started, requestId); }
+                    try {
+                        span.setAttribute("http.response.status_code", response.getStatus());
+                        if (response.getStatus() >= 500) { span.setStatus(StatusCode.ERROR); }
+                        span.end();
+                        RequestTelemetry.completed(request.getMethod(), request.getRequestURI(), response.getStatus(), started, requestId, span.getSpanContext());
+                    }
                     finally { MDC.remove("requestId"); }
                 }
             }

@@ -1,5 +1,6 @@
 import { performance } from 'node:perf_hooks'
 import pino, { type DestinationStream } from 'pino'
+import { RequestTracing } from './tracing.js'
 
 const knownRoutes = new Set([
   '/auth/login',
@@ -29,6 +30,7 @@ export function safeRoute(path: string) {
   return '<unmatched>'
 }
 export class RequestTelemetry {
+  readonly tracing: RequestTracing
   private readonly logger
   private readonly timers = new Map<
     string,
@@ -39,6 +41,9 @@ export class RequestTelemetry {
       { base: undefined, timestamp: pino.stdTimeFunctions.isoTime },
       destination,
     )
+    this.tracing = new RequestTracing((record) =>
+      this.logger.info(record, 'Teaching span completed'),
+    )
   }
   completed(
     method: string,
@@ -46,6 +51,8 @@ export class RequestTelemetry {
     status: number,
     started: number,
     requestId: string,
+    traceId: string,
+    spanId: string,
   ) {
     const elapsedMs = Math.max(0, performance.now() - started)
     const route = safeRoute(path),
@@ -59,6 +66,8 @@ export class RequestTelemetry {
     const entry = {
       event: 'request.completed',
       requestId,
+      traceId,
+      spanId,
       method: safeMethod,
       route,
       status,
@@ -74,5 +83,8 @@ export class RequestTelemetry {
       labels,
       ...value,
     }))
+  }
+  async onModuleDestroy() {
+    await this.tracing.shutdown()
   }
 }

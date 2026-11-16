@@ -2,7 +2,7 @@
 title: '36 · JVM 性能诊断'
 description: 真实采集JFR、GC、堆与线程证据，并单独记录受控HTTP负载。
 chapter_id: '36'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21/25 / Node22.20.0 / JFR与JDK原生工具
 ---
 
@@ -284,4 +284,4 @@ node scripts/load-http-lab.mjs target/http-load-run1
 
 ## 章末验收与审查记录
 
-本章draft。初版Diagnostics43820307129四环境成功；增强采样归属/工具超时/直方图后需对应新CI，见[P4-02](../progress/P4-02.md)。独立全文审查待完成。参考：[JFR命令](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)、[jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)、[Node诊断](https://nodejs.org/en/learn/diagnostics)、[Node CLI profiles](https://nodejs.org/api/cli.html)。
+本章in_review。初版Diagnostics43820307129四环境成功；增强后及移动入口版[Diagnostics43823124708](https://github.com/zrayjay/java-for-nestjs/actions/runs/43823124708)四环境完整成功，见[P4-02](../progress/P4-02.md)。[独立全文审查](../reviews/P4-02-diagnostics.md)通过。参考：[JFR命令](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)、[jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)、[Node诊断](https://nodejs.org/en/learn/diagnostics)、[Node CLI profiles](https://nodejs.org/api/cli.html)。

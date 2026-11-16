@@ -668,7 +668,10 @@ test('structured completion logs correlate SQL audit without raw secrets', async
     assert.ok(Date.now() < deadline, 'Completion log timed out')
     await new Promise((resolve) => setTimeout(resolve, 5))
   }
-  const event = completionEvents.find((value) => value.requestId === requestId)!
+  const event = completionEvents.find(
+    (value) =>
+      value.event === 'request.completed' && value.requestId === requestId,
+  )!
   assert.equal(event.route, '/tasks')
   assert.equal(event.status, 201)
   assert.equal(event.event, 'request.completed')
@@ -715,4 +718,61 @@ test('metrics require administrative permission and count real request durations
     ),
   )
   assert.ok(metrics.some((value) => value.errors >= 1))
+})
+
+test('W3C parent propagates to server and actual SQL spans without granting access', async () => {
+  const tokens = await login('alice')
+  const traceId = '0123456789abcdef0123456789abcdef'
+  const remoteParent = '0123456789abcdef'
+  const created = await request(
+    'POST',
+    '/tasks',
+    tokens.accessToken,
+    '{"title":"Trace SQL","details":{"priority":2}}',
+    { traceparent: `00-${traceId}-${remoteParent}-01` },
+  )
+  assert.equal(created.status, 201)
+  const requestId = created.headers.get('x-request-id')
+  const serverId = created.headers.get('x-span-id')
+  assert.equal(created.headers.get('x-trace-id'), traceId)
+  assert.ok(serverId && serverId !== remoteParent)
+  const deadline = Date.now() + 2000
+  while (
+    !completionEvents.some(
+      (event) => event.event === 'trace.completed' && event.spanId === serverId,
+    )
+  ) {
+    assert.ok(Date.now() < deadline, 'Server span export timed out')
+    await new Promise((resolve) => setTimeout(resolve, 5))
+  }
+  const server = completionEvents.find(
+    (event) => event.event === 'trace.completed' && event.spanId === serverId,
+  )!
+  const sql = completionEvents.find(
+    (event) =>
+      event.event === 'trace.completed' &&
+      event.requestId === requestId &&
+      event.name === 'sql.audit',
+  )!
+  assert.equal(server.traceId, traceId)
+  assert.equal(server.parentSpanId, remoteParent)
+  assert.equal(server.kind, 'SERVER')
+  assert.equal(sql.traceId, traceId)
+  assert.equal(sql.parentSpanId, serverId)
+  assert.equal(sql.status, 'OK')
+  assert.ok(typeof sql.elapsedMs === 'number' && sql.elapsedMs >= 0)
+  assert.equal(
+    (
+      await request('GET', '/tasks', undefined, undefined, {
+        traceparent: `00-${traceId}-${remoteParent}-01`,
+      })
+    ).status,
+    401,
+  )
+  const fresh = await request('GET', '/tasks', tokens.accessToken, undefined, {
+    traceparent: 'invalid-context',
+  })
+  assert.equal(fresh.status, 200)
+  assert.match(fresh.headers.get('x-trace-id')!, /^[0-9a-f]{32}$/)
+  assert.notEqual(fresh.headers.get('x-trace-id'), traceId)
 })

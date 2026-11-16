@@ -39,7 +39,7 @@ import {
 import { SecurityContext } from './context.js'
 import { validateKeys, type SigningKeys } from './keys.js'
 import { PolicyTasks } from './tasks.js'
-import { RequestTelemetry } from './observability.js'
+import { RequestTelemetry, safeRoute } from './observability.js'
 
 export class LoginInput {
   @IsString({ always: true })
@@ -114,7 +114,7 @@ class SecurityController {
 interface Request {
   method: string
   path: string
-  headers: { authorization?: string }
+  headers: { authorization?: string; traceparent?: string; tracestate?: string }
   route?: { path?: string }
   rawBody?: Buffer
 }
@@ -185,7 +185,7 @@ export async function createSecurityApi(
 ) {
   await validateKeys(keys)
   const context = new SecurityContext()
-  const auth = new AuthService(client, keys, clock, context)
+  const auth = new AuthService(client, keys, clock, context, telemetry.tracing)
   const feature = {
     module: SecurityModule,
     providers: [
@@ -200,24 +200,37 @@ export async function createSecurityApi(
       context.run({ requestId: randomUUID() }, () => {
         const state = context.state()!
         const started = performance.now()
-        response.on('finish', () =>
+        const serverSpan = telemetry.tracing.server(
+          safeRoute(request.path),
+          request.headers,
+          state.requestId,
+        )
+        response.setHeader('X-Trace-Id', serverSpan.context.traceId)
+        response.setHeader('X-Span-Id', serverSpan.context.spanId)
+        response.on('finish', () => {
+          serverSpan.end(response.statusCode)
           telemetry.completed(
             request.method,
             request.path,
             response.statusCode,
             started,
             state.requestId,
-          ),
-        )
+            serverSpan.context.traceId,
+            serverSpan.context.spanId,
+          )
+        })
         response.setHeader('X-Request-Id', state.requestId)
         response.setHeader('Cache-Control', 'no-store')
         // Authentication/authorization precede body parsing and DTO validation.
-        void auth
-          .authenticate(request.headers.authorization)
-          .then((user) => {
-            context.state()!.user = user
-            context.authorize(request.method, request.path)
-            next()
+        void serverSpan
+          .run(() => {
+            return auth
+              .authenticate(request.headers.authorization)
+              .then((user) => {
+                context.state()!.user = user
+                context.authorize(request.method, request.path)
+                next()
+              })
           })
           .catch((error: unknown) => {
             const status =

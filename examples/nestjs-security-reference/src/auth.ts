@@ -12,6 +12,7 @@ import {
 } from '@java-for-nestjs/prisma-reference/data-client'
 import { SecurityContext, type Principal } from './context.js'
 import type { SigningKeys } from './keys.js'
+import type { RequestTracing } from './tracing.js'
 
 export type Client = ReturnType<typeof createDataClient>
 export interface SecurityClock {
@@ -53,6 +54,7 @@ export class AuthService {
     readonly keys: SigningKeys,
     readonly clock: SecurityClock,
     readonly context: SecurityContext,
+    readonly tracing: RequestTracing,
   ) {}
   async audit(
     tx: DataTransaction,
@@ -60,15 +62,19 @@ export class AuthService {
     eventCode: string,
     resourceId: string | null,
   ): Promise<void> {
-    await tx.secAudit.create({
-      data: {
-        actorId: actor,
-        eventCode,
-        resourceId,
-        requestId: this.context.state()?.requestId ?? 'non-http',
-        occurredAt: BigInt(this.clock.now()),
-      },
-    })
+    await this.tracing.child(
+      this.context.state()?.requestId ?? 'non-http',
+      () =>
+        tx.secAudit.create({
+          data: {
+            actorId: actor,
+            eventCode,
+            resourceId,
+            requestId: this.context.state()?.requestId ?? 'non-http',
+            occurredAt: BigInt(this.clock.now()),
+          },
+        }),
+    )
   }
   private async lockUser(
     tx: DataTransaction,

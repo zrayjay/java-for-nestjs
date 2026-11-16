@@ -31,6 +31,9 @@ baseline:
   pngjs: 7.0.0
   vitest: 5.1.0
   pino: 10.4.0
+  otelApi: 1.9.0
+  otelNodeSdk: 2.12.0
+  otelCore: 2.12.0
 parts:
   - id: '01'
     title: 运行时与工具入门
@@ -1264,7 +1267,7 @@ chapters:
     part: '07'
     title: JVM 性能诊断
     path: docs/07-testing-jvm/36-jvm-diagnostics.md
-    status: draft
+    status: in_review
     prerequisites:
       - '05'
       - '12'
@@ -1283,7 +1286,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P4-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P4-02-diagnostics.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-16
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P4-02-diagnostics.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-16
+        independent: true
+        conclusion: approved
   - id: '37'
     part: '07'
     title: 可观测性

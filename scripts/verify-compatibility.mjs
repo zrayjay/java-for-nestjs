@@ -21,6 +21,8 @@ export async function verifyCompatibility(root) {
   const security = securityPackage.dependencies
   if (securityPom.match(/<flyway.version>([^<]+)</)?.[1] !== b.flyway)
     throw new Error('安全实验Flyway版本漂移')
+  if (security['@opentelemetry/context-async-hooks'] !== b.otelCore)
+    throw new Error('Node追踪上下文版本漂移')
   if (
     security['@nestjs/common'] !== b.nest ||
     security['@nestjs/core'] !== b.nest ||
@@ -53,6 +55,9 @@ export async function verifyCompatibility(root) {
     ].map((n) => read(`.github/workflows/${n}.yml`)),
   )
   const actual = {
+    otelApi: security['@opentelemetry/api'],
+    otelNodeSdk: security['@opentelemetry/sdk-trace'],
+    otelCore: security['@opentelemetry/core'],
     pino: security.pino,
     vitest: securityPackage.devDependencies.vitest,
     minio: filePom.match(

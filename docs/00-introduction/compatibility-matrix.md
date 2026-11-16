@@ -40,6 +40,8 @@ VitePress1文档的Node下限与VitePress2文档不同，应查阅[稳定版安�
 
 P4观测参照（2026-11-16实施中）：Java Micrometer1.15.12来自实际Boot3.5.16 BOM，未据BOM包含Tracing1.5.12就宣称已接入追踪；Node Pino10.4.0精确锁定。当前TS编译与无high/critical审计通过，新增HTTP/SQL日志关联和受保护metrics测试待新CI；不以版本存在当执行成功。
 
+Tracing实际运行物继续补齐：Java OpenTelemetry API/SDK/testing1.49.0由Boot BOM管理；Node统一sdk-trace2.12.0、core/context-async-hooks2.12.0、API1.9.0（SDK peer排除API1.10）。不使用已弃用sdk-trace-node/base。Java编译及密钥3项、Node编译通过，新W3C/SQL父子span与最终JSON矩阵各22项待对应CI；旧日志21项成功不能覆盖新增传播断言。
+
 P4单测参照（2026-11-16）：Boot BOM的JUnit5.12.2、Mockito5.17.0、AssertJ3.27.7；Node Vitest5.1.0满足Node22.20.0及Vite6.4.4的peer范围，实际TS编译及Vitest2项、本机Java8项/node:test4项均通过。[Unit43817767580](https://github.com/zrayjay/java-for-nestjs/actions/runs/43817767580)的Windows/Linux×Temurin21/25各两轮Java8+Node4+Vitest2无服务测试成功；该范围不代替真实存储/SQL验证。见[ADR0009](../adr/0009-testing-and-diagnostics-runtime.md)。
 
 P4文件参照（2026-11-16）：Java MinIO SDK8.6.0、显式okhttp-jvm5.1.0，Node S3 SDK3.1166.0及pngjs7.0.0/@types6.0.5。原镜像拉取失败，改以Go1.24.2构建官方MinIO固定commit 0d7408fc9969caf07de6a8c3a84f9fbb10a6739e，属于标签RELEASE.2025-04-22T22-12-26Z。[Files43815795277](https://github.com/zrayjay/java-for-nestjs/actions/runs/43815795277)在Linux Temurin21/25各Java7项/Node6项真实服务成功，包含解码预算修订和私有对象负例；不代表Multipart HTTP、完整IAM/ACL或真实病毒扫描已完成。

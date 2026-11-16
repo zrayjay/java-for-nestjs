@@ -13,6 +13,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.common.AttributeKey;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -31,6 +35,9 @@ import java.util.stream.Collectors;
 import org.slf4j.LoggerFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -62,6 +69,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
         properties = "security.ephemeral-keys=true")
 @ActiveProfiles({"data", "security", "security-test"})
 @Import(SecurityApiTest.TimeConfiguration.class)
+@ExtendWith(OutputCaptureExtension.class)
 class SecurityApiTest {
     private static final String PASSWORD = "fixture-password-only";
     static final class MutableClock extends Clock {
@@ -75,6 +83,7 @@ class SecurityApiTest {
     @TestConfiguration(proxyBeanMethods = false)
     static class TimeConfiguration {
         @Bean @Primary MutableClock mutableClock() { return new MutableClock(); }
+        @Bean @Primary InMemorySpanExporter memorySpans() { return InMemorySpanExporter.create(); }
     }
     @Autowired MutableClock clock;
     @Autowired JdbcTemplate jdbc;
@@ -82,6 +91,7 @@ class SecurityApiTest {
     @Autowired TestRestTemplate http;
     @Autowired ObjectMapper json;
     @Autowired JwtEncoder encoder;
+    @Autowired InMemorySpanExporter spanExporter;
     @Autowired dev.javafornestjs.web.TaskService tasks;
     @MockitoSpyBean AuthService auth;
     @LocalServerPort int port;
@@ -92,6 +102,7 @@ class SecurityApiTest {
     @BeforeEach
     void fixture() {
         clock.reset();
+        spanExporter.reset();
         if (http.getRestTemplate().getRequestFactory() instanceof JdkClientHttpRequestFactory requests) {
             requests.setReadTimeout(Duration.ofSeconds(10));
         }
@@ -394,7 +405,7 @@ class SecurityApiTest {
     }
 
     @Test
-    void structuredCompletionLogsCorrelateSqlAuditWithoutRawSecrets() throws Exception {
+    void structuredCompletionLogsCorrelateSqlAuditWithoutRawSecrets(CapturedOutput output) throws Exception {
         var logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(RequestTelemetry.class);
         var capture = new ListAppender<ILoggingEvent>();
         capture.list = new CopyOnWriteArrayList<>();
@@ -426,6 +437,18 @@ class SecurityApiTest {
             for (String secret : List.of(PASSWORD, access, tokens.path("refreshToken").asText(),
                     "NeverLogTitleMarker", "NeverLogPathMarker", "NeverLogExceptionMarker")) { assertFalse(rendered.contains(secret)); }
             assertTrue(capture.list.stream().allMatch(value -> value.getThrowableProxy() == null));
+            JsonNode encoded = null;
+            for (String line : output.getOut().split("\\R")) {
+                if (line.startsWith("{")) {
+                    JsonNode candidate = json.readTree(line);
+                    if ("request.completed".equals(candidate.path("event").asText()) && requestId.equals(candidate.path("requestId").asText())) { encoded = candidate; }
+                }
+            }
+            if (encoded == null) { throw new AssertionError("No actual ECS JSON completion line captured"); }
+            assertEquals("/tasks", encoded.path("route").asText());
+            assertEquals(created.getHeaders().getFirst("X-Trace-Id"), encoded.path("traceId").asText());
+            assertTrue(spanExporter.getFinishedSpanItems().stream().anyMatch(span -> span.getStatus().getStatusCode() == StatusCode.ERROR
+                    && Long.valueOf(500).equals(span.getAttributes().get(AttributeKey.longKey("http.response.status_code")))));
         } finally {
             logger.detachAppender(capture);
             capture.stop();
@@ -447,5 +470,46 @@ class SecurityApiTest {
             if ("COUNT".equals(measurement.path("statistic").asText()) && measurement.path("value").asDouble() >= 1) { counted = true; }
         }
         assertTrue(counted);
+    }
+
+    @Test
+    void w3cParentPropagatesToServerAndActualSqlSpansWithoutGrantingAccess() throws Exception {
+        String access = access(login("alice"));
+        String traceId = "0123456789abcdef0123456789abcdef";
+        String remoteParent = "0123456789abcdef";
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(access);
+        headers.set("traceparent", "00-" + traceId + "-" + remoteParent + "-01");
+        var created = http.exchange(url("/tasks"), HttpMethod.POST,
+                new HttpEntity<>("{\"title\":\"Trace SQL\",\"details\":{\"priority\":2}}", headers), JsonNode.class);
+        assertEquals(HttpStatus.CREATED, created.getStatusCode());
+        assertEquals(traceId, created.getHeaders().getFirst("X-Trace-Id"));
+        String serverId = created.getHeaders().getFirst("X-Span-Id");
+        String requestId = created.getHeaders().getFirst("X-Request-Id");
+        assertNotEquals(remoteParent, serverId);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+        while (spanExporter.getFinishedSpanItems().stream().noneMatch(span -> span.getSpanId().equals(serverId))) {
+            assertTrue(System.nanoTime() < deadline, "Server span export timed out");
+            Thread.sleep(5);
+        }
+        var server = spanExporter.getFinishedSpanItems().stream().filter(span -> span.getSpanId().equals(serverId)).findFirst().orElseThrow();
+        var sql = spanExporter.getFinishedSpanItems().stream().filter(span -> span.getName().equals("sql.audit")
+                && requestId.equals(span.getAttributes().get(AttributeKey.stringKey("request.id")))).findFirst().orElseThrow();
+        assertEquals(SpanKind.SERVER, server.getKind());
+        assertEquals(traceId, server.getTraceId());
+        assertEquals(remoteParent, server.getParentSpanId());
+        assertEquals(traceId, sql.getTraceId());
+        assertEquals(serverId, sql.getParentSpanId());
+        assertEquals(StatusCode.OK, sql.getStatus().getStatusCode());
+        assertTrue(sql.getEndEpochNanos() >= sql.getStartEpochNanos());
+        headers.remove(HttpHeaders.AUTHORIZATION);
+        assertEquals(HttpStatus.UNAUTHORIZED, http.exchange(url("/tasks"), HttpMethod.GET, new HttpEntity<>(headers), JsonNode.class).getStatusCode());
+        headers.setBearerAuth(access);
+        headers.set("traceparent", "invalid-context");
+        var fresh = http.exchange(url("/tasks"), HttpMethod.GET, new HttpEntity<>(headers), JsonNode.class);
+        assertEquals(HttpStatus.OK, fresh.getStatusCode());
+        assertTrue(fresh.getHeaders().getFirst("X-Trace-Id").matches("[0-9a-f]{32}"));
+        assertNotEquals(traceId, fresh.getHeaders().getFirst("X-Trace-Id"));
     }
 }
