@@ -2,7 +2,7 @@
 title: '33 · 企业基础能力'
 description: 受限PNG、私有对象、审计脱敏与真实OpenAPI的实现和边界。
 chapter_id: '33'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Boot3.5.16 / MinIO SDK8.6.0 / S3 SDK3.1166.0 / pngjs7.0.0
 ---
 
@@ -54,7 +54,7 @@ expected是`height * (1 + width * channels)`，包含每行filter字节；先验
 
 ```mermaid
 flowchart LR
-  A[有界读取] --> B[文件名与MIME]
+  A[文件名与MIME] --> B[有界读取]
   B --> C[签名与唯一IHDR]
   C --> D[完整块及CRC]
   D --> E[受限zlib输出]
@@ -246,7 +246,22 @@ OpenAPI是接口机器可读描述，生成成功不等于运行时权限、校�
 priority!: number
 ```
 
-Java请求端对应PriorityRequest的正整数1~5约束由实际DTO定义；文档端点`/openapi.json`，HTTP测试同时检查任务请求/响应。文件原语尚未提供HTTP路由，因此没有编造上传OpenAPI；安全Feature的完整认证响应schema、生成客户端及管理端整合仍需补齐。
+Java请求端来自Tasks.PriorityRequest的真实片段：
+
+```java
+public record PriorityRequest(
+        @Schema(type = "integer", format = "int32", minimum = "1", maximum = "5")
+        @NotNull @DecimalMin("1") @DecimalMax("5") BigDecimal priority) {
+    @AssertTrue
+    @JsonIgnore
+    public boolean isIntegral() {
+        return priority == null || priority.stripTrailingZeros().scale() <= 0;
+    }
+    int asInt() { return priority.intValueExact(); }
+}
+```
+
+文档范围与运行时整数性检查分开，不能仅由BigDecimal类型推断只接受整数。文档端点`/openapi.json`，HTTP测试同时检查任务请求/响应。文件原语尚未提供HTTP路由，因此没有编造上传OpenAPI；安全Feature的完整认证响应schema、生成客户端及管理端整合仍需补齐。
 
 #### 6. 原理与流程图
 
@@ -279,4 +294,4 @@ pnpm http:verify
 
 ## 章末验收与审查记录
 
-本章draft，修后[Files43815795277](https://github.com/zrayjay/java-for-nestjs/actions/runs/43815795277)在Temurin21/25各Java7项及Node6项真实服务成功。独立全文审查及剩余HTTP/安全文档整合尚待完成。[进度](../progress/P4-01.md)逐提交区分编译、PNG单测、真实服务和审查。官方参考：[MinIO Java SDK](https://github.com/minio/minio-java)、[S3 SDK](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/)、[PNG规范](https://www.w3.org/TR/png/)、[Node zlib限额](https://nodejs.org/api/zlib.html)、[OWASP上传指南](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html)、[Nest OpenAPI](https://docs.nestjs.com/openapi/introduction)。
+本章in_review，修后[Files43815795277](https://github.com/zrayjay/java-for-nestjs/actions/runs/43815795277)在Temurin21/25各Java7项及Node6项真实服务成功。[独立全文审查](../reviews/P4-01-files.md)通过，后续HTTP/安全文档整合仍待实施。[进度](../progress/P4-01.md)逐提交区分编译、PNG单测、真实服务和审查。官方参考：[MinIO Java SDK](https://github.com/minio/minio-java)、[S3 SDK](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/)、[PNG规范](https://www.w3.org/TR/png/)、[Node zlib限额](https://nodejs.org/api/zlib.html)、[OWASP上传指南](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html)、[Nest OpenAPI](https://docs.nestjs.com/openapi/introduction)。
