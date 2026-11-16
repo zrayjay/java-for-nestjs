@@ -73,7 +73,7 @@ jobs:
       - name: Java PNG attacks and actual private object ownership
         run: ./mvnw --batch-mode --no-transfer-progress -f examples/file-lab/pom.xml verify
       - name: Node PNG attacks and actual private object ownership
-        run: node --test examples/nestjs-security-reference/dist/files.spec.js
+        run: node --test examples/nestjs-security-reference/dist/files.spec.js examples/nestjs-security-reference/dist/files.unit.spec.js
       - uses: actions/upload-artifact@v4
         if: always()
         with:
