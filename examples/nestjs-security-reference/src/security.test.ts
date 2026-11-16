@@ -279,6 +279,17 @@ test('department filtering precedes limit and ownership is part of the mutation'
     200,
   )
   assert.equal(
+    (
+      await request(
+        'PUT',
+        `/tasks/${own.id}`,
+        erin.accessToken,
+        '{"title":"Stolen","details":{"priority":1}}',
+      )
+    ).status,
+    404,
+  )
+  assert.equal(
     (await request('DELETE', `/tasks/${own.id}`, erin.accessToken)).status,
     404,
   )

@@ -2,7 +2,7 @@
 title: '37 · 可观测性'
 description: 用受保护指标、真实span传播和最终结构化日志回答请求发生了什么。
 chapter_id: '37'
-teaching_status: draft
+teaching_status: in_review
 baseline: Boot3.5.16 / Micrometer1.15.12 / OTel Java1.49.0 / OTel JS2.12.0 / Pino10.4.0
 ---
 
@@ -246,4 +246,4 @@ node --test --test-name-pattern='structured completion logs' examples/nestjs-sec
 
 ## 章末验收与审查记录
 
-本章draft。初始日志21+21矩阵成功，但实际span版本1a7106c的Java最终JSON失败，且未执行Node；d1d35af修编码/MDC与断连后[Security43857439628](https://github.com/zrayjay/java-for-nestjs/actions/runs/43857439628)两JDK各Java22、Node23完整通过，独立全文审查待完成，详见[P4-02](../progress/P4-02.md)。参考：[Actuator metrics](https://docs.spring.io/spring-boot/3.5/actuator/metrics.html)、[Micrometer](https://docs.micrometer.io/micrometer/reference/)、[W3C Trace Context](https://www.w3.org/TR/trace-context/)、[OpenTelemetry Java](https://opentelemetry.io/docs/languages/java/)、[OpenTelemetry JS](https://opentelemetry.io/docs/languages/js/)、[Pino](https://getpino.io/)、[Boot结构化日志](https://docs.spring.io/spring-boot/3.5/reference/features/logging.html)。
+本章in_review。初始日志21+21矩阵成功，但实际span版本1a7106c的Java最终JSON失败，且未执行Node；d1d35af修编码/MDC与断连后[Security43857439628](https://github.com/zrayjay/java-for-nestjs/actions/runs/43857439628)两JDK各Java22、Node23完整通过，[独立全文审查](../reviews/P4-02-observability.md)通过，详见[P4-02](../progress/P4-02.md)。参考：[Actuator metrics](https://docs.spring.io/spring-boot/3.5/actuator/metrics.html)、[Micrometer](https://docs.micrometer.io/micrometer/reference/)、[W3C Trace Context](https://www.w3.org/TR/trace-context/)、[OpenTelemetry Java](https://opentelemetry.io/docs/languages/java/)、[OpenTelemetry JS](https://opentelemetry.io/docs/languages/js/)、[Pino](https://getpino.io/)、[Boot结构化日志](https://docs.spring.io/spring-boot/3.5/reference/features/logging.html)。

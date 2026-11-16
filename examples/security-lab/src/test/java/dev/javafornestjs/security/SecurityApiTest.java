@@ -222,6 +222,8 @@ class SecurityApiTest {
         assertEquals(HttpStatus.NOT_FOUND, request(HttpMethod.DELETE, "/tasks/" + bobId, alice, null).getStatusCode());
         String erin = access(login("erin"));
         assertEquals(HttpStatus.OK, request(HttpMethod.GET, "/tasks/" + aliceId, erin, null).getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, request(HttpMethod.PUT, "/tasks/" + aliceId, erin,
+                "{\"title\":\"Stolen\",\"details\":{\"priority\":1}}").getStatusCode());
         assertEquals(HttpStatus.NOT_FOUND, request(HttpMethod.DELETE, "/tasks/" + aliceId, erin, null).getStatusCode());
         String admin = access(login("admin"));
         assertEquals(HttpStatus.OK, request(HttpMethod.GET, "/tasks/" + bobId, admin, null).getStatusCode());

@@ -369,7 +369,7 @@
         "topics": "Actuator、Micrometer、Tracing、结构化日志",
         "reference": "OpenTelemetry / Pino",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/07-testing-jvm/37-observability.md"
       }
     ]
