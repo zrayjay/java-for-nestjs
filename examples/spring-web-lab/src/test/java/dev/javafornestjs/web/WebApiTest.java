@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -146,5 +148,19 @@ class WebApiTest {
         assertTrue(schema.path("paths").has("/tasks"));
         assertTrue(schema.path("paths").path("/tasks").path("post").path("responses").has("201"));
         mvc.perform(get("/tasks")).andExpect(status().isOk());
+    }
+
+    @Test
+    void mockMvcExercisesRealBindingValidationAndStorageWithoutATcpClient() throws Exception {
+        mvc.perform(post("/tasks").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Learn MVC\",\"details\":{\"priority\":2}}"))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.title").value("Learn MVC"))
+                .andExpect(jsonPath("$.details.priority").value(2));
+        for (String invalid : List.of("{}", "{\"title\":\"Learn\",\"details\":{\"priority\":1.5}}",
+                "{\"title\":\"Learn\",\"details\":{\"priority\":1},\"ownerId\":2}")) {
+            mvc.perform(post("/tasks").contentType(MediaType.APPLICATION_JSON).content(invalid))
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("invalid_request"));
+        }
+        mvc.perform(get("/tasks")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
     }
 }
