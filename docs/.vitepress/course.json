@@ -318,7 +318,7 @@
         "topics": "TTL、穿透/击穿/雪崩、一致性、并发",
         "reference": "ioredis / cache-manager",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/06-security/32-redis-and-cache.md"
       },
       {

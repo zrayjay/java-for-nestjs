@@ -1114,7 +1114,7 @@ chapters:
     part: '06'
     title: Redis 与缓存设计
     path: docs/06-security/32-redis-and-cache.md
-    status: draft
+    status: in_review
     prerequisites:
       - '23'
       - '27'
@@ -1132,7 +1132,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P4-01.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P4-01-cache.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-16
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P4-01-cache.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-16
+        independent: true
+        conclusion: approved
   - id: '33'
     part: '06'
     title: 企业基础能力

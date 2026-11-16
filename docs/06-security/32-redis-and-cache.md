@@ -2,7 +2,7 @@
 title: '32 · Redis 与缓存设计'
 description: 在真实Redis中验证TTL、空值缓存、本机并发合并和写后失效竞态。
 chapter_id: '32'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Boot3.5.16 / Redis7.4.6 / ioredis5.8.2
 ---
 
@@ -213,4 +213,4 @@ node --test examples/nestjs-security-reference/dist/cache.spec.js
 
 ## 章末验收与审查记录
 
-本章draft。[Redis43181272467](https://github.com/zrayjay/java-for-nestjs/actions/runs/43181272467)在Linux Temurin21/25每组Java5项、Node5项真实Redis通过。独立审查待完成，未声称任务HTTP集成或G4通过。官方参考：[Spring Data Redis](https://docs.spring.io/spring-data/redis/reference/)、[Redis EXPIRE](https://redis.io/docs/latest/commands/expire/)、[Redis Lua原子执行](https://redis.io/docs/latest/develop/programmability/eval-intro/)、[ioredis](https://github.com/redis/ioredis)。
+本章in_review。[Redis43181272467](https://github.com/zrayjay/java-for-nestjs/actions/runs/43181272467)在Linux Temurin21/25每组Java5项、Node5项真实Redis通过。修后[Redis43811984362](https://github.com/zrayjay/java-for-nestjs/actions/runs/43811984362)及[独立两轴审查](../reviews/P4-01-cache.md)通过，未声称任务HTTP集成或G4通过。官方参考：[Spring Data Redis](https://docs.spring.io/spring-data/redis/reference/)、[Redis EXPIRE](https://redis.io/docs/latest/commands/expire/)、[Redis Lua原子执行](https://redis.io/docs/latest/develop/programmability/eval-intro/)、[ioredis](https://github.com/redis/ioredis)。
