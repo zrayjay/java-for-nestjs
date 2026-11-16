@@ -8,7 +8,7 @@
 |---|---|---|---|
 | Java语言级别 | 21 | 以21编译；25作为兼容运行与构建目标 | 分环境记录见下表 |
 | Spring Boot | 3.5.16 | starter-parent统一管理Spring与插件 | 真实Web上下文与4项集成测试 |
-| Spring Security | 6.5.11 | Boot 3.5.16 BOM | 匿名401、认证后200；不代表JWT/RBAC完成 |
+| Spring Security | 6.5.11 | Boot 3.5.16 BOM | 初始探针401/200；P4真实JWT/RBAC证据见下文 |
 | Maven | 3.9.11 | 独立固定构建工具；Wrapper由P0-05统一交付 | clean verify含打包 |
 | Gradle对照 | 9.2.1 | 独立任务图/本地缓存小实验，见[ADR-0005](../adr/0005-gradle-comparison-runtime.md) | Windows/Microsoft21加已知临时套接字目录修正后任务/缓存通过；新矩阵步骤待CI |
 | MyBatis-Plus | 3.5.18 | mybatis-plus-spring-boot3-starter | MySQL查询、写入与回滚 |
@@ -38,15 +38,15 @@ VitePress1文档的Node下限与VitePress2文档不同，应查阅[稳定版安�
 
 ## 官方兼容声明
 
-P4观测参照（2026-11-16实施中）：Java Micrometer1.15.12来自实际Boot3.5.16 BOM，未据BOM包含Tracing1.5.12就宣称已接入追踪；Node Pino10.4.0精确锁定。当前TS编译与无high/critical审计通过，新增HTTP/SQL日志关联和受保护metrics测试待新CI；不以版本存在当执行成功。
+P4观测参照（2026-11-16）：Java Micrometer1.15.12来自实际Boot3.5.16 BOM，未据BOM包含Tracing1.5.12就宣称已接入追踪；Node Pino10.4.0精确锁定。TS编译与无high/critical审计通过；最终JSON、权限、SQL关联和指标已在Security43857439628实际通过。新增G4同部门非本人PUT断言以其后CI单独记录。
 
-Tracing实际运行物继续补齐：Java OpenTelemetry API/SDK/testing1.49.0由Boot BOM管理；Node统一sdk-trace2.12.0、core/context-async-hooks2.12.0、API1.9.0（SDK peer排除API1.10）。不使用已弃用sdk-trace-node/base。Java编译及密钥3项、Node编译通过，新W3C/SQL父子span与最终JSON矩阵各22项待对应CI；旧日志21项成功不能覆盖新增传播断言。
+Tracing实际运行物继续补齐：Java OpenTelemetry API/SDK/testing1.49.0由Boot BOM管理；Node统一sdk-trace2.12.0、core/context-async-hooks2.12.0、API1.9.0（SDK peer排除API1.10）。不使用已弃用sdk-trace-node/base。Java编译及密钥3项、Node编译通过；[Security43857439628](https://github.com/zrayjay/java-for-nestjs/actions/runs/43857439628)两JDK各Java22/Node23完整成功，含实际W3C父子、最终ECS/Pino及真实断连。旧日志21项不替代该执行证据。
 
 P4单测参照（2026-11-16）：Boot BOM的JUnit5.12.2、Mockito5.17.0、AssertJ3.27.7；Node Vitest5.1.0满足Node22.20.0及Vite6.4.4的peer范围，实际TS编译及Vitest2项、本机Java8项/node:test4项均通过。[Unit43817767580](https://github.com/zrayjay/java-for-nestjs/actions/runs/43817767580)的Windows/Linux×Temurin21/25各两轮Java8+Node4+Vitest2无服务测试成功；该范围不代替真实存储/SQL验证。见[ADR0009](../adr/0009-testing-and-diagnostics-runtime.md)。
 
 P4文件参照（2026-11-16）：Java MinIO SDK8.6.0、显式okhttp-jvm5.1.0，Node S3 SDK3.1166.0及pngjs7.0.0/@types6.0.5。原镜像拉取失败，改以Go1.24.2构建官方MinIO固定commit 0d7408fc9969caf07de6a8c3a84f9fbb10a6739e，属于标签RELEASE.2025-04-22T22-12-26Z。[Files43815795277](https://github.com/zrayjay/java-for-nestjs/actions/runs/43815795277)在Linux Temurin21/25各Java7项/Node6项真实服务成功，包含解码预算修订和私有对象负例；不代表Multipart HTTP、完整IAM/ACL或真实病毒扫描已完成。
 
-P4缓存参照（2026-11-12）：独立cache-lab使用Boot管理的Spring Data Redis，Node ioredis5.8.2，服务镜像redis:7.4.6。[Redis43181272467](https://github.com/zrayjay/java-for-nestjs/actions/runs/43181272467)在Temurin21/25各Java5项及Node5项真实服务通过，包含PTTL/服务器到期、空值、作用域键、本机合并、旧回填竞态及断开客户端。尚未接入实际任务HTTP/事务，未验证Redis服务宕机恢复或分布式协调；独立审查待完成。
+P4缓存参照（2026-11-12）：独立cache-lab使用Boot管理的Spring Data Redis，Node ioredis5.8.2，服务镜像redis:7.4.6。[Redis43181272467](https://github.com/zrayjay/java-for-nestjs/actions/runs/43181272467)在Temurin21/25各Java5项及Node5项真实服务通过，包含PTTL/服务器到期、空值、作用域键、本机合并、旧回填竞态及断开客户端。尚未接入实际任务HTTP/事务，未验证Redis服务宕机恢复或分布式协调；[独立审查](../reviews/P4-01-cache.md)已通过，后续TTL抖动补强证据见进度。
 
 P4认证参照（2026-11-12）：Boot3.5.16管理Spring Security6.5.11，其oauth2-jose制品声明选定Nimbus9.37.4（本机实际测试classpath核对），不声称Boot BOM直接管理每个传递依赖。Node jose6.2.17、bcryptjs3.0.3和显式reflect-metadata0.2.2。[Security43170418413](https://github.com/zrayjay/java-for-nestjs/actions/runs/43170418413)在Linux Temurin21/25各完整通过Java19项/Node19项，含V2凭据版本绑定与并发/缺声明负例；新增合法作用域写入对照以其后提交单独记录。Redis/上传与G4尚未据此通过。
 
@@ -79,7 +79,7 @@ CI证据：[运行42603068673](https://github.com/zrayjay/java-for-nestjs/action
 1. Boot默认Flyway11.7.2虽能迁移，但对MySQL8.4输出支持范围警告；改用11.20.3后在同一数据库版本重新运行，警告消失且4项测试及打包通过。后续升级应同步core与mysql模块。
 2. 首次verify的测试通过，但打包插件依赖下载失败；重新解析依赖并完成整个verify才计为通过。
 3. Testcontainers容器结束时Redis客户端可能输出重连日志；只在断言及完整退出码成功时记录通过，不删除或隐藏失败输出。
-4. Mockito动态Agent和Maven/JDK25的Unsafe提示属于后续工具链维护事项；当前没有Mock测试，不据此声称Mockito全能力兼容。
+4. Mockito动态Agent和Maven/JDK25的Unsafe提示保留。P4的file-lab已用显式Mockito agent并通过四环境单测；其他仍动态附加的实验不据此宣称已完成未来JDK策略适配。
 5. 本机Windows默认临时目录下，JDK HTTP Client仍因UnixDomainSockets连接返回`Invalid argument: connect`而失败；操作系统侧根因尚未确认。G0复测发现将进程属性`jdk.net.unixdomain.tmpdir`指向本机实测可用的仓库目录后，Java21/25真实HTTP200及响应体断言通过。完整Spring/数据库复测随后因Docker Desktop自己的套接字目录错误阻塞，仍不计作完整Windows兼容通过。命令、范围及独立发现见[G0验收记录](../progress/G0.md)，不得以Linux结果或最小HTTP回归代替该项。
 
 ## Boot4评估边界

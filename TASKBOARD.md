@@ -1,6 +1,6 @@
 # Java for NestJS 实施任务清单
 
-依据：[JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md](JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md) v1.6（2026-11-11，包含P3真实HTTP/SQL与阶段技术准入记录）。本文件细化执行粒度，原计划仍是唯一范围与验收基线。
+依据：[JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md](JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md) v1.7（2026-11-16，包含P4安全/测试/诊断与独立技术准入记录）。本文件细化执行粒度，原计划仍是唯一范围与验收基线。
 
 共 **73 个实施任务 + 8 个阶段验收任务 = 81 个任务**。覆盖原计划38项、全部45章。拆分时任务初始为 `todo`；实际启动情况见下方执行记录，实时面板状态以 Taskboard 为准。
 
@@ -30,6 +30,10 @@
 | P3-02 | 服务恢复后读取，不猜编号 | Codex，本会话离线实施 | main | 实现in_review，面板未同步 | [数据四章/真实SQL](docs/progress/P3-02.md)、[独立审查](docs/reviews/P3-02.md) | 复用27；本机不冒充SQL |
 | P3-03 / P3-04 | 服务恢复后读取，不猜编号 | Codex，本会话离线实施 | main | 技术验证交审 | [故障闭环](docs/progress/P3-03.md)、[双端契约](docs/progress/P3-04.md) | 两轴阶段复核通过，未自动done |
 | G3 | 服务恢复后读取，不猜编号 | Codex，两轴独立复核 | main | 技术准入通过，交用户验收 | [阶段记录](docs/progress/G3.md)、[综合练习](docs/exercises/P3-capstone.md) | 允许进入P4；真实读者效果仍P7必查 |
+| P4-01 | 服务恢复后读取，不猜编号 | Codex，本会话离线实施 | main | 实现in_review，面板未同步 | [29~33实现](docs/progress/P4-01.md)、逐章两轴审查 | 内部缓存/文件边界不冒充毕业项目整合 |
+| P4-02 | 服务恢复后读取，不猜编号 | Codex，本会话离线实施 | main | 实现in_review，面板未同步 | [34~37及真实诊断观测](docs/progress/P4-02.md)、逐章两轴审查 | 未部署Collector，不自动done |
+| P4-03 / P4-04 | 服务恢复后读取，不猜编号 | Codex，本会话离线实施 | main | 技术验证in_review | [授权矩阵](docs/progress/P4-03.md)、[上传矩阵](docs/progress/P4-04.md) | 未实现租户/真实病毒扫描，范围明确 |
+| G4 | 服务恢复后读取，不猜编号 | Codex，两轴独立验收 | main | 技术准入通过，交用户验收 | [阶段记录](docs/progress/G4.md)、[独立结论](docs/reviews/G4.md)、[综合练习](docs/exercises/P4-capstone.md) | 允许进入P5；P6整合/P7读者验证仍必做 |
 | 文档预览站 | JAV-56 | Codex，本会话 | main | review | [部署CI通过](https://github.com/zrayjay/java-for-nestjs/actions/runs/42765271826)，提交3f495c0；[线上文档](https://zrayjay.github.io/java-for-nestjs/)首页/目录/图表/部署指南及6项JS/CSS资源HTTP200 | 不等同P7全书发布或Release |
 
 JAV-3至JAV-9已全部按用户指令合并main并标记done，任务分支已删除。2026-11-10用户另行授权公开当前仓库并部署建设中的文档站，以JAV-56跟踪，不提前完成P7-05。其余阶段仍待关卡开放。Java原生Windows Web探针缺口未关闭前，不将G0或完整Java跨平台基线标为通过；本次Windows非Web示例及Node文档站的通过结果单独记录。

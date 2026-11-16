@@ -76,3 +76,24 @@ Spring与数据访问扩展：
 | 生成Schema类型 | 从Schema生成查询字段及编译约束，仍可能与运行库漂移 | 动态SQL字符串也有同等Schema类型检查；编译通过就等于业务安全 | [第26章](../05-database/26-persistence-alternatives.md) |
 | Flyway / generate | 迁移改变数据库，客户端生成改变代码，唯一DDL所有者明确 | Prisma generate创建表；多个迁移系统可不协调地共同写同一Schema | [第28章](../05-database/28-database-engineering.md) |
 | possible_keys / key | 候选索引与实际所选索引，rows通常为估计 | 候选即必用；一次EXPLAIN就是生产加速保证 | [第28章](../05-database/28-database-engineering.md) |
+
+## P4：安全、测试、诊断与观测
+
+| 术语 | 本教程用法 | 常见误解 | 正文 |
+|---|---|---|---|
+| Authentication / Authorization | 验证身份与允许动作分别判断，资源范围继续施加 | 有效Bearer等于任意记录可写 | [第29章](../06-security/29-spring-security.md) |
+| Access / Refresh | 短期RS256 JWT与高熵不透明刷新值；Refresh仅存哈希 | 两者都必须JWT；签名正确就不查服务端状态 | [第30章](../06-security/30-jwt-and-sessions.md) |
+| 会话族 / 凭据版本 | 单次轮换链及登录时版本，重放提交撤销整族 | 旧Refresh可自动升级到新密码版本；事务内抛错仍会保留撤销 | [第30章](../06-security/30-jwt-and-sessions.md) |
+| Bearer / CSRF | 本例仅显式头与JSON Refresh，不接受Cookie认证 | 关闭CSRF适用于所有浏览器认证方案 | [第30章](../06-security/30-jwt-and-sessions.md) |
+| RBAC / 数据范围 | 当前数据库权限和部门读/本人写条件共同作用 | 隐藏按钮完成授权；部门隔离已实现多租户 | [第31章](../06-security/31-rbac.md) |
+| 负缓存 / singleflight | 短期保存不存在结果与本实例并发加载合并 | 解决任意随机键穿透；等同分布式锁 | [第32章](../06-security/32-redis-and-cache.md) |
+| 缓存epoch | 原子失效代号阻止旧代回填，仍有跨系统失败窗口 | TTL保证数据库提交后瞬时一致；能取消旧在途读 | [第32章](../06-security/32-redis-and-cache.md) |
+| 解码预算 / 重编码 | 约束字节、完整结构和解压输出后用新像素图编码 | 小压缩文件内存必然小；CRC等于杀毒 | [第33章](../06-security/33-enterprise-foundations.md) |
+| not_configured | 扫描扩展接口未接引擎的真实状态 | 未配置也可标clean；接口测试证明发现真实病毒 | [第33章](../06-security/33-enterprise-foundations.md) |
+| 外部协作者替身 | 保留业务规则、替换外部SDK以控制故障 | mock业务自身能证明业务正确；替身通过等于协议通过 | [第34章](../07-testing-jvm/34-unit-testing.md) |
+| MockMvc / Testcontainers | 实际MVC进程内入口与真实依赖容器生命周期 | MockMvc天然经过TCP；类共享容器等于每例新数据库 | [第35章](../07-testing-jvm/35-integration-and-contracts.md) |
+| 采样 / 直方图 / 转储 | 事件样本、类统计及对象图分别解释 | 方法节点存在即命中CPU样本；单快照证明泄漏 | [第36章](../07-testing-jvm/36-jvm-diagnostics.md) |
+| BLOCKED / monitor | 等待进入Java监视器的线程状态，需核对持有者 | 所有WAITING都是死锁；Node await直接等价 | [第36章](../07-testing-jvm/36-jvm-diagnostics.md) |
+| Metric / 标签基数 | 按有限类别聚合，Timer单位与分位能力须核对 | requestId适合指标标签；平均值就是p95 | [第37章](../07-testing-jvm/37-observability.md) |
+| Trace / span / requestId | 因果操作树、单段工作及请求关联标识，语义各自独立 | 有同一字符串即实现Tracing；traceparent能授予权限 | [第37章](../07-testing-jvm/37-observability.md) |
+| MDC / ECS / Pino | 上下文与最终结构化编码分层，指定事件字段白名单 | ILoggingEvent存在就一定输出JSON；重复MDC/kv无害 | [第37章](../07-testing-jvm/37-observability.md) |
