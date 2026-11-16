@@ -100,3 +100,6 @@ Spring与数据访问扩展：
 | confirm / return / ACK | 代理接受、未路由退回与消费者完成三个边界 | 发布ACK证明消费完成；publish布尔值是代理确认 | [第38章](../08-cloud-native/38-messaging.md) |
 | 消费账本 / eventId | 与SQL效果同事务的唯一消费身份，重试保持正文eventId | 随机messageId可跨重试去重；幂等等于只投一次 | [第38章](../08-cloud-native/38-messaging.md) |
 | DLX / DLQ / attempt | 代理死信路由、隔离队列及显式重试链计数 | 打印DEAD证明入队；三次链上限保证全局三次投递 | [第38章](../08-cloud-native/38-messaging.md) |
+| 事务Outbox | 业务与待发事件同库事务，异步发布后标记 | SQL与代理成为同一事务；SENT代表消费完成 | [第39章](../08-cloud-native/39-distributed-reliability.md) |
+| lease / claim token | 数据库期限与当前领取身份保护SQL状态更新 | 过期能取消旧worker网络操作；随机token自动成为代理fencing | [第39章](../08-cloud-native/39-distributed-reliability.md) |
+| timeout / circuit | 等待期限与依赖失败后暂缓尝试 | 超时证明未执行；单实例熔断自动同步全部副本 | [第39章](../08-cloud-native/39-distributed-reliability.md) |
