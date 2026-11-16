@@ -38,6 +38,8 @@ VitePress1文档的Node下限与VitePress2文档不同，应查阅[稳定版安�
 
 ## 官方兼容声明
 
+P4文件参照（2026-11-16）：Java MinIO SDK8.6.0、显式okhttp-jvm5.1.0，Node S3 SDK3.1166.0及pngjs7.0.0/@types6.0.5。原镜像拉取失败，改以Go1.24.2构建官方MinIO固定commit 0d7408fc9969caf07de6a8c3a84f9fbb10a6739e，属于标签RELEASE.2025-04-22T22-12-26Z。[Files43815795277](https://github.com/zrayjay/java-for-nestjs/actions/runs/43815795277)在Linux Temurin21/25各Java7项/Node6项真实服务成功，包含解码预算修订和私有对象负例；不代表Multipart HTTP、完整IAM/ACL或真实病毒扫描已完成。
+
 P4缓存参照（2026-11-12）：独立cache-lab使用Boot管理的Spring Data Redis，Node ioredis5.8.2，服务镜像redis:7.4.6。[Redis43181272467](https://github.com/zrayjay/java-for-nestjs/actions/runs/43181272467)在Temurin21/25各Java5项及Node5项真实服务通过，包含PTTL/服务器到期、空值、作用域键、本机合并、旧回填竞态及断开客户端。尚未接入实际任务HTTP/事务，未验证Redis服务宕机恢复或分布式协调；独立审查待完成。
 
 P4认证参照（2026-11-12）：Boot3.5.16管理Spring Security6.5.11，其oauth2-jose制品声明选定Nimbus9.37.4（本机实际测试classpath核对），不声称Boot BOM直接管理每个传递依赖。Node jose6.2.17、bcryptjs3.0.3和显式reflect-metadata0.2.2。[Security43170418413](https://github.com/zrayjay/java-for-nestjs/actions/runs/43170418413)在Linux Temurin21/25各完整通过Java19项/Node19项，含V2凭据版本绑定与并发/缺声明负例；新增合法作用域写入对照以其后提交单独记录。Redis/上传与G4尚未据此通过。

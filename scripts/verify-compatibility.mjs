@@ -14,6 +14,7 @@ export async function verifyCompatibility(root) {
   const dataPom = await read('examples/data-access-lab/pom.xml')
   const webPom = await read('examples/spring-web-lab/pom.xml')
   const securityPom = await read('examples/security-lab/pom.xml')
+  const filePom = await read('examples/file-lab/pom.xml')
   const security = JSON.parse(
     await read('examples/nestjs-security-reference/package.json'),
   ).dependencies
@@ -46,9 +47,18 @@ export async function verifyCompatibility(root) {
       'data-access',
       'security',
       'cache',
+      'files',
     ].map((n) => read(`.github/workflows/${n}.yml`)),
   )
   const actual = {
+    minio: filePom.match(
+      /<artifactId>minio<\/artifactId><version>([^<]+)</,
+    )?.[1],
+    okhttpJvm: filePom.match(
+      /<artifactId>okhttp-jvm<\/artifactId><version>([^<]+)</,
+    )?.[1],
+    s3Sdk: security['@aws-sdk/client-s3'],
+    pngjs: security.pngjs,
     ioredis: security.ioredis,
     redis: workflows[5].match(/image:\s+redis:([\d.]+)/)?.[1],
     jose: security.jose,

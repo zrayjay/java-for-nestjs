@@ -327,7 +327,7 @@
         "topics": "文件、对象存储、审计、OpenAPI、脱敏",
         "reference": "Multer / Swagger",
         "pilot": false,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/06-security/33-enterprise-foundations.md"
       }
     ]

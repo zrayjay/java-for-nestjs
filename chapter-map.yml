@@ -25,6 +25,10 @@ baseline:
   bcryptjs: 3.0.3
   ioredis: 5.8.2
   redis: 7.4.6
+  minio: 8.6.0
+  okhttpJvm: 5.1.0
+  s3Sdk: 3.1166.0
+  pngjs: 7.0.0
 parts:
   - id: '01'
     title: 运行时与工具入门
@@ -1147,7 +1151,7 @@ chapters:
     part: '06'
     title: 企业基础能力
     path: docs/06-security/33-enterprise-foundations.md
-    status: planned
+    status: draft
     prerequisites:
       - '20'
       - '28'
@@ -1158,10 +1162,21 @@ chapters:
     topics: 文件、对象存储、审计、OpenAPI、脱敏
     reference: Multer / Swagger
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/file-lab/src/main/java/dev/javafornestjs/files/PngSanitizer.java
+      - examples/file-lab/src/main/java/dev/javafornestjs/files/PrivateFiles.java
+      - examples/nestjs-security-reference/src/files.ts
+      - examples/nestjs-reference/src/api/api.ts
+      - examples/spring-web-lab/src/main/java/dev/javafornestjs/web/Tasks.java
+    tests:
+      - examples/file-lab/src/test/java/dev/javafornestjs/files/PngSanitizerTest.java
+      - examples/file-lab/src/test/java/dev/javafornestjs/files/ObjectStoreTest.java
+      - examples/nestjs-security-reference/src/files.spec.ts
+      - examples/nestjs-reference/src/api/api.test.ts
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/WebApiTest.java
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P4-01.md
     reviews: []
   - id: '34'
     part: '07'

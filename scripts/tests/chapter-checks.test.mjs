@@ -224,6 +224,7 @@ test('version drift is blocked against actual package/POM/wrapper/CI sources', a
     '.github/workflows/data-access.yml',
     '.github/workflows/security.yml',
     '.github/workflows/cache.yml',
+    '.github/workflows/files.yml',
     'examples/prisma-reference/package.json',
     'examples/nestjs-reference/package.json',
     'examples/nestjs-security-reference/package.json',
@@ -231,6 +232,7 @@ test('version drift is blocked against actual package/POM/wrapper/CI sources', a
     'examples/data-access-lab/pom.xml',
     'examples/spring-web-lab/pom.xml',
     'examples/security-lab/pom.xml',
+    'examples/file-lab/pom.xml',
   ]
   for (const path of paths) {
     await mkdir(dirname(resolve(dir, path)), { recursive: true })
