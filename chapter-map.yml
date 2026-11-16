@@ -1372,7 +1372,7 @@ chapters:
     part: '08'
     title: 分布式可靠性
     path: docs/08-cloud-native/39-distributed-reliability.md
-    status: draft
+    status: in_review
     prerequisites:
       - '27'
       - '32'
@@ -1391,8 +1391,19 @@ chapters:
       - examples/messaging-lab/src/test/java/dev/javafornestjs/messaging/DeadlineContractTest.java
       - examples/nestjs-message-reference/src/deadline.test.ts
     noCodeReason: null
-    verification: []
-    reviews: []
+    verification:
+      - docs/progress/P5-02.md
+    reviews:
+      - path: docs/reviews/P5-02-outbox.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-16
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P5-02-outbox.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-16
+        independent: true
+        conclusion: approved
   - id: '40'
     part: '08'
     title: 容器与编排

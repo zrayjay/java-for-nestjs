@@ -393,7 +393,7 @@
         "topics": "超时、熔断、Outbox、最终一致性、租约",
         "reference": "Agent Worker 设计",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/08-cloud-native/39-distributed-reliability.md"
       },
       {

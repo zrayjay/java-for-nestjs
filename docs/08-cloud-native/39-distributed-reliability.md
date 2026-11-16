@@ -2,7 +2,7 @@
 title: '39 · 分布式可靠性'
 description: 用事务Outbox、受控超时和真实代理恢复解释最终一致性、熔断及租约边界。
 chapter_id: '39'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21/25 / MySQL8.4.7 / RabbitMQ4.2.2 / amqplib0.10.9
 ---
 
