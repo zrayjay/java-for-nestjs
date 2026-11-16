@@ -53,6 +53,7 @@ export async function verifyCompatibility(root) {
     ].map((n) => read(`.github/workflows/${n}.yml`)),
   )
   const actual = {
+    pino: security.pino,
     vitest: securityPackage.devDependencies.vitest,
     minio: filePom.match(
       /<artifactId>minio<\/artifactId><version>([^<]+)</,

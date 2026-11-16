@@ -46,6 +46,10 @@ export class SecurityContext {
     )
       return
     if (!this.state()?.user) throw new UnauthorizedException()
+    if (method === 'GET' && path === '/actuator/metrics') {
+      this.require('role:manage')
+      return
+    }
     if (
       (method === 'GET' && path === '/me') ||
       (method === 'POST' && path === '/auth/logout')

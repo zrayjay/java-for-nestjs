@@ -12,6 +12,7 @@ import {
 } from './auth.js'
 import { createSecurityApi } from './app.js'
 import type { SigningKeys } from './keys.js'
+import { RequestTelemetry } from './observability.js'
 
 const PASSWORD = 'fixture-password-only'
 class MutableClock implements SecurityClock {
@@ -24,6 +25,8 @@ let keys: SigningKeys
 let client: Client
 let clock: MutableClock
 let app: Awaited<ReturnType<typeof createSecurityApi>> | undefined
+let telemetry: RequestTelemetry
+let completionEvents: Array<Record<string, unknown>>
 before(async () => {
   keys = await generateKeyPair('RS256', { modulusLength: 2048 })
 })
@@ -115,7 +118,15 @@ beforeEach(async () => {
     ].map(([userId, roleId]) => ({ userId, roleId })),
   })
   clock = new MutableClock()
-  app = await createSecurityApi(client, keys, clock)
+  const events: Array<Record<string, unknown>> = []
+  completionEvents = events
+  telemetry = new RequestTelemetry({
+    write(line: string) {
+      for (const record of line.trim().split('\n'))
+        if (record) events.push(JSON.parse(record))
+    },
+  })
+  app = await createSecurityApi(client, keys, clock, 0, telemetry)
 })
 afterEach(async () => {
   await app?.close()
@@ -616,4 +627,92 @@ test('audit failure rolls back the task mutation', async (testContext) => {
   assert.equal(response.status, 500)
   assert.deepEqual(await response.json(), { code: 'internal_error' })
   assert.equal(await client.dataTask.count(), 0)
+})
+
+test('structured completion logs correlate SQL audit without raw secrets', async (testContext) => {
+  const tokens = await login('alice')
+  const created = await request(
+    'POST',
+    '/tasks',
+    tokens.accessToken,
+    '{"title":"NeverLogTitleMarker","details":{"priority":2}}',
+  )
+  assert.equal(created.status, 201)
+  const requestId = created.headers.get('x-request-id')
+  assert.ok(requestId)
+  const audit = await client.secAudit.findFirstOrThrow({
+    where: { eventCode: 'task.created', actorId: 1 },
+    orderBy: { id: 'desc' },
+  })
+  assert.equal(audit.requestId, requestId)
+  assert.equal(
+    (await request('GET', '/NeverLogPathMarker', tokens.accessToken)).status,
+    403,
+  )
+  testContext.mock.method(app!.get(AuthService), 'audit', async () => {
+    throw new Error('NeverLogExceptionMarker')
+  })
+  assert.equal(
+    (
+      await request(
+        'POST',
+        '/tasks',
+        tokens.accessToken,
+        '{"title":"Crash","details":{"priority":2}}',
+      )
+    ).status,
+    500,
+  )
+  const deadline = Date.now() + 2000
+  while (!completionEvents.some((event) => event.status === 500)) {
+    assert.ok(Date.now() < deadline, 'Completion log timed out')
+    await new Promise((resolve) => setTimeout(resolve, 5))
+  }
+  const event = completionEvents.find((value) => value.requestId === requestId)!
+  assert.equal(event.route, '/tasks')
+  assert.equal(event.status, 201)
+  assert.equal(event.event, 'request.completed')
+  assert.ok(typeof event.elapsedMs === 'number' && event.elapsedMs >= 0)
+  assert.ok(completionEvents.some((value) => value.route === '<unmatched>'))
+  const text = JSON.stringify(completionEvents)
+  for (const secret of [
+    PASSWORD,
+    tokens.accessToken,
+    tokens.refreshToken,
+    'NeverLogTitleMarker',
+    'NeverLogPathMarker',
+    'NeverLogExceptionMarker',
+  ])
+    assert.ok(!text.includes(secret))
+  assert.ok(
+    telemetry.snapshot().every((value) => !value.labels.includes(requestId)),
+  )
+})
+
+test('metrics require administrative permission and count real request durations', async () => {
+  assert.equal((await request('GET', '/actuator/metrics')).status, 401)
+  const alice = await login('alice')
+  assert.equal(
+    (await request('GET', '/actuator/metrics', alice.accessToken)).status,
+    403,
+  )
+  assert.equal((await request('GET', '/tasks', alice.accessToken)).status, 200)
+  const admin = await login('admin')
+  const response = await request('GET', '/actuator/metrics', admin.accessToken)
+  assert.equal(response.status, 200)
+  const metrics = (await response.json()) as Array<{
+    labels: string
+    count: number
+    totalMs: number
+    errors: number
+  }>
+  assert.ok(
+    metrics.some(
+      (value) =>
+        value.labels === 'GET /tasks 200' &&
+        value.count >= 1 &&
+        value.totalMs >= 0,
+    ),
+  )
+  assert.ok(metrics.some((value) => value.errors >= 1))
 })

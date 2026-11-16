@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 import { randomUUID } from 'node:crypto'
+import { performance } from 'node:perf_hooks'
 import {
   BadRequestException,
   Body,
@@ -38,6 +39,7 @@ import {
 import { SecurityContext } from './context.js'
 import { validateKeys, type SigningKeys } from './keys.js'
 import { PolicyTasks } from './tasks.js'
+import { RequestTelemetry } from './observability.js'
 
 export class LoginInput {
   @IsString({ always: true })
@@ -65,6 +67,7 @@ class SecurityController {
   constructor(
     private readonly auth: AuthService,
     private readonly context: SecurityContext,
+    private readonly telemetry: RequestTelemetry,
   ) {}
   @Post('auth/login')
   @HttpCode(200)
@@ -95,6 +98,11 @@ class SecurityController {
       permissions: [...user.permissions].sort(),
     }
   }
+  @Get('actuator/metrics')
+  @Header('Cache-Control', 'no-store')
+  metrics() {
+    return this.telemetry.snapshot()
+  }
   @Put('admin/users/:id/roles')
   @HttpCode(204)
   roles(@Param('id') raw: string, @Body() input: RolesInput): Promise<void> {
@@ -111,6 +119,8 @@ interface Request {
   rawBody?: Buffer
 }
 interface Response {
+  statusCode: number
+  on(event: 'finish', listener: () => void): void
   setHeader(name: string, value: string): void
   status(code: number): { json(body: unknown): void }
 }
@@ -171,6 +181,7 @@ export async function createSecurityApi(
   keys: SigningKeys,
   clock: SecurityClock = systemClock,
   port = 0,
+  telemetry = new RequestTelemetry(),
 ) {
   await validateKeys(keys)
   const context = new SecurityContext()
@@ -180,13 +191,25 @@ export async function createSecurityApi(
     providers: [
       { provide: AuthService, useValue: auth },
       { provide: SecurityContext, useValue: context },
+      { provide: RequestTelemetry, useValue: telemetry },
       { provide: APP_GUARD, useClass: SecurityGuard },
     ],
   }
   return createApi(port, new PolicyTasks(auth, context), feature, (app) => {
     app.use((request: Request, response: Response, next: () => void) => {
       context.run({ requestId: randomUUID() }, () => {
-        response.setHeader('X-Request-Id', context.state()!.requestId)
+        const state = context.state()!
+        const started = performance.now()
+        response.on('finish', () =>
+          telemetry.completed(
+            request.method,
+            request.path,
+            response.statusCode,
+            started,
+            state.requestId,
+          ),
+        )
+        response.setHeader('X-Request-Id', state.requestId)
         response.setHeader('Cache-Control', 'no-store')
         // Authentication/authorization precede body parsing and DTO validation.
         void auth

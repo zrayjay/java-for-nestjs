@@ -118,6 +118,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/me").authenticated()
                         .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
                         .requestMatchers("/admin/**").hasAuthority("role:manage")
+                        .requestMatchers("/actuator/metrics", "/actuator/metrics/**").hasAuthority("role:manage")
                         .requestMatchers(HttpMethod.GET, "/tasks", "/tasks/**").hasAnyAuthority("task:read:department", "task:read:any")
                         .requestMatchers(HttpMethod.POST, "/tasks").hasAnyAuthority("task:write:own", "task:write:any")
                         .requestMatchers(HttpMethod.PUT, "/tasks/**").hasAnyAuthority("task:write:own", "task:write:any")
@@ -138,10 +139,14 @@ public class SecurityConfiguration {
             protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                              FilterChain chain) throws ServletException, IOException {
                 String requestId = UUID.randomUUID().toString();
+                long started = System.nanoTime();
                 MDC.put("requestId", requestId);
                 response.setHeader("X-Request-Id", requestId);
                 try { chain.doFilter(request, response); }
-                finally { MDC.remove("requestId"); }
+                finally {
+                    try { RequestTelemetry.completed(request.getMethod(), request.getRequestURI(), response.getStatus(), started, requestId); }
+                    finally { MDC.remove("requestId"); }
+                }
             }
         };
         var registration = new FilterRegistrationBean<OncePerRequestFilter>(filter);

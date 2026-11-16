@@ -30,6 +30,7 @@ baseline:
   s3Sdk: 3.1166.0
   pngjs: 7.0.0
   vitest: 5.1.0
+  pino: 10.4.0
 parts:
   - id: '01'
     title: 运行时与工具入门

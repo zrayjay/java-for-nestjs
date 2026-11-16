@@ -11,6 +11,8 @@ import static org.mockito.Mockito.doThrow;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -23,6 +25,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.slf4j.LoggerFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +86,9 @@ class SecurityApiTest {
     @MockitoSpyBean AuthService auth;
     @LocalServerPort int port;
     private String passwordHash;
+    private Map<String, Object> fields(ILoggingEvent event) {
+        return event.getKeyValuePairs().stream().collect(Collectors.toMap(pair -> pair.key, pair -> pair.value));
+    }
     @BeforeEach
     void fixture() {
         clock.reset();
@@ -382,5 +391,61 @@ class SecurityApiTest {
         assertEquals("internal_error", response.getBody().path("code").asText());
         assertEquals(1, response.getBody().size());
         assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM data_tasks", Integer.class));
+    }
+
+    @Test
+    void structuredCompletionLogsCorrelateSqlAuditWithoutRawSecrets() throws Exception {
+        var logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(RequestTelemetry.class);
+        var capture = new ListAppender<ILoggingEvent>();
+        capture.list = new CopyOnWriteArrayList<>();
+        capture.start();
+        logger.addAppender(capture);
+        try {
+            var tokens = login("alice");
+            String access = access(tokens);
+            var created = request(HttpMethod.POST, "/tasks", access,
+                    "{\"title\":\"NeverLogTitleMarker\",\"details\":{\"priority\":2}}");
+            assertEquals(HttpStatus.CREATED, created.getStatusCode());
+            String requestId = created.getHeaders().getFirst("X-Request-Id");
+            assertEquals(requestId, jdbc.queryForObject("SELECT request_id FROM sec_audit WHERE event_code='task.created' AND actor_id=1 ORDER BY id DESC LIMIT 1", String.class));
+            assertEquals(HttpStatus.FORBIDDEN, request(HttpMethod.GET, "/NeverLogPathMarker", access, null).getStatusCode());
+            doThrow(new IllegalStateException("NeverLogExceptionMarker")).when(auth).audit(eq(1), eq("task.created"), anyString());
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, request(HttpMethod.POST, "/tasks", access,
+                    "{\"title\":\"Crash\",\"details\":{\"priority\":2}}").getStatusCode());
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+            while (capture.list.stream().noneMatch(event -> Integer.valueOf(500).equals(fields(event).get("status")))) {
+                assertTrue(System.nanoTime() < deadline, "Completion log timed out");
+                Thread.sleep(5);
+            }
+            var event = capture.list.stream().filter(value -> requestId.equals(fields(value).get("requestId"))).findFirst().orElseThrow();
+            assertEquals("/tasks", fields(event).get("route"));
+            assertEquals(201, fields(event).get("status"));
+            assertTrue(((Number) fields(event).get("elapsedMs")).doubleValue() >= 0);
+            assertTrue(capture.list.stream().anyMatch(value -> "<unmatched>".equals(fields(value).get("route"))));
+            String rendered = capture.list.stream().map(value -> value.getFormattedMessage() + fields(value)).collect(Collectors.joining());
+            for (String secret : List.of(PASSWORD, access, tokens.path("refreshToken").asText(),
+                    "NeverLogTitleMarker", "NeverLogPathMarker", "NeverLogExceptionMarker")) { assertFalse(rendered.contains(secret)); }
+            assertTrue(capture.list.stream().allMatch(value -> value.getThrowableProxy() == null));
+        } finally {
+            logger.detachAppender(capture);
+            capture.stop();
+        }
+    }
+
+    @Test
+    void actuatorMetricsRequireAdministrativePermissionAndExposeRealHttpTimer() {
+        assertEquals(HttpStatus.UNAUTHORIZED, request(HttpMethod.GET, "/actuator/metrics", null, null).getStatusCode());
+        String alice = access(login("alice"));
+        assertEquals(HttpStatus.FORBIDDEN, request(HttpMethod.GET, "/actuator/metrics", alice, null).getStatusCode());
+        assertEquals(HttpStatus.OK, request(HttpMethod.GET, "/tasks", alice, null).getStatusCode());
+        String admin = access(login("admin"));
+        var timer = request(HttpMethod.GET, "/actuator/metrics/http.server.requests?tag=uri:/tasks", admin, null);
+        assertEquals(HttpStatus.OK, timer.getStatusCode());
+        assertEquals("http.server.requests", timer.getBody().path("name").asText());
+        boolean counted = false;
+        for (var measurement : timer.getBody().path("measurements")) {
+            if ("COUNT".equals(measurement.path("statistic").asText()) && measurement.path("value").asDouble() >= 1) { counted = true; }
+        }
+        assertTrue(counted);
     }
 }
