@@ -360,7 +360,7 @@
         "topics": "JFR、GC、heap dump、thread dump、压测",
         "reference": "Node profiling",
         "pilot": false,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/07-testing-jvm/36-jvm-diagnostics.md"
       },
       {

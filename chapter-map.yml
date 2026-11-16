@@ -1263,7 +1263,7 @@ chapters:
     part: '07'
     title: JVM 性能诊断
     path: docs/07-testing-jvm/36-jvm-diagnostics.md
-    status: planned
+    status: draft
     prerequisites:
       - '05'
       - '12'
@@ -1272,10 +1272,16 @@ chapters:
     topics: JFR、GC、heap dump、thread dump、压测
     reference: Node profiling
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/jvm-diagnostics/DiagnosticsWorkload.java
+      - examples/jvm-diagnostics/node-workload.mjs
+    tests:
+      - examples/jvm-diagnostics/measure-jvm.ps1
+      - examples/jvm-diagnostics/measure-node.mjs
+      - examples/jvm-diagnostics/measure-http.mjs
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P4-02.md
     reviews: []
   - id: '37'
     part: '07'

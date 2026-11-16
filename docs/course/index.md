@@ -83,7 +83,7 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 |---|---|---|---|---|
 | 34 | [单元测试](../../docs/07-testing-jvm/34-unit-testing.md) | JUnit、Mockito、AssertJ、测试隔离 | Jest / Vitest | 待独立审查 |
 | 35 | [集成与契约测试](../../docs/07-testing-jvm/35-integration-and-contracts.md) | MockMvc、Testcontainers、API 合约、测试数据 | Supertest / e2e | 待独立审查 |
-| 36 | JVM 性能诊断 | JFR、GC、heap dump、thread dump、压测 | Node profiling | 待编写 |
+| 36 | [JVM 性能诊断](../../docs/07-testing-jvm/36-jvm-diagnostics.md) | JFR、GC、heap dump、thread dump、压测 | Node profiling | 编写中 |
 | 37 | 可观测性 | Actuator、Micrometer、Tracing、结构化日志 | OpenTelemetry / Pino | 待编写 |
 
 ## Part 08 · 分布式与云原生 {#part-08}
