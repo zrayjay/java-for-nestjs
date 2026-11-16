@@ -34,6 +34,7 @@ const result = spawnSync(
     `--cpu-prof-dir=${output}`,
     '--cpu-prof-name=node.cpuprofile',
     '--heap-prof',
+    '--heap-prof-interval=32768',
     `--heap-prof-dir=${output}`,
     '--heap-prof-name=node.heapprofile',
     'examples/jvm-diagnostics/node-workload.mjs',
@@ -51,11 +52,23 @@ assert.equal(
 )
 const read = (name) => JSON.parse(readFileSync(resolve(output, name), 'utf8'))
 const cpu = read('node.cpuprofile')
-assert.ok(
-  cpu.nodes.some((node) => node.callFrame.functionName === 'cpuWork'),
-  'CPU profile must identify the fixture',
-)
 assert.ok(cpu.samples.length > 0, 'CPU profile must contain actual samples')
+const nodes = new Map(cpu.nodes.map((node) => [node.id, node]))
+const parents = new Map()
+for (const node of cpu.nodes)
+  for (const child of node.children ?? []) parents.set(child, node.id)
+const cpuWorkSamples = cpu.samples.filter((sample) => {
+  let id = sample
+  for (let depth = 0; id !== undefined && depth < nodes.size; depth++) {
+    if (nodes.get(id)?.callFrame.functionName === 'cpuWork') return true
+    id = parents.get(id)
+  }
+  return false
+}).length
+assert.ok(
+  cpuWorkSamples > 0,
+  'Actual samples must identify cpuWork or its descendant stack',
+)
 const heap = read('node.heapprofile')
 assert.ok(
   heap.samples.length > 0,
@@ -75,6 +88,7 @@ assert.equal(workload.retained, 30000)
 const report = {
   node: process.version,
   profileSamples: cpu.samples.length,
+  cpuWorkSamples,
   heapProfileSamples: heap.samples.length,
   snapshotNodes: snapshot.snapshot.node_count,
   snapshotBytes: statSync(resolve(output, 'node.heapsnapshot')).size,

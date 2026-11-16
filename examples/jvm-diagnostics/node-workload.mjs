@@ -11,6 +11,7 @@ const retained = Array.from({ length: 30000 }, (_, index) => ({
   label: 'teaching-only',
   payload: 'x'.repeat(128),
 }))
+globalThis.diagnosticsRetained = retained
 const snapshot = writeHeapSnapshot(join(output, 'node.heapsnapshot'))
 function cpuWork(deadline) {
   let checksum = 7

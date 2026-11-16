@@ -16,10 +16,44 @@ $targetRoot = [System.IO.Path]::GetFullPath((Join-Path $repoDirectory 'target'))
 if (-not $outputPath.StartsWith($targetRoot, [System.StringComparison]::OrdinalIgnoreCase)) { throw 'Artifacts must stay under repository target/' }
 if (Test-Path -LiteralPath $outputPath) { throw 'Choose a new output directory; existing evidence is never overwritten' }
 New-Item -ItemType Directory -Path $outputPath | Out-Null
+function Invoke-BoundedJdkTool {
+    param([string]$Executable, [string[]]$Arguments, [string]$LogName, [int]$TimeoutSeconds = 15)
+    $info = [System.Diagnostics.ProcessStartInfo]::new()
+    $info.FileName = $Executable
+    $info.WorkingDirectory = $repoDirectory
+    $info.UseShellExecute = $false
+    $info.CreateNoWindow = $true
+    $info.RedirectStandardOutput = $true
+    $info.RedirectStandardError = $true
+    foreach ($argument in $Arguments) { $info.ArgumentList.Add($argument) }
+    $toolProcess = [System.Diagnostics.Process]::new()
+    $toolProcess.StartInfo = $info
+    $toolStarted = $false
+    try {
+        if (-not $toolProcess.Start()) { throw "Could not start $LogName" }
+        $toolStarted = $true
+        $readOut = $toolProcess.StandardOutput.ReadToEndAsync()
+        $readError = $toolProcess.StandardError.ReadToEndAsync()
+        $completed = $toolProcess.WaitForExit($TimeoutSeconds * 1000)
+        if (-not $completed) {
+            $toolProcess.Kill($true)
+            if (-not $toolProcess.WaitForExit(5000)) { throw "Could not terminate timed-out $LogName" }
+        }
+        $stdout = $readOut.GetAwaiter().GetResult()
+        $stderr = $readError.GetAwaiter().GetResult()
+        $stdout | Set-Content -LiteralPath (Join-Path $outputPath "$LogName.stdout.txt")
+        $stderr | Set-Content -LiteralPath (Join-Path $outputPath "$LogName.stderr.txt")
+        if (-not $completed) { throw "JDK tool timed out: $LogName" }
+        if ($toolProcess.ExitCode -ne 0) { throw "JDK tool failed: $LogName; inspect its captured logs" }
+        return $stdout + $stderr
+    } finally {
+        if ($toolStarted -and -not $toolProcess.HasExited) { $toolProcess.Kill($true); [void]$toolProcess.WaitForExit(5000) }
+        $toolProcess.Dispose()
+    }
+}
 $classes = Join-Path $outputPath 'classes'
 New-Item -ItemType Directory -Path $classes | Out-Null
-& $javacTool --release 21 -d $classes examples/jvm-diagnostics/DiagnosticsWorkload.java
-if ($LASTEXITCODE -ne 0) { throw 'Fixture compilation failed' }
+Invoke-BoundedJdkTool $javacTool @('--release', '21', '-d', $classes, 'examples/jvm-diagnostics/DiagnosticsWorkload.java') 'compile' | Out-Null
 $relativeOutput = [System.IO.Path]::GetRelativePath($repoDirectory, $outputPath).Replace('\', '/')
 $stdoutPath = Join-Path $outputPath 'java.stdout.txt'
 $stderrPath = Join-Path $outputPath 'java.stderr.txt'
@@ -43,12 +77,13 @@ try {
         Start-Sleep -Milliseconds 50
     } while ($true)
     $labProcessId = $labProcess.Id
-    $threadText = & $jcmdTool $labProcessId Thread.print -l 2>&1
-    if ($LASTEXITCODE -ne 0) { throw 'Thread dump failed' }
+    $threadText = Invoke-BoundedJdkTool $jcmdTool @("$labProcessId", 'Thread.print', '-l') 'thread-tool' 8
     $threadText | Set-Content -LiteralPath (Join-Path $outputPath 'threads.txt')
     if (($threadText -join "`n") -notmatch '(?s)"lab-blocked"[^\n]*\n\s+java.lang.Thread.State: BLOCKED') { throw 'Expected monitor contention was not observed' }
-    & $jcmdTool $labProcessId GC.heap_dump (Join-Path $outputPath 'lab.hprof') | Set-Content -LiteralPath (Join-Path $outputPath 'heap-command.txt')
-    if ($LASTEXITCODE -ne 0) { throw 'Heap dump failed' }
+    $histogram = Invoke-BoundedJdkTool $jcmdTool @("$labProcessId", 'GC.class_histogram') 'histogram' 8
+    $byteArrays = [regex]::Match($histogram, '(?m)^\s*\d+:\s+(\d+)\s+(\d+)\s+\[B\s')
+    if (-not $byteArrays.Success -or [long]$byteArrays.Groups[2].Value -lt 16777216) { throw 'Expected retained byte-array footprint not observed' }
+    Invoke-BoundedJdkTool $jcmdTool @("$labProcessId", 'GC.heap_dump', (Join-Path $outputPath 'lab.hprof')) 'heap-command' 8 | Out-Null
     if (-not $labProcess.WaitForExit(25000)) { throw 'Fixture did not finish' }
     if ($labProcess.ExitCode -ne 0) { throw 'Fixture failed' }
 } finally {
@@ -56,8 +91,7 @@ try {
     $labProcess.Dispose()
 }
 $jfrPath = Join-Path $outputPath 'lab.jfr'
-$summary = & $jfrTool summary $jfrPath 2>&1
-if ($LASTEXITCODE -ne 0) { throw 'JFR summary failed' }
+$summary = Invoke-BoundedJdkTool $jfrTool @('summary', $jfrPath) 'summary-tool'
 $summary | Set-Content -LiteralPath (Join-Path $outputPath 'jfr-summary.txt')
 $events = @{}
 foreach ($eventName in @('jdk.ExecutionSample', 'jdk.GarbageCollection', 'jdk.JavaMonitorEnter', 'jdk.ObjectAllocationSample')) {
@@ -66,8 +100,8 @@ foreach ($eventName in @('jdk.ExecutionSample', 'jdk.GarbageCollection', 'jdk.Ja
     if (-not $matched.Success -or [long]$matched.Groups[1].Value -lt 1) { throw "Missing actual JFR event: $eventName" }
     $events[$eventName] = [long]$matched.Groups[1].Value
 }
-$samples = & $jfrTool print --events jdk.ExecutionSample --stack-depth 16 $jfrPath 2>&1
-if ($LASTEXITCODE -ne 0 -or ($samples -join "`n") -notmatch 'DiagnosticsWorkload.cpu') { throw 'CPU samples do not identify the workload' }
+$samples = Invoke-BoundedJdkTool $jfrTool @('print', '--events', 'jdk.ExecutionSample', '--stack-depth', '16', $jfrPath) 'sample-tool'
+if (($samples -join "`n") -notmatch 'DiagnosticsWorkload.cpu') { throw 'CPU samples do not identify the workload' }
 $samples | Set-Content -LiteralPath (Join-Path $outputPath 'cpu-samples.txt')
 $heapPath = Join-Path $outputPath 'lab.hprof'
 $heapStream = [System.IO.File]::OpenRead($heapPath)
@@ -78,6 +112,6 @@ try {
 } finally { $heapStream.Dispose() }
 $gc = Get-Content -LiteralPath (Join-Path $outputPath 'gc.log') -Raw
 if ($gc -notmatch 'Pause') { throw 'No actual GC pause observed' }
-$report = @{ jdk = (& $javaTool -version 2>&1 | Out-String).Trim(); events = $events; heapBytes = (Get-Item -LiteralPath $heapPath).Length; monitorBlocked = $true; output = $relativeOutput }
+$report = @{ jdk = (Invoke-BoundedJdkTool $javaTool @('-version') 'version').Trim(); events = $events; heapBytes = (Get-Item -LiteralPath $heapPath).Length; byteArrayInstances = [long]$byteArrays.Groups[1].Value; byteArrayBytes = [long]$byteArrays.Groups[2].Value; monitorBlocked = $true; output = $relativeOutput }
 $report | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $outputPath 'report.json')
 $report | ConvertTo-Json -Depth 4
