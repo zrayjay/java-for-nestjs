@@ -384,7 +384,7 @@
         "topics": "RabbitMQ/Kafka、确认、重试、DLQ、幂等",
         "reference": "BullMQ、Node MQ 客户端",
         "pilot": false,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/08-cloud-native/38-messaging.md"
       },
       {

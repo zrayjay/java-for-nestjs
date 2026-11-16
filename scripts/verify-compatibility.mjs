@@ -19,6 +19,17 @@ export async function verifyCompatibility(root) {
     await read('examples/nestjs-security-reference/package.json'),
   )
   const security = securityPackage.dependencies
+  const messagePackage = JSON.parse(
+    await read('examples/nestjs-message-reference/package.json'),
+  )
+  const messageWorkflow = await read('.github/workflows/messaging.yml')
+  const messagePom = await read('examples/messaging-lab/pom.xml')
+  if (
+    messagePom.match(/<flyway.version>([^<]+)</)?.[1] !== b.flyway ||
+    messagePackage.dependencies.mariadb !== b.mariadb ||
+    messageWorkflow.match(/image:\s+mysql:([\d.]+)/)?.[1] !== b.mysql
+  )
+    throw new Error('消息实验数据库版本漂移')
   if (securityPom.match(/<flyway.version>([^<]+)</)?.[1] !== b.flyway)
     throw new Error('安全实验Flyway版本漂移')
   if (security['@opentelemetry/context-async-hooks'] !== b.otelCore)
@@ -52,9 +63,15 @@ export async function verifyCompatibility(root) {
       'cache',
       'files',
       'unit-tests',
+      'messaging',
     ].map((n) => read(`.github/workflows/${n}.yml`)),
   )
   const actual = {
+    rabbitmq: messageWorkflow.match(
+      /image:\s+rabbitmq:([\d.]+)-management/,
+    )?.[1],
+    amqplib: messagePackage.dependencies.amqplib,
+    amqplibTypes: messagePackage.devDependencies['@types/amqplib'],
     otelApi: security['@opentelemetry/api'],
     otelNodeSdk: security['@opentelemetry/sdk-trace'],
     otelCore: security['@opentelemetry/core'],

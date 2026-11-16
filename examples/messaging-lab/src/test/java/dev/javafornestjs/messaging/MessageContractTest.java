@@ -29,5 +29,9 @@ class MessageContractTest {
             assertThrows(TaskEvent.PermanentMessageFailure.class, () -> TaskEvent.decode(value.getBytes(StandardCharsets.UTF_8)));
         }
         assertThrows(TaskEvent.PermanentMessageFailure.class, () -> TaskEvent.decode(new byte[1025]));
+        assertThrows(TaskEvent.PermanentMessageFailure.class, () -> TaskEvent.decode(new byte[] {(byte) 0xff}));
+        String json = new String(event.encode(), StandardCharsets.UTF_8);
+        assertThrows(TaskEvent.PermanentMessageFailure.class, () -> TaskEvent.decode(json.getBytes(StandardCharsets.UTF_16)));
+        assertEquals(event, TaskEvent.decode(("\uFEFF" + json).getBytes(StandardCharsets.UTF_8)));
     }
 }

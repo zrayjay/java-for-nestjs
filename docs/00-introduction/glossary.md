@@ -97,3 +97,6 @@ Spring与数据访问扩展：
 | Metric / 标签基数 | 按有限类别聚合，Timer单位与分位能力须核对 | requestId适合指标标签；平均值就是p95 | [第37章](../07-testing-jvm/37-observability.md) |
 | Trace / span / requestId | 因果操作树、单段工作及请求关联标识，语义各自独立 | 有同一字符串即实现Tracing；traceparent能授予权限 | [第37章](../07-testing-jvm/37-observability.md) |
 | MDC / ECS / Pino | 上下文与最终结构化编码分层，指定事件字段白名单 | ILoggingEvent存在就一定输出JSON；重复MDC/kv无害 | [第37章](../07-testing-jvm/37-observability.md) |
+| confirm / return / ACK | 代理接受、未路由退回与消费者完成三个边界 | 发布ACK证明消费完成；publish布尔值是代理确认 | [第38章](../08-cloud-native/38-messaging.md) |
+| 消费账本 / eventId | 与SQL效果同事务的唯一消费身份，重试保持正文eventId | 随机messageId可跨重试去重；幂等等于只投一次 | [第38章](../08-cloud-native/38-messaging.md) |
+| DLX / DLQ / attempt | 代理死信路由、隔离队列及显式重试链计数 | 打印DEAD证明入队；三次链上限保证全局三次投递 | [第38章](../08-cloud-native/38-messaging.md) |

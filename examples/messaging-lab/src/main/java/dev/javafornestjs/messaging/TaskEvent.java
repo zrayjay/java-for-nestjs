@@ -2,6 +2,8 @@ package dev.javafornestjs.messaging;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 public record TaskEvent(String eventId, String kind, String taskKey) {
@@ -15,7 +17,9 @@ public record TaskEvent(String eventId, String kind, String taskKey) {
     public static TaskEvent decode(byte[] bytes) {
         if (bytes.length > 1024) { throw new PermanentMessageFailure("Event exceeds 1KiB"); }
         try {
-            var node = JSON.readTree(bytes);
+            String text = StandardCharsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(bytes)).toString();
+            if (text.startsWith("\uFEFF")) { text = text.substring(1); }
+            var node = JSON.readTree(text);
             if (node == null || !node.isObject() || node.size() != 3) { throw new PermanentMessageFailure("Invalid event fields"); }
             var names = node.fieldNames();
             while (names.hasNext()) {

@@ -145,15 +145,20 @@ export class BrokerLab {
   private readonly dead = `${this.prefix}.dead`
   private readonly dlx = `${this.prefix}.dlx`
   private constructor(private readonly connection: ChannelModel) {}
-  static async open(value: string | undefined): Promise<BrokerLab> {
+  static async open(
+    value: string | undefined,
+    connect: (url: string) => Promise<ChannelModel> = (url) =>
+      amqp.connect(url, { timeout: 3000 }),
+  ): Promise<BrokerLab> {
     const url = localUrl(value, 'amqp:')
     url.searchParams.set('heartbeat', '5')
-    const connection = await amqp.connect(url.toString(), { timeout: 3000 })
+    const connection = await connect(url.toString())
     // Prevent an unhandled EventEmitter error; operations still reject and tests fail.
     connection.on('error', () => {})
     const lab = new BrokerLab(connection)
-    const channel = await connection.createChannel()
+    let channel: Channel | undefined
     try {
+      channel = await connection.createChannel()
       await channel.assertExchange(lab.dlx, 'direct', { durable: true })
       await channel.assertQueue(lab.dead, { durable: true })
       await channel.bindQueue(lab.dead, lab.dlx, 'failed')
@@ -168,7 +173,7 @@ export class BrokerLab {
       await connection.close()
       throw error
     } finally {
-      await channel.close().catch(() => {})
+      await channel?.close().catch(() => {})
     }
     return lab
   }
@@ -319,8 +324,8 @@ export class BrokerLab {
     }
   }
   async close(): Promise<void> {
-    const channel = await this.consumer()
     try {
+      const channel = await this.consumer()
       await channel.deleteQueue(this.work)
       await channel.deleteQueue(this.dead)
       await channel.deleteExchange(this.dlx)

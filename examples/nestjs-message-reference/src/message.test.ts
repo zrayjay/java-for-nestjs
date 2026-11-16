@@ -1,4 +1,5 @@
-import { test, beforeEach, afterEach, describe } from 'node:test'
+import { test, beforeEach, afterEach, describe, mock } from 'node:test'
+import amqp from 'amqplib'
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import {
@@ -30,6 +31,8 @@ test('restricted envelope and explicit disposable service targets', () => {
     assert.throws(() => decode(Buffer.from(value)))
   assert.throws(() => decode(Buffer.alloc(1025)))
   assert.throws(() => decode(Buffer.from([0xff])))
+  assert.throws(() => decode(Buffer.from(JSON.stringify(valid), 'utf16le')))
+  assert.deepEqual(decode(Buffer.from('\uFEFF' + JSON.stringify(valid))), valid)
   assert.equal(
     localUrl('amqp://lab:password@127.0.0.1/message_lab?heartbeat=5', 'amqp:')
       .pathname,
@@ -159,6 +162,23 @@ describe(
       assert.equal(await store.effects(payload.taskKey), 1)
       assert.equal(await store.effects('other-task'), 0)
       assert.equal(await store.markers(), 1)
+    })
+    test('channel acquisition failure closes the already connected real broker connection', async () => {
+      const url = localUrl(process.env.MESSAGE_AMQP_URL, 'amqp:').toString()
+      const connection = await amqp.connect(url, { timeout: 3000 })
+      const closeSpy = mock.method(connection, 'close')
+      mock.method(connection, 'createChannel', async () => {
+        throw new Error('Injected channel acquisition failure')
+      })
+      try {
+        await assert.rejects(
+          BrokerLab.open(url, async () => connection),
+          /Injected channel acquisition failure/,
+        )
+        assert.equal(closeSpy.mock.callCount(), 1)
+      } finally {
+        mock.restoreAll()
+      }
     })
     test('concurrent duplicate deliveries serialize on consumer/event unique key', async () => {
       const payload = event()
