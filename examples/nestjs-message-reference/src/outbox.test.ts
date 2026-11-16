@@ -136,15 +136,15 @@ describe('actual SQL Outbox and broker recovery', { timeout: 60000 }, () => {
         }
         await broker.send(message)
       },
-      100,
-      200,
+      5000,
+      2000,
     )
     await assert.rejects(relay.runOnce(), /Actual mandatory return/)
-    await delay(150)
+    await delay(5100)
     await assert.rejects(relay.runOnce(), /Actual mandatory return/)
     assert.equal(await relay.runOnce(), 'CIRCUIT_OPEN')
     assert.equal(await store.pending(), 1)
-    await delay(250)
+    await delay(5100)
     fail = false
     assert.equal(await relay.runOnce(), 'SENT')
     assert.equal(await consume(), 'APPLIED')

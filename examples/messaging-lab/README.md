@@ -33,11 +33,26 @@ Java先执行真实Flyway迁移，Node复用同一表结构，不手写另一份
 
 ## 验收
 
-Java共7项（2合同+5真实服务）；Node共7项（1合同+6真实服务，含连接清理注入）。预期每项无失败/无跳过，日志`MESSAGE_RESULT`可见APPLIED、COMMITTED_UNACKED、DUPLICATE、RETRY和DEAD。断言同时核对真实SQL效果、账本行及DLQ原生`x-death.reason=rejected`，不只检查打印文本。
+第38章核心Java7项（2合同+5真实服务）；Node7项（1合同+6真实服务，含连接清理注入）。第39章追加两端各5项真实Outbox测试及1项受控本地超时实验，当前完整套件两端各13项。预期每项无失败/无跳过，日志`MESSAGE_RESULT`可见APPLIED、COMMITTED_UNACKED、DUPLICATE、RETRY和DEAD。断言同时核对真实SQL效果、账本行及DLQ原生`x-death.reason=rejected`，不只检查打印文本。
 
 消息1KiB内、严格UTF-8、恰好三个字段`eventId/kind/taskKey`；幂等键来自正文eventId，SDK messageId每次发布重新生成。重复eventId但不同taskKey永久拒绝。重试attempt0/1/2，至多三次处理**每条重试链**；发送成功但原消息ACK前崩溃会派生重复链，不能据此承诺全局最多三次投递。数据库提交后ACK前关channel为真实代理重投，不把重发副本的redelivered=false当异常。
 
-采用classic队列的基础教学配置，durable/persistent/confirm不能证明物理断电持久性、quorum高可用或DLX绝不丢失。默认classic死信转发没有目标confirm的端到端保证；本例只证明目标可用时真实路由。立即重试不等于退避。无业务HTTP入口、后台消费者常驻服务、生产负载和Outbox，本轮使用basicGet控制单次实验；第39章后续覆盖Outbox窗口。
+采用classic队列的基础教学配置，durable/persistent/confirm不能证明物理断电持久性、quorum高可用或DLX绝不丢失。默认classic死信转发没有目标confirm的端到端保证；本例只证明目标可用时真实路由。立即重试不等于退避。无业务HTTP入口、后台消费者常驻服务或生产负载；basicGet控制单次实验。
+
+## 第39章Outbox
+
+V2新增`outbox_tasks/message_outbox`，与V1消费账本共同由Java Flyway迁移，resetFixture也会清空这两表。先执行Java再Node，Node测试脚本指定`--test-concurrency=1`防止不同测试文件互相清库。OutboxRelay.runOnce是显式单轮入口，不是自动启动的后台任务。真实服务测试各5项：业务/Outbox同回滚；实际mandatory return后保留pending并恢复路由；实际confirm后注入标记前异常，恢复重复消息但SQL效果1；数据库时钟租约和旧token不能标记、旧worker仍能发布；本实例熔断阻断和探测恢复。详见[P5-02](../../docs/progress/P5-02.md)。
+
+租期受限100..5000ms只为加快教学，不是生产推荐。claim短事务`FOR UPDATE SKIP LOCKED`，网络发布在事务外；pending只在确认且token仍有效时标记。旧worker没有外部fencing，可能重复发布，依赖第38章消费者幂等。熔断仅统计发布异常，两次后冷却，Java对象串行阻塞而Node实例拒绝重入；不是跨副本共享熔断。持续失败没有自动告警/无限调度保证，恢复需要调用者再次runOnce。
+
+本地超时实验单独执行：
+
+```powershell
+.\mvnw.cmd -f examples/messaging-lab/pom.xml '-Dtest=DeadlineContractTest' test
+node --test examples/nestjs-message-reference/dist/deadline.test.js
+```
+
+Future.get超时与Promise.race超时均只结束等待；受控门释放后原操作继续产生效果。此为确定性本地模型，不冒称实测AMQP确认丢包或操作系统进程被杀。真实代理5秒confirm期限仅代表观察结果未知；关闭channel也不能撤销已被代理接收的消息。Outbox发送失败实测为实际mandatory return，不是代理断电；标记前中断为显式hook异常，不是kill进程。
 
 完成后只销毁自己创建的两个容器：
 

@@ -101,13 +101,13 @@ class OutboxIntegrationTest {
                 throw new IOException("Actual mandatory return");
             }
             broker.send(message);
-        }, 100, Duration.ofMillis(200));
+        }, 5000, Duration.ofMillis(2000));
         assertThrows(IOException.class, () -> relay.runOnce(() -> { }));
-        Thread.sleep(150);
+        Thread.sleep(5100);
         assertThrows(IOException.class, () -> relay.runOnce(() -> { }));
         assertEquals(OutboxRelay.Result.CIRCUIT_OPEN, relay.runOnce(() -> { }));
         assertEquals(1, store.pending());
-        Thread.sleep(250);
+        Thread.sleep(5100);
         fail.set(false);
         assertEquals(OutboxRelay.Result.SENT, relay.runOnce(() -> { }));
         assertEquals(BrokerLab.Outcome.APPLIED, consume());
