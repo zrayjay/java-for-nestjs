@@ -2,7 +2,7 @@
 title: '35 · 集成与契约测试'
 description: 区分MockMvc、真实HTTP、Testcontainers与共同契约的证据范围。
 chapter_id: '35'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / Boot3.5.16 / Testcontainers1.21.4 / Nest11.2.9
 ---
 
@@ -232,4 +232,4 @@ pnpm http:verify
 
 ## 章末验收与审查记录
 
-本章draft，88e29ef新增MockMvc场景CI及本阶段Testcontainers重跑按[P4-02](../progress/P4-02.md)记录。独立审查待完成。参考：[Spring MVC Test](https://docs.spring.io/spring-framework/reference/testing/mockmvc.html)、[Testcontainers](https://java.testcontainers.org/)、[动态属性](https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/ctx-management/dynamic-property-sources.html)、[Nest测试](https://docs.nestjs.com/fundamentals/testing)。
+本章in_review，88e29ef新增MockMvc场景CI及本阶段Testcontainers重跑按[P4-02](../progress/P4-02.md)记录。[独立双轴审查](../reviews/P4-02-integration.md)、Foundation43818392057和Compatibility43818595517均通过。参考：[Spring MVC Test](https://docs.spring.io/spring-framework/reference/testing/mockmvc.html)、[Testcontainers](https://java.testcontainers.org/)、[动态属性](https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/ctx-management/dynamic-property-sources.html)、[Nest测试](https://docs.nestjs.com/fundamentals/testing)。

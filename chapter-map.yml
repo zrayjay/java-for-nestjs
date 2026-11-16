@@ -1227,7 +1227,7 @@ chapters:
     part: '07'
     title: 集成与契约测试
     path: docs/07-testing-jvm/35-integration-and-contracts.md
-    status: draft
+    status: in_review
     prerequisites:
       - '19'
       - '27'
@@ -1248,7 +1248,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P4-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P4-02-integration.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-16
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P4-02-integration.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-16
+        independent: true
+        conclusion: approved
   - id: '36'
     part: '07'
     title: JVM 性能诊断
