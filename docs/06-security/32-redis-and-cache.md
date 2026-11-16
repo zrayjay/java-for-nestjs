@@ -36,17 +36,17 @@ Spring Data Redis的StringRedisTemplate与ioredis都是客户端，TTL由Redis�
 
 Java使用`Duration`配置，Node使用安全整数毫秒。两端都把null/empty编码为`N`，正字符串编码为`V`前缀，避免空字符串与不存在混淆。核心操作为：
 
-```java
-long ttl = value.isPresent() ? positiveMillis : negativeMillis;
-long extra = jitter.applyAsLong(ttl);
-```
-
 ```ts
 const ttl = value === null ? this.negativeMs : this.positiveMs
 const extra = this.jitter(ttl)
 ```
 
-Lua用PSETEX写入实际TTL。测试正值5秒、负值1秒、额外20%，检查PTTL分别落在`(0,6000]`与`(0,1200]`。通过PEXPIRE触发真实服务器过期，限时轮询确认不存在，然后检查加载计数增加；没有把应用内假时钟当Redis到期。
+```java
+long ttl = value.isPresent() ? positiveMillis : negativeMillis;
+long extra = jitter.applyAsLong(ttl);
+```
+
+Lua用PSETEX写入实际TTL。测试正值5秒、负值1秒、额外20%，同时用Redis TIME与PEXPIRETIME核对绝对到期时间包含固定20%增量，避免仅上界断言接受忽略抖动的实现。检查PTTL分别落在`(0,6000]`与`(0,1200]`。通过PEXPIRE触发真实服务器过期，限时轮询确认不存在，然后检查加载计数增加；没有把应用内假时钟当Redis到期。
 
 #### 6. 原理与流程图
 
@@ -96,14 +96,14 @@ Java用ConcurrentHashMap与CompletableFuture协调虚拟线程，Node用Map与Pr
 
 #### 5. 两端代码对照
 
-```java
-var existing = flights.putIfAbsent(flightKey, mine);
-if (existing != null) { return existing.join(); }
-```
-
 ```ts
 const existing = this.flights.get(key)
 if (existing) return existing
+```
+
+```java
+var existing = flights.putIfAbsent(flightKey, mine);
+if (existing != null) { return existing.join(); }
 ```
 
 leader在真正加载前再查一次缓存，避免先前未命中者在旧leader结束后重复加载。成功与失败都清理本机flight；失败不写负缓存，下一次可重试。测试20个并发读共享一次加载，另测数据库加载异常后恢复。
@@ -168,7 +168,25 @@ Java `invalidateAfterCommit(scope,id)`与Node同名方法只提供调用点，�
 
 #### 6. 原理与流程图
 
-读A记录epoch0并等待→写提交→失效变epoch1→读B加载new并写入→放行读A→A回填因epoch不符被拒→后续仍读new。A本身仍返回old，这是已开始读取的快照边界。授权回调每次执行；命中后撤权演练抛拒绝且不调用加载器，回调不是数据库授权实现。
+读A记录epoch0并等待→写提交→失效变epoch1→读B加载new并写入→放行读A→A回填因epoch不符被拒→后续仍读new。
+
+```mermaid
+sequenceDiagram
+    participant A as 慢读A
+    participant DB as 数据库
+    participant W as 写入者
+    participant R as Redis
+    A->>R: 记录epoch0，未命中
+    A->>DB: 读取旧快照old
+    W->>DB: 更新new并提交
+    W->>R: Lua递增epoch1并删value
+    W->>R: 新读装入new（epoch1）
+    A->>R: 尝试以epoch0回填old
+    R-->>A: 拒绝旧代回填
+    Note over A,R: A仍可返回已取得的old，后续缓存保留new
+```
+
+A本身仍返回old，这是已开始读取的快照边界。授权回调每次执行；命中后撤权演练抛拒绝且不调用加载器，回调不是数据库授权实现。
 
 #### 7. 类比边界与错误直觉
 

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 
 class RedisCacheTest {
     private static LettuceConnectionFactory connection;
@@ -26,6 +27,18 @@ class RedisCacheTest {
     private static ScopedCache cache;
     private static final String NAMESPACE = "java-" + UUID.randomUUID();
     private static final Runnable ALLOW = () -> { };
+    private long serverMillis() {
+        return redis.execute(new DefaultRedisScript<>("""
+                local now = redis.call('TIME')
+                return now[1] * 1000 + math.floor(now[2] / 1000)
+                """, Long.class), java.util.List.of());
+    }
+    private void expiresBetween(String key, long before, long after, long expectedTtl) {
+        long expiry = redis.execute(new DefaultRedisScript<>(
+                "return redis.call('PEXPIRETIME', KEYS[1])", Long.class), java.util.List.of(key));
+        assertTrue(expiry >= before + expectedTtl && expiry <= after + expectedTtl,
+                "Expiry must include the configured jitter, measured using the Redis clock");
+    }
     @BeforeAll
     static void connect() {
         String url = System.getenv("CACHE_REDIS_URL");
@@ -49,7 +62,10 @@ class RedisCacheTest {
         var loads = new AtomicInteger();
         java.util.function.Supplier<Optional<String>> load = () -> { loads.incrementAndGet();
                     return Optional.of("task"); };
+        long positiveBefore = serverMillis();
         assertEquals(Optional.of("task"), cache.read("department1", 1, ALLOW, load));
+        long positiveAfter = serverMillis();
+        expiresBetween(NAMESPACE + ":{department1:1}:value", positiveBefore, positiveAfter, 6000);
         cache.read("department1", 1, ALLOW, load);
         assertEquals(1, loads.get());
         long ttl = redis.getExpire(NAMESPACE + ":{department1:1}:value", TimeUnit.MILLISECONDS);
@@ -59,7 +75,10 @@ class RedisCacheTest {
         var misses = new AtomicInteger();
         java.util.function.Supplier<Optional<String>> absent = () -> { misses.incrementAndGet();
                     return Optional.empty(); };
+        long negativeBefore = serverMillis();
         assertTrue(cache.read("department1", 2, ALLOW, absent).isEmpty());
+        long negativeAfter = serverMillis();
+        expiresBetween(NAMESPACE + ":{department1:2}:value", negativeBefore, negativeAfter, 1200);
         assertTrue(cache.read("department1", 2, ALLOW, absent).isEmpty());
         assertEquals(1, misses.get());
         String key = NAMESPACE + ":{department1:2}:value";

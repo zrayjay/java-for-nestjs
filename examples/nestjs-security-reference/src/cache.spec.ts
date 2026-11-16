@@ -18,6 +18,38 @@ const cache = new ScopedCache(redis, namespace, 5000, 1000, (ttl) =>
   Math.floor(ttl / 5),
 )
 const allow = async () => {}
+async function serverMillis() {
+  const [seconds, micros] = await redis.time()
+  return Number(seconds) * 1000 + Math.floor(Number(micros) / 1000)
+}
+async function expiresBetween(
+  key: string,
+  before: number,
+  after: number,
+  ttl: number,
+) {
+  const expiry = await redis.pexpiretime(key)
+  assert.ok(
+    expiry >= before + ttl && expiry <= after + ttl,
+    'Expiry must include configured jitter, measured using the Redis clock',
+  )
+}
+async function bounded<T>(pending: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      pending,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error('Cache coordination timed out')),
+          5000,
+        )
+      }),
+    ])
+  } finally {
+    clearTimeout(timer)
+  }
+}
 after(async () => {
   // Delete only this test's namespace, never FLUSHDB or unrelated keys.
   const keys = await redis.keys(`${namespace}:*`)
@@ -30,7 +62,15 @@ test('positive and null hits have bounded TTL jitter and scope isolation', async
     loads++
     return 'task'
   }
+  const positiveBefore = await serverMillis()
   assert.equal(await cache.read('department1', 1, allow, load), 'task')
+  const positiveAfter = await serverMillis()
+  await expiresBetween(
+    `${namespace}:{department1:1}:value`,
+    positiveBefore,
+    positiveAfter,
+    6000,
+  )
   assert.equal(await cache.read('department1', 1, allow, load), 'task')
   assert.equal(loads, 1)
   const ttl = await redis.pttl(`${namespace}:{department1:1}:value`)
@@ -42,7 +82,15 @@ test('positive and null hits have bounded TTL jitter and scope isolation', async
     misses++
     return null
   }
+  const negativeBefore = await serverMillis()
   assert.equal(await cache.read('department1', 2, allow, absent), null)
+  const negativeAfter = await serverMillis()
+  await expiresBetween(
+    `${namespace}:{department1:2}:value`,
+    negativeBefore,
+    negativeAfter,
+    1200,
+  )
   assert.equal(await cache.read('department1', 2, allow, absent), null)
   assert.equal(misses, 1)
   const negative = await redis.pttl(`${namespace}:{department1:2}:value`)
@@ -90,9 +138,23 @@ test('concurrent local misses share one load and failed loads can retry', async 
     }),
   )
   // Wait for the loader to enter; late leaders recheck Redis before starting another load.
-  while (loads === 0) await new Promise((resolve) => setTimeout(resolve, 1))
-  release()
-  assert.deepEqual(await Promise.all(requests), Array(20).fill('shared'))
+  try {
+    await bounded(
+      (async () => {
+        const deadline = Date.now() + 4500
+        while (loads === 0) {
+          assert.ok(Date.now() < deadline, 'Loader did not start')
+          await new Promise((resolve) => setTimeout(resolve, 1))
+        }
+      })(),
+    )
+  } finally {
+    release()
+  }
+  assert.deepEqual(
+    await bounded(Promise.all(requests)),
+    Array(20).fill('shared'),
+  )
   assert.equal(loads, 1)
   await assert.rejects(
     cache.read('department1', 5, allow, async () => {
@@ -119,14 +181,17 @@ test('post-commit invalidation prevents an old in-flight load repopulating Redis
     await gate
     return 'old'
   })
-  await entered
-  await cache.invalidateAfterCommit('department1', 6)
-  assert.equal(
-    await cache.read('department1', 6, allow, async () => 'new'),
-    'new',
-  )
-  release()
-  assert.equal(await old, 'old') // Already started readers are not retroactively canceled.
+  try {
+    await bounded(entered)
+    await cache.invalidateAfterCommit('department1', 6)
+    assert.equal(
+      await cache.read('department1', 6, allow, async () => 'new'),
+      'new',
+    )
+  } finally {
+    release()
+  }
+  assert.equal(await bounded(old), 'old') // Already started readers are not retroactively canceled.
   assert.equal(
     await cache.read('department1', 6, allow, async () => 'wrong'),
     'new',

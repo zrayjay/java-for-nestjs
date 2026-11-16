@@ -30,4 +30,4 @@ java -jar examples/security-lab/target/security-lab-0.1.0-SNAPSHOT-exec.jar --se
 
 认证只从Authorization Bearer读取Access，Refresh从JSON正文读取；不接受Cookie认证，CSRF关闭仅限此协议。若以后改HttpOnly Cookie/BFF，应重新设计CSRF。当前监听环回，未提供公网部署/TLS配置、限流、Redis或对象存储完成保证。
 
-本机目前编译、打包和TokenKeysTest3项通过；真实HTTP/SQL安全矩阵待专用CI，见[进度](../../docs/progress/P4-01.md)。
+本机编译、打包和TokenKeysTest3项通过；真实HTTP/SQL安全矩阵已在Linux Temurin21/25通过，每组Java19项及Node19项，见[进度](../../docs/progress/P4-01.md)。

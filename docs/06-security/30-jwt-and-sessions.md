@@ -214,4 +214,4 @@ Java命令定位本点关键场景，Node命令执行完整16场景以包含对�
 
 ## 章末验收与审查记录
 
-本章in_review，独立[两轴审查](../reviews/P4-01-auth.md)已归档。版本绑定、缺声明与并发回归已在Security43170418413的Java21/25矩阵通过，每组Java19项及Node19项；后续合法写断言仍需对应提交CI，见[进度](../progress/P4-01.md)。官方参考：[JWT RFC7519](https://www.rfc-editor.org/rfc/rfc7519)、[JWT最佳实践RFC8725](https://www.rfc-editor.org/rfc/rfc8725)、[OAuth安全最佳实践RFC9700](https://www.rfc-editor.org/rfc/rfc9700)、[Spring CSRF](https://docs.spring.io/spring-security/reference/6.5/servlet/exploits/csrf.html)、[jose](https://github.com/panva/jose)。
+本章in_review，独立[两轴审查](../reviews/P4-01-auth.md)已归档。版本绑定、缺声明与并发回归已在Security43170418413的Java21/25矩阵通过，每组Java19项及Node19项；后续合法写断言亦已在Security43180188218两JDK通过，见[进度](../progress/P4-01.md)。官方参考：[JWT RFC7519](https://www.rfc-editor.org/rfc/rfc7519)、[JWT最佳实践RFC8725](https://www.rfc-editor.org/rfc/rfc8725)、[OAuth安全最佳实践RFC9700](https://www.rfc-editor.org/rfc/rfc9700)、[Spring CSRF](https://docs.spring.io/spring-security/reference/6.5/servlet/exploits/csrf.html)、[jose](https://github.com/panva/jose)。
