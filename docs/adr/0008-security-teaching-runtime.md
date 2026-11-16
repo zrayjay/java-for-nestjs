@@ -14,4 +14,6 @@ RBAC明确用户/角色/权限与数据范围：普通成员可读本部门、�
 
 对象存储选MinIO临时环回测试服务、Java SDK8.6.0、Node @aws-sdk/client-s3 3.1166.0。SDK与服务固定来源/版本，Node22满足S3 SDK>=20要求；Java标签已从官方仓库确认。PNG限定1MiB和像素预算，先检尺寸与签名再解码重编码；Node pngjs7.0.0/@types6.0.5。用户文件名不成为对象路径，随机键、私有桶、服务端读取授权。扫描只有扩展接口时返回not_configured，不宣称已有杀毒引擎。
 
+2026-11-16构建补充：MinIO8.6.0 POM选OkHttp5.1.0，Maven取得多平台okhttp制品后缺HttpUrl的JVM类，显式声明同版本okhttp-jvm5.1.0；不回退未验证的SDK/客户端版本。该独立模块的实际MinIO运行结果需另验，不以编译成功代替。
+
 P4继续实际JUnit/Mockito/AssertJ、MockMvc/Testcontainers、JFR/GC/heap/thread诊断与跨层观测；每类结果单独记录。完整JWT/刷新重放/部门越权/上传负例和实际Redis/S3结果为G4前置；本ADR不是实现或安全验收证明。真实读者效果仍由P7完成。
