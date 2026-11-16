@@ -17,3 +17,7 @@ RBAC明确用户/角色/权限与数据范围：普通成员可读本部门、�
 2026-11-16构建补充：MinIO8.6.0 POM选OkHttp5.1.0，Maven取得多平台okhttp制品后缺HttpUrl的JVM类，显式声明同版本okhttp-jvm5.1.0；不回退未验证的SDK/客户端版本。该独立模块的实际MinIO运行结果需另验，不以编译成功代替。
 
 P4继续实际JUnit/Mockito/AssertJ、MockMvc/Testcontainers、JFR/GC/heap/thread诊断与跨层观测；每类结果单独记录。完整JWT/刷新重放/部门越权/上传负例和实际Redis/S3结果为G4前置；本ADR不是实现或安全验收证明。真实读者效果仍由P7完成。
+
+2026-11-16对象服务来源修订：首次Files43814896601在测试前因Docker Hub拉取minio/minio被拒绝失败，Quay相同标签也无manifest，不能将Git标签存在当镜像可用。改从官方标签的固定commit 0d7408fc9969caf07de6a8c3a84f9fbb10a6739e构建，Go1.24.2对应源go.mod/toolchain；CI临时环回进程，不更换未验证的第三方镜像。SDK实际服务结果单独记录。
+
+PNG范围收紧：早期审查实证pngjs重复IHDR覆盖尺寸与交错分支无界inflate。两端解码前检完整块结构/CRC、唯一IHDR，只收非交错8bit RGB/RGBA及tEXt；合并IDAT按实际扫描行预算限制解压后再调用解码器。调低格式范围优先保证内存边界，不宣称支持所有PNG变体。

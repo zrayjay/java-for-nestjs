@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import { Readable } from 'node:stream'
+import { deflateSync } from 'node:zlib'
 import { after, before, test } from 'node:test'
 import { PNG } from 'pngjs'
 import {
@@ -55,6 +56,60 @@ function png() {
   return PNG.sync.write(image)
 }
 const stream = (bytes: Buffer) => Readable.from([bytes])
+function chunk(type: string, data: Buffer) {
+  const body = Buffer.concat([Buffer.from(type, 'ascii'), data])
+  let crc = 0xffffffff
+  for (const byte of body) {
+    crc ^= byte
+    for (let bit = 0; bit < 8; bit++)
+      crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0)
+  }
+  const result = Buffer.alloc(data.length + 12)
+  result.writeUInt32BE(data.length, 0)
+  body.copy(result, 4)
+  result.writeUInt32BE((crc ^ 0xffffffff) >>> 0, result.length - 4)
+  return result
+}
+test('metadata is removed while duplicate headers interlace and excessive inflation are rejected', async () => {
+  const valid = png()
+  const metadata = Buffer.concat([
+    valid.subarray(0, 33),
+    chunk('tEXt', Buffer.from('Comment\0UNTRUSTED_SCRIPT_MARKER')),
+    valid.subarray(33),
+  ])
+  const sanitized = await sanitizePng('a.png', 'image/png', stream(metadata))
+  assert.deepEqual(
+    PNG.sync.read(sanitized).data.subarray(0, 4),
+    Buffer.from([255, 0, 0, 255]),
+  )
+  assert.ok(!sanitized.includes(Buffer.from('UNTRUSTED_SCRIPT_MARKER')))
+  const duplicate = Buffer.concat([valid.subarray(0, 33), valid.subarray(8)])
+  await assert.rejects(
+    sanitizePng('a.png', 'image/png', stream(duplicate)),
+    /Duplicate or misplaced PNG header/,
+  )
+  const header = Buffer.from(valid.subarray(16, 29))
+  header[12] = 1
+  const interlaced = Buffer.concat([
+    valid.subarray(0, 8),
+    chunk('IHDR', header),
+    valid.subarray(33),
+  ])
+  await assert.rejects(
+    sanitizePng('a.png', 'image/png', stream(interlaced)),
+    /Only noninterlaced/,
+  )
+  header[12] = 0
+  const expansion = Buffer.concat([
+    valid.subarray(0, 8),
+    chunk('IHDR', header),
+    chunk('IDAT', deflateSync(Buffer.alloc(8 * 1024 * 1024))),
+    chunk('IEND', Buffer.alloc(0)),
+  ])
+  await assert.rejects(sanitizePng('a.png', 'image/png', stream(expansion)), {
+    code: 'ERR_BUFFER_TOO_LARGE',
+  })
+})
 test('valid PNG is reencoded with preserved pixels', async () => {
   const result = await sanitizePng('avatar.png', 'image/png', stream(png()))
   const decoded = PNG.sync.read(result)

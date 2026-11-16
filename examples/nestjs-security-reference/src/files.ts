@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { Readable } from 'node:stream'
+import { inflateSync } from 'node:zlib'
 import { PNG } from 'pngjs'
 import {
   DeleteObjectCommand,
@@ -12,6 +13,68 @@ import {
 } from '@aws-sdk/client-s3'
 
 export const MAX_PNG_BYTES = 1024 * 1024
+const crcTable = Uint32Array.from({ length: 256 }, (_, value) => {
+  let crc = value
+  for (let bit = 0; bit < 8; bit++)
+    crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0)
+  return crc >>> 0
+})
+function crc32(bytes: Buffer) {
+  let crc = 0xffffffff
+  for (const byte of bytes) crc = (crc >>> 8) ^ crcTable[(crc ^ byte) & 255]
+  return (crc ^ 0xffffffff) >>> 0
+}
+function validateChunks(input: Buffer, width: number, height: number) {
+  if (
+    input[24] !== 8 ||
+    ![2, 6].includes(input[25]) ||
+    input[26] !== 0 ||
+    input[27] !== 0 ||
+    input[28] !== 0
+  )
+    throw new Error('Only noninterlaced 8-bit RGB/RGBA PNG is supported')
+  let offset = 8,
+    headers = 0,
+    ended = false,
+    dataEnded = false,
+    sawData = false
+  const compressed: Buffer[] = []
+  while (offset < input.length) {
+    if (input.length - offset < 12)
+      throw new Error('Invalid PNG chunk structure')
+    const length = input.readUInt32BE(offset)
+    if (length > input.length - offset - 12)
+      throw new Error('Invalid PNG chunk length')
+    const type = input.toString('ascii', offset + 4, offset + 8)
+    const end = offset + 12 + length
+    if (
+      crc32(input.subarray(offset + 4, end - 4)) !== input.readUInt32BE(end - 4)
+    )
+      throw new Error('Invalid PNG CRC')
+    if (type === 'IHDR') {
+      if (++headers !== 1 || offset !== 8 || length !== 13)
+        throw new Error('Duplicate or misplaced PNG header')
+    } else if (type === 'IDAT') {
+      if (dataEnded) throw new Error('Noncontiguous PNG image data')
+      sawData = true
+      compressed.push(input.subarray(offset + 8, end - 4))
+    } else if (type === 'IEND') {
+      if (!sawData || length !== 0 || end !== input.length)
+        throw new Error('Invalid PNG ending')
+      ended = true
+    } else if (type === 'tEXt') {
+      if (sawData) dataEnded = true
+    } else throw new Error('Unsupported PNG chunk')
+    offset = end
+  }
+  if (headers !== 1 || !ended) throw new Error('Incomplete PNG structure')
+  const expected = height * (1 + width * (input[25] === 6 ? 4 : 3))
+  // Bound zlib output BEFORE invoking the image decoder; reject expansion beyond scanline budget.
+  const pixels = inflateSync(Buffer.concat(compressed), {
+    maxOutputLength: expected,
+  })
+  if (pixels.length !== expected) throw new Error('Invalid PNG scanline length')
+}
 async function boundedBytes(source: Readable) {
   const chunks: Buffer[] = []
   let size = 0
@@ -57,6 +120,7 @@ export async function sanitizePng(
     width * height > 1048576
   )
     throw new Error('PNG pixel budget exceeded')
+  validateChunks(input, width, height)
   const decoded = PNG.sync.read(input, { checkCRC: true })
   const canonical = new PNG({ width, height })
   canonical.data = Buffer.from(decoded.data)

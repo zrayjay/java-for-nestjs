@@ -20,7 +20,7 @@ permissions:
 jobs:
   files:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -40,14 +40,33 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.20.0
+      - uses: actions/checkout@v4
+        with:
+          repository: minio/minio
+          ref: 0d7408fc9969caf07de6a8c3a84f9fbb10a6739e
+          path: target/minio-source
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.2'
+          cache-dependency-path: target/minio-source/go.sum
+      - name: Build pinned official MinIO source
+        working-directory: target/minio-source
+        env:
+          GOTOOLCHAIN: local
+        run: go build -trimpath -o ../minio-server .
       - name: Start disposable private object store
+        env:
+          MINIO_ROOT_USER: ${{ env.FILES_ACCESS_KEY }}
+          MINIO_ROOT_PASSWORD: ${{ env.FILES_SECRET_KEY }}
+          MINIO_BROWSER: 'off'
         run: |
-          docker run --detach --name teaching-files --publish 127.0.0.1:9000:9000 --env MINIO_ROOT_USER="$FILES_ACCESS_KEY" --env MINIO_ROOT_PASSWORD="$FILES_SECRET_KEY" minio/minio:RELEASE.2025-04-22T22-12-26Z server /data --address :9000
+          nohup target/minio-server server target/minio-data --address 127.0.0.1:9000 > target/minio-service.log 2>&1 &
+          echo $! > target/minio.pid
           for attempt in $(seq 1 30); do
             if curl --fail --silent http://127.0.0.1:9000/minio/health/ready; then exit 0; fi
             sleep 1
           done
-          docker logs teaching-files
           exit 1
       - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
       - run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/nestjs-security-reference... build
@@ -62,6 +81,7 @@ jobs:
           path: |
             examples/file-lab/target/surefire-reports/
             examples/file-lab/target/checkstyle-result.xml
-      - name: Remove disposable object store
+      - name: Stop disposable object store
         if: always()
-        run: docker rm --force teaching-files
+        run: |
+          if [ -f target/minio.pid ]; then kill "$(cat target/minio.pid)"; fi
