@@ -2,7 +2,7 @@
 title: '34 · 单元测试'
 description: 用真实文件业务边界学习JUnit、Mockito、AssertJ与Vitest的隔离、断言和失败测试。
 chapter_id: '34'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java21 / JUnit5.12.2 / Mockito5.17.0 / AssertJ3.27.7 / Vitest5.1.0
 ---
 
@@ -227,4 +227,4 @@ node --test --test-name-pattern='audit and cleanup' examples/nestjs-security-ref
 
 ## 章末验收与审查记录
 
-本章draft。[P4-02进度](../progress/P4-02.md)区分本机Java8项、Node4项、Vitest2项与跨平台两轮CI。独立全文审查和新CI待完成。参考：[JUnit5.12指南](https://docs.junit.org/5.12.2/user-guide/)、[Mockito](https://javadoc.io/doc/org.mockito/mockito-core/5.17.0/org/mockito/Mockito.html)、[AssertJ](https://assertj.github.io/doc/)、[Vitest mocks](https://vitest.dev/guide/mocking.html)。
+本章in_review。[P4-02进度](../progress/P4-02.md)区分本机Java8项、Node4项、Vitest2项与跨平台两轮CI。[独立全文审查](../reviews/P4-02-unit.md)及四环境两轮[Unit43817767580](https://github.com/zrayjay/java-for-nestjs/actions/runs/43817767580)通过。参考：[JUnit5.12指南](https://docs.junit.org/5.12.2/user-guide/)、[Mockito](https://javadoc.io/doc/org.mockito/mockito-core/5.17.0/org/mockito/Mockito.html)、[AssertJ](https://assertj.github.io/doc/)、[Vitest mocks](https://vitest.dev/guide/mocking.html)。

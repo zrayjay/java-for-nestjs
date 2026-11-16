@@ -1193,7 +1193,7 @@ chapters:
     part: '07'
     title: 单元测试
     path: docs/07-testing-jvm/34-unit-testing.md
-    status: draft
+    status: in_review
     prerequisites:
       - '11'
       - '18'
@@ -1212,12 +1212,22 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P4-02.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P4-02-unit.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-16
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P4-02-unit.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-16
+        independent: true
+        conclusion: approved
   - id: '35'
     part: '07'
     title: 集成与契约测试
     path: docs/07-testing-jvm/35-integration-and-contracts.md
-    status: planned
+    status: draft
     prerequisites:
       - '19'
       - '27'
@@ -1227,10 +1237,17 @@ chapters:
     topics: MockMvc、Testcontainers、API 合约、测试数据
     reference: Supertest / e2e
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/nestjs-reference/src/api/api.ts
+      - examples/spring-web-lab/src/main/java/dev/javafornestjs/web/TasksController.java
+      - examples/compatibility-probe/src/test/java/dev/javafornestjs/probe/CompatibilityTest.java
+    tests:
+      - examples/spring-web-lab/src/test/java/dev/javafornestjs/web/WebApiTest.java
+      - examples/nestjs-reference/src/api/api.test.ts
+      - examples/compatibility-probe/src/test/java/dev/javafornestjs/probe/CompatibilityTest.java
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P4-02.md
     reviews: []
   - id: '36'
     part: '07'
