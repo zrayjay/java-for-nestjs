@@ -17,6 +17,9 @@ import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.sdk.trace.export.SpanExporter;
+import io.opentelemetry.sdk.trace.data.SpanData;
+import io.opentelemetry.sdk.common.CompletableResultCode;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -83,7 +86,17 @@ class SecurityApiTest {
     @TestConfiguration(proxyBeanMethods = false)
     static class TimeConfiguration {
         @Bean @Primary MutableClock mutableClock() { return new MutableClock(); }
-        @Bean @Primary InMemorySpanExporter memorySpans() { return InMemorySpanExporter.create(); }
+        @Bean InMemorySpanExporter memorySpans() { return InMemorySpanExporter.create(); }
+        @Bean @Primary SpanExporter testSpans(InMemorySpanExporter memory) {
+            var logs = new RequestTracing.LogExporter();
+            return new SpanExporter() {
+                @Override public CompletableResultCode export(java.util.Collection<SpanData> spans) {
+                    return CompletableResultCode.ofAll(List.of(memory.export(spans), logs.export(spans)));
+                }
+                @Override public CompletableResultCode flush() { return memory.flush(); }
+                @Override public CompletableResultCode shutdown() { return memory.shutdown(); }
+            };
+        }
     }
     @Autowired MutableClock clock;
     @Autowired JdbcTemplate jdbc;
@@ -97,7 +110,9 @@ class SecurityApiTest {
     @LocalServerPort int port;
     private String passwordHash;
     private Map<String, Object> fields(ILoggingEvent event) {
-        return event.getKeyValuePairs().stream().collect(Collectors.toMap(pair -> pair.key, pair -> pair.value));
+        var values = new java.util.HashMap<String, Object>(event.getMDCPropertyMap());
+        for (var pair : event.getKeyValuePairs()) { values.put(pair.key, pair.value); }
+        return values;
     }
     @BeforeEach
     void fixture() {
@@ -438,15 +453,20 @@ class SecurityApiTest {
                     "NeverLogTitleMarker", "NeverLogPathMarker", "NeverLogExceptionMarker")) { assertFalse(rendered.contains(secret)); }
             assertTrue(capture.list.stream().allMatch(value -> value.getThrowableProxy() == null));
             JsonNode encoded = null;
+            var encodedEvents = new StringBuilder();
             for (String line : output.getOut().split("\\R")) {
                 if (line.startsWith("{")) {
                     JsonNode candidate = json.readTree(line);
+                    if (List.of("request.completed", "trace.completed").contains(candidate.path("event").asText())) { encodedEvents.append(line); }
                     if ("request.completed".equals(candidate.path("event").asText()) && requestId.equals(candidate.path("requestId").asText())) { encoded = candidate; }
                 }
             }
             if (encoded == null) { throw new AssertionError("No actual ECS JSON completion line captured"); }
             assertEquals("/tasks", encoded.path("route").asText());
             assertEquals(created.getHeaders().getFirst("X-Trace-Id"), encoded.path("traceId").asText());
+            assertTrue(encodedEvents.toString().contains("trace.completed"));
+            for (String secret : List.of(PASSWORD, access, tokens.path("refreshToken").asText(),
+                    "NeverLogTitleMarker", "NeverLogPathMarker", "NeverLogExceptionMarker")) { assertFalse(encodedEvents.toString().contains(secret)); }
             assertTrue(spanExporter.getFinishedSpanItems().stream().anyMatch(span -> span.getStatus().getStatusCode() == StatusCode.ERROR
                     && Long.valueOf(500).equals(span.getAttributes().get(AttributeKey.longKey("http.response.status_code")))));
         } finally {

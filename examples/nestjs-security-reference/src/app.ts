@@ -120,7 +120,9 @@ interface Request {
 }
 interface Response {
   statusCode: number
-  on(event: 'finish', listener: () => void): void
+  writableFinished: boolean
+  destroyed: boolean
+  on(event: 'finish' | 'close', listener: () => void): void
   setHeader(name: string, value: string): void
   status(code: number): { json(body: unknown): void }
 }
@@ -207,18 +209,25 @@ export async function createSecurityApi(
         )
         response.setHeader('X-Trace-Id', serverSpan.context.traceId)
         response.setHeader('X-Span-Id', serverSpan.context.spanId)
-        response.on('finish', () => {
-          serverSpan.end(response.statusCode)
+        let finalized = false
+        const finalize = (aborted: boolean) => {
+          if (finalized) return
+          finalized = true
+          const status = aborted ? 499 : response.statusCode // Internal aborted observation; no 499 response was sent.
+          serverSpan.end(status, aborted)
           telemetry.completed(
             request.method,
             request.path,
-            response.statusCode,
+            status,
             started,
             state.requestId,
             serverSpan.context.traceId,
             serverSpan.context.spanId,
+            aborted,
           )
-        })
+        }
+        response.on('finish', () => finalize(false))
+        response.on('close', () => finalize(!response.writableFinished))
         response.setHeader('X-Request-Id', state.requestId)
         response.setHeader('Cache-Control', 'no-store')
         // Authentication/authorization precede body parsing and DTO validation.
@@ -227,12 +236,14 @@ export async function createSecurityApi(
             return auth
               .authenticate(request.headers.authorization)
               .then((user) => {
+                if (response.destroyed) return
                 context.state()!.user = user
                 context.authorize(request.method, request.path)
                 next()
               })
           })
           .catch((error: unknown) => {
+            if (response.destroyed) return
             const status =
               error instanceof HttpException ? error.getStatus() : 500
             const code =

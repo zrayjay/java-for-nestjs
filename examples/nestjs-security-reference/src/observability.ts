@@ -53,6 +53,7 @@ export class RequestTelemetry {
     requestId: string,
     traceId: string,
     spanId: string,
+    aborted = false,
   ) {
     const elapsedMs = Math.max(0, performance.now() - started)
     const route = safeRoute(path),
@@ -72,6 +73,7 @@ export class RequestTelemetry {
       route,
       status,
       elapsedMs,
+      aborted,
     }
     if (status >= 500) this.logger.error(entry, 'Teaching request completed')
     else if (status >= 400)

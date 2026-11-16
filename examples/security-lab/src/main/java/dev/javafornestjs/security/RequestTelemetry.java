@@ -18,9 +18,10 @@ public final class RequestTelemetry {
         if (path.matches("/actuator/metrics/[^/]+")) { return "/actuator/metrics/{name}"; }
         return "<unmatched>";
     }
-    static void completed(String method, String path, int status, long started, String requestId, SpanContext context) {
+    static void completed(String method, String path, int status, long started, SpanContext context) {
         var event = status >= 500 ? LOG.atError() : status >= 400 ? LOG.atWarn() : LOG.atInfo();
-        event.addKeyValue("event", "request.completed").addKeyValue("requestId", requestId)
+        // requestId already comes from MDC; duplicating it as a key/value breaks Boot ECS encoding.
+        event.addKeyValue("event", "request.completed")
                 .addKeyValue("traceId", context.getTraceId()).addKeyValue("spanId", context.getSpanId())
                 .addKeyValue("method", METHODS.contains(method) ? method : "OTHER").addKeyValue("route", route(path))
                 .addKeyValue("status", status).addKeyValue("elapsedMs", Math.max(0, System.nanoTime() - started) / 1_000_000.0)

@@ -45,13 +45,21 @@ public final class RequestTracing {
         @Override
         public CompletableResultCode export(Collection<SpanData> spans) {
             var logger = LoggerFactory.getLogger(RequestTracing.class);
-            for (var span : spans) {
+            var previous = MDC.getCopyOfContextMap();
+            try {
+                // SpanData is authoritative, including exports outside the originating request thread.
+                MDC.clear();
+                for (var span : spans) {
                 logger.atInfo().addKeyValue("event", "trace.completed").addKeyValue("traceId", span.getTraceId())
                         .addKeyValue("spanId", span.getSpanId()).addKeyValue("parentSpanId", span.getParentSpanId())
                         .addKeyValue("name", span.getName()).addKeyValue("status", span.getStatus().getStatusCode().name())
                         .addKeyValue("requestId", span.getAttributes().get(io.opentelemetry.api.common.AttributeKey.stringKey("request.id")))
                         .addKeyValue("elapsedMs", (span.getEndEpochNanos() - span.getStartEpochNanos()) / 1_000_000.0)
                         .log("Teaching span completed");
+                }
+            } finally {
+                if (previous == null) { MDC.clear(); }
+                else { MDC.setContextMap(previous); }
             }
             return CompletableResultCode.ofSuccess();
         }

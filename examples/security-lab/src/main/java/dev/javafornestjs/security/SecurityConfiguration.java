@@ -171,7 +171,7 @@ public class SecurityConfiguration {
                         span.setAttribute("http.response.status_code", response.getStatus());
                         if (response.getStatus() >= 500) { span.setStatus(StatusCode.ERROR); }
                         span.end();
-                        RequestTelemetry.completed(request.getMethod(), request.getRequestURI(), response.getStatus(), started, requestId, span.getSpanContext());
+                        RequestTelemetry.completed(request.getMethod(), request.getRequestURI(), response.getStatus(), started, span.getSpanContext());
                     }
                     finally { MDC.remove("requestId"); }
                 }

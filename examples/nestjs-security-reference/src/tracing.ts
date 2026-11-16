@@ -28,6 +28,7 @@ export interface TraceRecord {
   status: 'ERROR' | 'OK' | 'UNSET'
   requestId: string | undefined
   elapsedMs: number
+  aborted: boolean
 }
 export class RequestTracing {
   private readonly manager = new AsyncLocalStorageContextManager().enable()
@@ -56,6 +57,7 @@ export class RequestTracing {
                 ? span.attributes['request.id']
                 : undefined,
             elapsedMs: span.duration[0] * 1000 + span.duration[1] / 1e6,
+            aborted: span.attributes['request.aborted'] === true,
           })
         done({ code: ExportResultCode.SUCCESS })
       },
@@ -93,9 +95,11 @@ export class RequestTracing {
     return {
       context: span.spanContext(),
       run: <T>(work: () => T) => this.manager.with(current, work),
-      end: (status: number) => {
-        span.setAttribute('http.response.status_code', status)
-        if (status >= 500) span.setStatus({ code: SpanStatusCode.ERROR })
+      end: (status: number, aborted = false) => {
+        if (aborted) span.setAttribute('request.aborted', true)
+        else span.setAttribute('http.response.status_code', status)
+        if (aborted || status >= 500)
+          span.setStatus({ code: SpanStatusCode.ERROR })
         span.end()
       },
     }

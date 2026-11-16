@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { request as httpRequest } from 'node:http'
 import { afterEach, before, beforeEach, test } from 'node:test'
 import { hash } from 'bcryptjs'
 import { decodeJwt, generateKeyPair, SignJWT, type JWTPayload } from 'jose'
@@ -149,6 +150,22 @@ async function request(
       ...extra,
     },
   })
+}
+async function within<T>(promise: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error('Request coordination timed out')),
+          3000,
+        )
+      }),
+    ])
+  } finally {
+    clearTimeout(timer)
+  }
 }
 interface TokenPair {
   accessToken: string
@@ -734,6 +751,7 @@ test('W3C parent propagates to server and actual SQL spans without granting acce
   assert.equal(created.status, 201)
   const requestId = created.headers.get('x-request-id')
   const serverId = created.headers.get('x-span-id')
+  await created.json()
   assert.equal(created.headers.get('x-trace-id'), traceId)
   assert.ok(serverId && serverId !== remoteParent)
   const deadline = Date.now() + 2000
@@ -757,6 +775,12 @@ test('W3C parent propagates to server and actual SQL spans without granting acce
   assert.equal(server.traceId, traceId)
   assert.equal(server.parentSpanId, remoteParent)
   assert.equal(server.kind, 'SERVER')
+  assert.equal(
+    completionEvents.filter(
+      (event) => event.event === 'trace.completed' && event.spanId === serverId,
+    ).length,
+    1,
+  )
   assert.equal(sql.traceId, traceId)
   assert.equal(sql.parentSpanId, serverId)
   assert.equal(sql.status, 'OK')
@@ -775,4 +799,76 @@ test('W3C parent propagates to server and actual SQL spans without granting acce
   assert.equal(fresh.status, 200)
   assert.match(fresh.headers.get('x-trace-id')!, /^[0-9a-f]{32}$/)
   assert.notEqual(fresh.headers.get('x-trace-id'), traceId)
+})
+
+test('a real aborted connection ends and exports its server span exactly once', async (testContext) => {
+  const tokens = await login('alice')
+  let signalEntered!: () => void,
+    release!: () => void,
+    signalFinished!: () => void
+  const entered = new Promise<void>((resolve) => {
+    signalEntered = resolve
+  })
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  const finished = new Promise<void>((resolve) => {
+    signalFinished = resolve
+  })
+  const auth = app!.get(AuthService)
+  const original = auth.authenticate.bind(auth)
+  testContext.mock.method(
+    auth,
+    'authenticate',
+    async (...args: Parameters<AuthService['authenticate']>) => {
+      signalEntered()
+      await gate
+      try {
+        return await original(...args)
+      } finally {
+        signalFinished()
+      }
+    },
+  )
+  const traceId = 'abcdef0123456789abcdef0123456789'
+  const socket = httpRequest((await app!.getUrl()) + '/tasks', {
+    headers: {
+      Authorization: `Bearer ${tokens.accessToken}`,
+      traceparent: `00-${traceId}-0123456789abcdef-01`,
+    },
+  })
+  socket.on('error', () => {}) // The expected client-side abort; other early errors fail the entered deadline.
+  try {
+    socket.end()
+    await within(entered)
+    socket.destroy(new Error('NeverLogAbortMarker'))
+    const deadline = Date.now() + 3000
+    while (
+      !completionEvents.some(
+        (event) =>
+          event.event === 'trace.completed' && event.traceId === traceId,
+      )
+    ) {
+      assert.ok(Date.now() < deadline, 'Aborted server span was not exported')
+      await new Promise((resolve) => setTimeout(resolve, 5))
+    }
+    const spans = completionEvents.filter(
+      (event) => event.event === 'trace.completed' && event.traceId === traceId,
+    )
+    assert.equal(spans.length, 1)
+    assert.equal(spans[0].status, 'ERROR')
+    assert.equal(spans[0].aborted, true)
+    const records = completionEvents.filter(
+      (event) =>
+        event.event === 'request.completed' && event.traceId === traceId,
+    )
+    assert.equal(records.length, 1)
+    assert.equal(records[0].status, 499) // Internal aborted marker; the client received no HTTP response.
+    assert.equal(records[0].aborted, true)
+    assert.ok(!JSON.stringify(completionEvents).includes('NeverLogAbortMarker'))
+  } finally {
+    socket.destroy()
+    release()
+    await within(finished)
+  }
 })
