@@ -225,6 +225,7 @@ test('version drift is blocked against actual package/POM/wrapper/CI sources', a
     '.github/workflows/security.yml',
     '.github/workflows/cache.yml',
     '.github/workflows/files.yml',
+    '.github/workflows/unit-tests.yml',
     'examples/prisma-reference/package.json',
     'examples/nestjs-reference/package.json',
     'examples/nestjs-security-reference/package.json',

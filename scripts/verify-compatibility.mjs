@@ -15,9 +15,10 @@ export async function verifyCompatibility(root) {
   const webPom = await read('examples/spring-web-lab/pom.xml')
   const securityPom = await read('examples/security-lab/pom.xml')
   const filePom = await read('examples/file-lab/pom.xml')
-  const security = JSON.parse(
+  const securityPackage = JSON.parse(
     await read('examples/nestjs-security-reference/package.json'),
-  ).dependencies
+  )
+  const security = securityPackage.dependencies
   if (securityPom.match(/<flyway.version>([^<]+)</)?.[1] !== b.flyway)
     throw new Error('安全实验Flyway版本漂移')
   if (
@@ -48,9 +49,11 @@ export async function verifyCompatibility(root) {
       'security',
       'cache',
       'files',
+      'unit-tests',
     ].map((n) => read(`.github/workflows/${n}.yml`)),
   )
   const actual = {
+    vitest: securityPackage.devDependencies.vitest,
     minio: filePom.match(
       /<artifactId>minio<\/artifactId><version>([^<]+)</,
     )?.[1],

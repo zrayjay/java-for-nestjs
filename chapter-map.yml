@@ -29,6 +29,7 @@ baseline:
   okhttpJvm: 5.1.0
   s3Sdk: 3.1166.0
   pngjs: 7.0.0
+  vitest: 5.1.0
 parts:
   - id: '01'
     title: 运行时与工具入门
@@ -1192,7 +1193,7 @@ chapters:
     part: '07'
     title: 单元测试
     path: docs/07-testing-jvm/34-unit-testing.md
-    status: planned
+    status: draft
     prerequisites:
       - '11'
       - '18'
@@ -1201,10 +1202,16 @@ chapters:
     topics: JUnit、Mockito、AssertJ、测试隔离
     reference: Jest / Vitest
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/file-lab/src/main/java/dev/javafornestjs/files/PrivateFiles.java
+      - examples/nestjs-security-reference/src/files.ts
+    tests:
+      - examples/file-lab/src/test/java/dev/javafornestjs/files/PrivateFilesUnitTest.java
+      - examples/nestjs-security-reference/src/files.unit.spec.ts
+      - examples/nestjs-security-reference/src/files.vitest.spec.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P4-02.md
     reviews: []
   - id: '35'
     part: '07'
