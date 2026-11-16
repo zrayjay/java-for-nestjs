@@ -1301,7 +1301,7 @@ chapters:
     part: '07'
     title: 可观测性
     path: docs/07-testing-jvm/37-observability.md
-    status: planned
+    status: draft
     prerequisites:
       - '23'
       - '36'
@@ -1310,10 +1310,17 @@ chapters:
     topics: Actuator、Micrometer、Tracing、结构化日志
     reference: OpenTelemetry / Pino
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - examples/security-lab/src/main/java/dev/javafornestjs/security/RequestTelemetry.java
+      - examples/security-lab/src/main/java/dev/javafornestjs/security/RequestTracing.java
+      - examples/nestjs-security-reference/src/observability.ts
+      - examples/nestjs-security-reference/src/tracing.ts
+    tests:
+      - examples/security-lab/src/test/java/dev/javafornestjs/security/SecurityApiTest.java
+      - examples/nestjs-security-reference/src/security.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P4-02.md
     reviews: []
   - id: '38'
     part: '08'
