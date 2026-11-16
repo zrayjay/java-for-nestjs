@@ -126,12 +126,98 @@ export class MessageStore {
     return Number(rows[0].count)
   }
   async resetFixture(): Promise<void> {
+    await this.pool.query('DELETE FROM message_outbox')
+    await this.pool.query('DELETE FROM outbox_tasks')
     await this.pool.query('DELETE FROM processed_events')
     await this.pool.query('DELETE FROM projection_effects')
   }
   close(): Promise<void> {
     return this.pool.end()
   }
+  async enqueueTask(
+    event: TaskEvent,
+    beforeCommit: () => void | Promise<void>,
+  ): Promise<void> {
+    event = decode(Buffer.from(JSON.stringify(event)))
+    const connection = await this.pool.getConnection()
+    try {
+      await connection.beginTransaction()
+      await connection.query(
+        'INSERT INTO outbox_tasks(task_key,event_id) VALUES (?,?)',
+        [event.taskKey, event.eventId],
+      )
+      await connection.query(
+        'INSERT INTO message_outbox(event_id,task_key) VALUES (?,?)',
+        [event.eventId, event.taskKey],
+      )
+      await beforeCommit()
+      await connection.commit()
+    } catch (error) {
+      await connection.rollback()
+      throw error
+    } finally {
+      connection.release()
+    }
+  }
+  async claim(leaseMillis: number): Promise<Claim | undefined> {
+    if (
+      !Number.isInteger(leaseMillis) ||
+      leaseMillis < 100 ||
+      leaseMillis > 5000
+    )
+      throw new Error('Teaching lease must be 100..5000ms')
+    const connection = await this.pool.getConnection()
+    try {
+      await connection.beginTransaction()
+      const rows = await connection.query(
+        'SELECT event_id,task_key FROM message_outbox WHERE sent_at IS NULL AND (lease_until IS NULL OR lease_until<=CURRENT_TIMESTAMP(6)) ORDER BY event_id LIMIT 1 FOR UPDATE SKIP LOCKED',
+      )
+      if (rows.length === 0) {
+        await connection.commit()
+        return undefined
+      }
+      const event: TaskEvent = {
+        eventId: rows[0].event_id,
+        kind: 'task.created',
+        taskKey: rows[0].task_key,
+      }
+      const token = randomUUID()
+      await connection.query(
+        'UPDATE message_outbox SET lease_token=?,lease_until=TIMESTAMPADD(MICROSECOND,?,CURRENT_TIMESTAMP(6)) WHERE event_id=?',
+        [token, leaseMillis * 1000, event.eventId],
+      )
+      await connection.commit()
+      return { event, token }
+    } catch (error) {
+      await connection.rollback()
+      throw error
+    } finally {
+      connection.release()
+    }
+  }
+  async markSent(claim: Claim): Promise<boolean> {
+    const result = await this.pool.query(
+      'UPDATE message_outbox SET sent_at=CURRENT_TIMESTAMP(6),lease_token=NULL,lease_until=NULL WHERE event_id=? AND lease_token=? AND sent_at IS NULL AND lease_until>CURRENT_TIMESTAMP(6)',
+      [claim.event.eventId, claim.token],
+    )
+    return result.affectedRows === 1
+  }
+  async businessTasks(): Promise<number> {
+    const rows = await this.pool.query(
+      'SELECT COUNT(*) AS count FROM outbox_tasks',
+    )
+    return Number(rows[0].count)
+  }
+  async pending(): Promise<number> {
+    const rows = await this.pool.query(
+      'SELECT COUNT(*) AS count FROM message_outbox WHERE sent_at IS NULL',
+    )
+    return Number(rows[0].count)
+  }
+}
+export interface Claim {
+  event: TaskEvent
+  token: string
 }
 export interface DeliveryResult {
   outcome: 'APPLIED' | 'DUPLICATE' | 'RETRY' | 'DEAD' | 'COMMITTED_UNACKED'

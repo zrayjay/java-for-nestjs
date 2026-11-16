@@ -1,6 +1,8 @@
 package dev.javafornestjs.messaging;
 
 import com.zaxxer.hikari.HikariDataSource;
+import java.util.Optional;
+import java.util.UUID;
 import org.flywaydb.core.Flyway;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -44,7 +46,35 @@ public final class MessageStore implements AutoCloseable {
         return jdbc.queryForObject("SELECT COALESCE(SUM(applied_count),0) FROM projection_effects WHERE task_key=?", Integer.class, taskKey);
     }
     public int markers() { return jdbc.queryForObject("SELECT COUNT(*) FROM processed_events", Integer.class); }
+    public record Claim(TaskEvent event, String token) { }
+    public void enqueueTask(TaskEvent event, Runnable beforeCommit) {
+        transactions.executeWithoutResult(status -> {
+            jdbc.update("INSERT INTO outbox_tasks(task_key,event_id) VALUES (?,?)", event.taskKey(), event.eventId());
+            jdbc.update("INSERT INTO message_outbox(event_id,task_key) VALUES (?,?)", event.eventId(), event.taskKey());
+            beforeCommit.run();
+        });
+    }
+    public Optional<Claim> claim(int leaseMillis) {
+        if (leaseMillis < 100 || leaseMillis > 5000) { throw new IllegalArgumentException("Teaching lease must be 100..5000ms"); }
+        return transactions.execute(status -> {
+            var events = jdbc.query("SELECT event_id,task_key FROM message_outbox WHERE sent_at IS NULL AND (lease_until IS NULL OR lease_until<=CURRENT_TIMESTAMP(6)) ORDER BY event_id LIMIT 1 FOR UPDATE SKIP LOCKED",
+                    (row, index) -> new TaskEvent(row.getString("event_id"), "task.created", row.getString("task_key")));
+            if (events.isEmpty()) { return Optional.empty(); }
+            var event = events.getFirst();
+            String token = UUID.randomUUID().toString();
+            jdbc.update("UPDATE message_outbox SET lease_token=?,lease_until=TIMESTAMPADD(MICROSECOND,?,CURRENT_TIMESTAMP(6)) WHERE event_id=?", token, leaseMillis * 1000, event.eventId());
+            return Optional.of(new Claim(event, token));
+        });
+    }
+    public boolean markSent(Claim claim) {
+        return jdbc.update("UPDATE message_outbox SET sent_at=CURRENT_TIMESTAMP(6),lease_token=NULL,lease_until=NULL WHERE event_id=? AND lease_token=? AND sent_at IS NULL AND lease_until>CURRENT_TIMESTAMP(6)",
+                claim.event().eventId(), claim.token()) == 1;
+    }
+    public int businessTasks() { return jdbc.queryForObject("SELECT COUNT(*) FROM outbox_tasks", Integer.class); }
+    public int pending() { return jdbc.queryForObject("SELECT COUNT(*) FROM message_outbox WHERE sent_at IS NULL", Integer.class); }
     public void resetFixture() {
+        jdbc.update("DELETE FROM message_outbox");
+        jdbc.update("DELETE FROM outbox_tasks");
         jdbc.update("DELETE FROM processed_events");
         jdbc.update("DELETE FROM projection_effects");
     }
