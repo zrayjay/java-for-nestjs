@@ -153,7 +153,11 @@ try {
     900000,
   )
   const kindBin = process.env.KIND_BIN || 'kind'
-  for (const tag of ['v1', 'v2']) {
+  // The manifest references :local (api image + wait-keys init container).
+  // Alias v1 as :local and load it too, so a fresh cluster never tries to
+  // pull java-for-nestjs-teaching:local from a remote registry.
+  await run('docker', ['tag', `${image}:v1`, `${image}:local`])
+  for (const tag of ['v1', 'v2', 'local']) {
     await run(
       kindBin,
       ['load', 'docker-image', `${image}:${tag}`, '--name', clusterName],
