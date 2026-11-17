@@ -58,7 +58,7 @@ export async function verifyCompatibility(root) {
       b.kind ||
     deliveryWorkflow.match(/kindest\/node:v([\d.]+)/)?.[1] !== b.kindNode ||
     deliveryWorkflow.match(/node-version: ([\d.]+)/)?.[1] !== b.node ||
-    deliveryWorkflow.match(/trivy-action@([\d.]+)/)?.[1] !== b.trivyAction
+    deliveryWorkflow.match(/trivy-action@v([\d.]+)/)?.[1] !== b.trivyAction
   )
     throw new Error('交付工作流kind/节点/Node/Trivy版本漂移')
   if (
