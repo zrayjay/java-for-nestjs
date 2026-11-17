@@ -8,14 +8,14 @@ vulnerabilities:
   # the framework jump is decided; removing these entries requires either a
   # 6.2.x backport release or moving the course baseline to Boot 4.
   - id: CVE-2026-47884
-    expired_at: '2027-05-01'
+    expired_at: '2027-05-01T00:00:00Z'
     statement: >
       spring-webmvc 6.2.19 CRITICAL, no 6.2.x fix available; fixed only in
       Framework 7.0.9 (Boot 4). Teaching API, loopback/K8s-internal exposure
       only, no untrusted internet ingress in any delivered runtime. Tracked
       for removal with the Boot 4 baseline decision. Accepted 2026-11-17.
   - id: CVE-2026-47890
-    expired_at: '2027-05-01'
+    expired_at: '2027-05-01T00:00:00Z'
     statement: >
       spring-webmvc 6.2.19 CRITICAL, no 6.2.x fix available; fixed only in
       Framework 7.0.9 (Boot 4). Teaching API, loopback/K8s-internal exposure
