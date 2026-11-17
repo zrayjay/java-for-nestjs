@@ -58,7 +58,7 @@ async function kubectl(args, input, timeout) {
 }
 const k = (args, timeout) => kubectl(args, undefined, timeout)
 const ns = (args, timeout) =>
-  kubectl(['-n', namespace, ...args], undefined, timeout)
+  kubectl([args[0], '-n', namespace, ...args.slice(1)], undefined, timeout)
 async function json(path, timeout) {
   return JSON.parse(await ns(['get', ...path, '-o', 'json'], timeout))
 }

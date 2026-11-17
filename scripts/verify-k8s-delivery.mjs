@@ -58,7 +58,7 @@ async function run(command, args, timeout) {
 }
 const kubectl = (args, timeout) => run('kubectl', args, timeout)
 const ns = (args, timeout) =>
-  kubectl(['-n', namespace, ...args], undefined, timeout)
+  kubectl([args[0], '-n', namespace, ...args.slice(1)], undefined, timeout)
 async function json(args, timeout) {
   return JSON.parse(await kubectl(args, timeout))
 }
@@ -270,8 +270,12 @@ try {
     await until(
       async () => {
         pollCount++
-        if (pollCount % 20 === 1) await trace(`boot-poll #${pollCount}`)
-        return (await nsJson(['deployment', 'api'])).status.readyReplicas === 1
+        const deployment = await nsJson(['deployment', 'api'])
+        if (pollCount % 50 === 1)
+          await trace(
+            `boot-poll #${pollCount} ready=${deployment.status.readyReplicas ?? 0} unavailable=${deployment.status.unavailableReplicas ?? 0}`,
+          )
+        return deployment.status.readyReplicas === 1
       },
       async () => {
         try {
