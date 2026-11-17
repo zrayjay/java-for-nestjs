@@ -59,7 +59,7 @@ function start(args, timeout = 60000) {
       else
         reject(
           new Error(
-            `Docker command exited ${code}: ${state.stderr.slice(-5000)}`,
+            `Docker command exited ${code}: ${state.stdout.slice(-15000)}\n${state.stderr.slice(-5000)}`,
           ),
         )
     })
@@ -103,13 +103,34 @@ const results = {
   checks: [],
 }
 let lock
+let primaryError
 try {
   await compose(['config', '--quiet'])
   console.log('COMPOSE_PHASE build-and-start')
-  await compose(
-    ['up', '-d', '--build', '--wait', '--wait-timeout', '240'],
+  const starting = start(
+    [
+      ...base,
+      '--progress',
+      'plain',
+      'up',
+      '-d',
+      '--build',
+      '--wait',
+      '--wait-timeout',
+      '240',
+    ],
     900000,
   )
+  starting.child.stdin.end()
+  const launched = await starting.done.then(
+    () => ({}),
+    (error) => ({ error }),
+  )
+  await writeFile(
+    resolve(output, 'build.log'),
+    starting.stdout + '\n' + starting.stderr,
+  )
+  if (launched.error) throw launched.error
   const apiId = (await compose(['ps', '-q', 'api'])).trim()
   assert.match(apiId, /^[a-f0-9]+$/)
   const runtime = JSON.parse(
@@ -254,21 +275,52 @@ try {
   results.status = 'passed'
   console.log('COMPOSE_RESULT', JSON.stringify(results))
 } catch (error) {
+  primaryError = error
   results.status = 'failed'
   results.error = error.message
   throw error
 } finally {
-  if (lock) {
-    lock.child.stdin.end('ROLLBACK;\n')
-    await lock.done.catch(() => {})
+  const cleanupErrors = []
+  try {
+    if (lock) {
+      try {
+        lock.child.stdin.end('ROLLBACK;\n')
+        await lock.done
+      } catch (error) {
+        cleanupErrors.push(error)
+      }
+    }
+    try {
+      const logs = await compose(['logs', '--no-color'])
+      await writeFile(resolve(output, 'services.log'), logs)
+    } catch (error) {
+      cleanupErrors.push(error)
+    }
+  } finally {
+    // Always attempt cleanup, even when lock release or artifact writing failed.
+    // project is generated here; never consume a caller's project name.
+    try {
+      await compose(['down', '--volumes', '--remove-orphans'], 120000)
+    } catch (error) {
+      cleanupErrors.push(error)
+    }
+    try {
+      await writeFile(
+        resolve(output, 'summary.json'),
+        JSON.stringify(results, null, 2) + '\n',
+      )
+    } catch (error) {
+      cleanupErrors.push(error)
+    }
   }
-  await writeFile(
-    resolve(output, 'summary.json'),
-    JSON.stringify(results, null, 2) + '\n',
-  )
-  await compose(['logs', '--no-color'])
-    .then((logs) => writeFile(resolve(output, 'services.log'), logs))
-    .catch(() => {})
-  // project is generated here with a fixed prefix; never consume a caller's project name.
-  await compose(['down', '--volumes', '--remove-orphans'], 120000)
+  if (cleanupErrors.length && !primaryError)
+    throw new AggregateError(
+      cleanupErrors,
+      'Compose cleanup or evidence failed',
+    )
+  if (cleanupErrors.length)
+    console.error(
+      'COMPOSE_CLEANUP_ERRORS',
+      cleanupErrors.map((error) => error.message),
+    )
 }
