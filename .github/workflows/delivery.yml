@@ -62,6 +62,10 @@ jobs:
           retention-days: 7
       - name: Create real kind cluster
         run: ./kind create cluster --name p5-delivery --image kindest/node:v1.34.0 --wait 180s
+      - name: Pre-pull mysql so kubelet never hits Docker Hub rate limits
+        run: |
+          docker pull mysql:8.4.7
+          ./kind load docker-image mysql:8.4.7 --name p5-delivery
       - name: Deploy v1, roll to v2, undo, verify markers and business continuity
         run: node scripts/verify-k8s-delivery.mjs
         env:
