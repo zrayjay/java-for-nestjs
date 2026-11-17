@@ -229,6 +229,7 @@ test('version drift is blocked against actual package/POM/wrapper/CI sources', a
     '.github/workflows/messaging.yml',
     '.github/workflows/containers.yml',
     '.github/workflows/k8s.yml',
+    '.github/workflows/delivery.yml',
     'project/deploy/compose/Dockerfile',
     'project/deploy/compose/teaching.yaml',
     'project/deploy/k8s/teaching.yaml',

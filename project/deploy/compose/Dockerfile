@@ -14,6 +14,9 @@ RUN chmod +x mvnw && ./mvnw --batch-mode --no-transfer-progress -pl examples/spr
     && ./mvnw --batch-mode --no-transfer-progress -f examples/security-lab/pom.xml package -DskipTests
 
 FROM eclipse-temurin:21.0.13_9-jre-noble
+# Build-time version marker; observable at runtime via printenv BUILD_MARKER.
+ARG BUILD_MARKER=unversioned
+ENV BUILD_MARKER=${BUILD_MARKER}
 RUN groupadd --gid 10001 teaching && useradd --uid 10001 --gid 10001 --no-create-home teaching \
     && mkdir -p /app /keys/target/demo-keys && chown -R 10001:10001 /keys
 WORKDIR /app

@@ -29,6 +29,7 @@ export async function verifyCompatibility(root) {
   const containerWorkflow = await read('.github/workflows/containers.yml')
   const k8sManifest = await read('project/deploy/k8s/teaching.yaml')
   const k8sWorkflow = await read('.github/workflows/k8s.yml')
+  const deliveryWorkflow = await read('.github/workflows/delivery.yml')
   const temurinImage = containerFile.match(
     /FROM eclipse-temurin:([\d._]+)-jdk-noble/,
   )?.[1]
@@ -52,6 +53,14 @@ export async function verifyCompatibility(root) {
     k8sWorkflow.match(/node-version: ([\d.]+)/)?.[1] !== b.node
   )
     throw new Error('K8s kind/节点/CI Node版本漂移')
+  if (
+    deliveryWorkflow.match(/download\/v([\d.]+)\/kind-linux-amd64/)?.[1] !==
+      b.kind ||
+    deliveryWorkflow.match(/kindest\/node:v([\d.]+)/)?.[1] !== b.kindNode ||
+    deliveryWorkflow.match(/node-version: ([\d.]+)/)?.[1] !== b.node ||
+    deliveryWorkflow.match(/trivy-action@([\d.]+)/)?.[1] !== b.trivyAction
+  )
+    throw new Error('交付工作流kind/节点/Node/Trivy版本漂移')
   if (
     messagePom.match(/<flyway.version>([^<]+)</)?.[1] !== b.flyway ||
     messagePackage.dependencies.mariadb !== b.mariadb ||
