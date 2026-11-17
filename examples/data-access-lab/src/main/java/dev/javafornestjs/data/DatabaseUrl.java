@@ -2,6 +2,13 @@ package dev.javafornestjs.data;
 
 public final class DatabaseUrl {
     private DatabaseUrl() { }
+    public static String runtime(String url, String mode) {
+        if (mode == null) { return dedicated(url); }
+        if (!"compose".equals(mode) || !"jdbc:mysql://mysql:3306/data_lab?allowPublicKeyRetrieval=true&useSSL=false".equals(url)) {
+            throw new IllegalArgumentException("Explicit compose mode only allows the dedicated mysql service URL");
+        }
+        return url;
+    }
     public static String dedicated(String url) {
         if (url == null || !url.matches("jdbc:mysql://(127\\.0\\.0\\.1|localhost):[0-9]{1,5}/data_lab"
                 + "(\\?allowPublicKeyRetrieval=true&useSSL=false)?")) {

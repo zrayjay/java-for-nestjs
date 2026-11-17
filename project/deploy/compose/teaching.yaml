@@ -1,0 +1,86 @@
+name: java-for-nestjs-teaching
+services:
+  mysql:
+    image: mysql:8.4.7
+    environment:
+      MYSQL_DATABASE: data_lab
+      MYSQL_USER: lab
+      MYSQL_PASSWORD: ${TEACHING_DB_PASSWORD:-disposable-db-password}
+      MYSQL_ROOT_PASSWORD: ${TEACHING_ROOT_PASSWORD:-disposable-root-password}
+    volumes:
+      - teaching_mysql:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'MYSQL_PWD="$${MYSQL_PASSWORD}" mysql --protocol=tcp -h127.0.0.1 -ulab data_lab -e "SELECT 1" >/dev/null 2>&1',
+        ]
+      interval: 3s
+      timeout: 3s
+      start_period: 30s
+      retries: 40
+  keys:
+    image: java-for-nestjs-teaching:${TEACHING_IMAGE_TAG:-local}
+    build:
+      context: ../../..
+      dockerfile: project/deploy/compose/Dockerfile
+    working_dir: /keys
+    entrypoint: ['sh', '-ec']
+    command:
+      - >-
+        if [ -f target/demo-keys/private.pem ] && [ -f target/demo-keys/public.pem ]; then
+          echo 'TEACHING_KEYS retained';
+        else
+          exec java -Dloader.main=dev.javafornestjs.security.KeyTool -cp /app/app.jar org.springframework.boot.loader.launch.PropertiesLauncher;
+        fi
+    volumes:
+      - teaching_keys:/keys
+    restart: 'no'
+  api:
+    image: java-for-nestjs-teaching:${TEACHING_IMAGE_TAG:-local}
+    build:
+      context: ../../..
+      dockerfile: project/deploy/compose/Dockerfile
+    depends_on:
+      mysql:
+        condition: service_healthy
+      keys:
+        condition: service_completed_successfully
+    environment:
+      SPRING_PROFILES_ACTIVE: compose
+      TEACHING_DEPLOYMENT: disposable
+      TEACHING_ADMIN_PASSWORD: ${TEACHING_ADMIN_PASSWORD:-disposable-admin-password}
+      DATA_DEPLOYMENT_MODE: compose
+      DATA_JDBC_URL: jdbc:mysql://mysql:3306/data_lab?allowPublicKeyRetrieval=true&useSSL=false
+      DATA_DATABASE_USER: lab
+      DATA_DATABASE_PASSWORD: ${TEACHING_DB_PASSWORD:-disposable-db-password}
+      SERVER_ADDRESS: 0.0.0.0
+      SERVER_PORT: 8089
+      SERVER_SHUTDOWN: graceful
+      SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: 20s
+      SECURITY_PRIVATE_KEY_PATH: /keys/target/demo-keys/private.pem
+      SECURITY_PUBLIC_KEY_PATH: /keys/target/demo-keys/public.pem
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: 'true'
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: never
+      MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE: readinessState,db
+    ports:
+      - '127.0.0.1:${TEACHING_HTTP_PORT:-18089}:8089'
+    volumes:
+      - teaching_keys:/keys:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    stop_grace_period: 30s
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'curl --fail --silent --max-time 2 http://127.0.0.1:8089/actuator/health/readiness >/dev/null',
+        ]
+      interval: 3s
+      timeout: 3s
+      start_period: 40s
+      retries: 40
+volumes:
+  teaching_mysql:
+  teaching_keys:

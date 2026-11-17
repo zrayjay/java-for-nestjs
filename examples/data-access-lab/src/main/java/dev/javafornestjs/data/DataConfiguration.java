@@ -19,7 +19,7 @@ import org.springframework.context.annotation.DependsOn;
 public class DataConfiguration {
     @Bean(destroyMethod = "close")
     HikariDataSource dataSource() {
-        String url = DatabaseUrl.dedicated(System.getenv("DATA_JDBC_URL"));
+        String url = DatabaseUrl.runtime(System.getenv("DATA_JDBC_URL"), System.getenv("DATA_DEPLOYMENT_MODE"));
         var config = new HikariConfig();
         config.setJdbcUrl(url);
         config.setUsername(required("DATA_DATABASE_USER"));

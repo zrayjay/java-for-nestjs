@@ -1,0 +1,44 @@
+name: Teaching container lifecycle
+on:
+  push:
+    paths:
+      - 'project/deploy/compose/**'
+      - 'examples/security-lab/**'
+      - 'examples/data-access-lab/**'
+      - 'examples/spring-web-lab/**'
+      - 'pom.xml'
+      - '.mvn/**'
+      - '.dockerignore'
+      - 'scripts/verify-compose-teaching.mjs'
+      - '.github/workflows/containers.yml'
+  pull_request:
+    paths:
+      - 'project/deploy/compose/**'
+      - 'examples/security-lab/**'
+      - 'examples/data-access-lab/**'
+      - 'examples/spring-web-lab/**'
+      - 'pom.xml'
+      - '.mvn/**'
+      - '.dockerignore'
+      - 'scripts/verify-compose-teaching.mjs'
+      - '.github/workflows/containers.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - name: Build, migrate, authorize, fail readiness and drain a real SQL request
+        run: node scripts/verify-compose-teaching.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compose-lifecycle-evidence
+          path: target/compose-evidence/
+          retention-days: 7

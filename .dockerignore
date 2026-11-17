@@ -1,0 +1,10 @@
+.git
+**/node_modules
+**/target
+**/dist
+**/.gradle
+**/build
+**/.env
+**/.env.*
+!**/.env.example
+*.log

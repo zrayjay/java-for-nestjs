@@ -130,7 +130,7 @@ public class SecurityConfiguration {
         return http.csrf(csrf -> csrf.disable()).requestCache(cache -> cache.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(rules -> rules
-                        .requestMatchers("/auth/login", "/auth/refresh", "/health", "/actuator/health", "/openapi.json").permitAll()
+                        .requestMatchers("/auth/login", "/auth/refresh", "/health", "/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness", "/openapi.json").permitAll()
                         .requestMatchers(HttpMethod.GET, "/me").authenticated()
                         .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
                         .requestMatchers("/admin/**").hasAuthority("role:manage")
