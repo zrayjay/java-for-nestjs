@@ -1,0 +1,13 @@
+# ADR-0012：P5教学K8s运行物
+
+2026-11-17，P5-03完整Compose演练通过后采用。P5-04交付第40章K8s部分：Deployment、Service、liveness/readiness/startup探针、资源请求与限制、滚动更新，以及kind真实集群上的可复现演练。不扩建生产集群，不提前实现P6毕业项目集成；单一API进程加真实MySQL的单体教学结构保持不变。
+
+复用P5-03的多阶段镜像与非root 10001运行身份，镜像内不新增线上可调用接口。数据层`DatabaseUrl`守卫在显式compose模式下只接受固定`jdbc:mysql://mysql:3306/data_lab`；K8s将数据库Service命名为`mysql`且与API同命名空间，集群内DNS对该短名的解析使同一URL真实可用。这是部署命名对齐，不是放宽守卫；不接受任意远端数据库的约束不变，`compose` profile名保留历史命名，其语义是"显式容器教学部署"。演示管理员fixture复用`disposable`确认链，K8s同样只在显式环境确认下seed，普通安全入口行为不变。
+
+RSA密钥从init容器改为K8s Job：同一镜像以相同命令在专用PVC生成`target/demo-keys`，Job成功完成后API以只读方式挂载同一PVC，重启保留。密钥与数据分别使用独立PVC，节点存储由集群StorageClass提供；卷保留不是备份。数据库凭据与管理员密码经Secret注入，默认值仅为可丢弃教学值。
+
+API Deployment声明startupProbe避免以初延误差杀慢迁移，liveness只看进程健康，readiness包含真实DB；maxUnavailable=0、maxSurge=1保证滚动期间先备妥新Pod再终止旧Pod，preStop短暂等待与40秒grace匹配应用20秒排空预算。资源requests/limits显式声明，JVM按容器限制感知内存。MySQL使用Recreate策略配合RWO卷。
+
+演练证据由脚本与CI承担：kind集群真实apply、就绪等待、真实登录创建、停DB观察readiness503/liveness200与端点摘除、恢复、`kubectl rollout restart`滚动重启期间由集群内客户端Pod对Service持续请求且零失败、旧Pod优雅停止日志、重启后原Token与任务保留。镜像内容未变的同镜像滚动重启用于验证Pod替换机制本身，不冒充新版本发布；版本化镜像更新与回滚演练属P5-05。测试集群版本与结果如实记录，本机或CI任一环境的失败都不得改写为通过。
+
+Compose与K8s两套运行物并存：Compose负责一次性理解依赖与排空，K8s负责副本、探针摘除与滚动替换。第40章在K8s部分交付并审查后离开draft；镜像扫描、发布与回滚仍由P5-05负责，G5不在本ADR内宣称。

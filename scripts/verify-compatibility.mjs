@@ -27,6 +27,8 @@ export async function verifyCompatibility(root) {
   const containerFile = await read('project/deploy/compose/Dockerfile')
   const containerCompose = await read('project/deploy/compose/teaching.yaml')
   const containerWorkflow = await read('.github/workflows/containers.yml')
+  const k8sManifest = await read('project/deploy/k8s/teaching.yaml')
+  const k8sWorkflow = await read('.github/workflows/k8s.yml')
   const temurinImage = containerFile.match(
     /FROM eclipse-temurin:([\d._]+)-jdk-noble/,
   )?.[1]
@@ -36,6 +38,20 @@ export async function verifyCompatibility(root) {
     !containerWorkflow.includes(`node-version: ${b.node}`)
   )
     throw new Error('容器JDK/JRE/MySQL/CI Node版本漂移')
+  if (
+    k8sManifest.match(/image:\s+mysql:([\d.]+)/)?.[1] !== b.mysql ||
+    !k8sManifest.includes(
+      'jdbc:mysql://mysql:3306/data_lab?allowPublicKeyRetrieval=true&useSSL=false',
+    )
+  )
+    throw new Error('K8s MySQL/守卫URL版本漂移')
+  if (
+    k8sWorkflow.match(/download\/v([\d.]+)\/kind-linux-amd64/)?.[1] !==
+      b.kind ||
+    k8sWorkflow.match(/kindest\/node:v([\d.]+)/)?.[1] !== b.kindNode ||
+    k8sWorkflow.match(/node-version: ([\d.]+)/)?.[1] !== b.node
+  )
+    throw new Error('K8s kind/节点/CI Node版本漂移')
   if (
     messagePom.match(/<flyway.version>([^<]+)</)?.[1] !== b.flyway ||
     messagePackage.dependencies.mariadb !== b.mariadb ||

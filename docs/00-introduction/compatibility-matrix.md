@@ -86,6 +86,8 @@ CI证据：[运行42603068673](https://github.com/zrayjay/java-for-nestjs/action
 
 P5容器运行物使用Temurin `21.0.13_9` 的jdk-noble构建阶段与jre-noble运行阶段，MySQL8.4.7。[容器44002059576](https://github.com/zrayjay/java-for-nestjs/actions/runs/44002059576)在Linux Engine28.0.4/Compose2.38.2完整通过新卷启动、授权写库、依赖故障及在途事务排空；摘要与边界见[ADR0011](../adr/0011-teaching-container-runtime.md)、[P5-03](../progress/P5-03.md)。不把宿主Windows的Engine版本当Linux证据，不泛称Windows全服务或生产部署通过。
 
+P5-04 K8s运行物复用同一镜像，kind0.33.0与kindest/node v1.34.0（K8s 1.34.0），kubectl1.36.1本机辅助。集群演练证据见[P5-04](../progress/P5-04.md)与[ADR0012](../adr/0012-k8s-teaching-runtime.md)；kind仅作测试集群，不据此声明生产K8s能力。
+
 P5消息原语基线见[ADR0010](../adr/0010-messaging-and-outbox-runtime.md)：RabbitMQ4.2.2-management（官方v4.2.2发布），Boot3.5.16管理的Java AMQP client5.25.0，Node amqplib0.10.9与@types/amqplib0.10.8，MySQL8.4.7/Flyway11.20.3/mariadb3.5.4。真实服务矩阵与故障证据见[P5-01](../progress/P5-01.md)，当前审查修订待新CI，不把候选版本直接写成全平台验证。底层SDK演示不代表Kafka或Nest transporter验证。
 
 独立`pom-boot4.xml`选择Boot4.1.2、MyBatis-Plus Boot4 Starter3.5.18、springdoc3.2.0。为保持比较变量一致，暂显式固定Testcontainers1.21.4和Flyway11.20.3；这不同于Boot4默认管理的Testcontainers2.0.5/Flyway12.4.0。

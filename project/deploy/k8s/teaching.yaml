@@ -1,0 +1,357 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: teaching
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: teaching-passwords
+  namespace: teaching
+type: Opaque
+stringData:
+  # Disposable teaching defaults; override with kubectl create secret before apply for any shared environment.
+  TEACHING_ADMIN_PASSWORD: disposable-admin-password
+  TEACHING_DB_PASSWORD: disposable-db-password
+  TEACHING_ROOT_PASSWORD: disposable-root-password
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-data
+  namespace: teaching
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: teaching-keys
+  namespace: teaching
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 64Mi
+---
+# One-shot RSA key generation into the dedicated PVC; mirrors the Compose keys init container.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keys-init
+  namespace: teaching
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: keys-init
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: keys
+          image: java-for-nestjs-teaching:local
+          imagePullPolicy: IfNotPresent
+          workingDir: /keys
+          command: ['sh', '-ec']
+          args:
+            - >-
+              if [ -f target/demo-keys/private.pem ] && [ -f target/demo-keys/public.pem ]; then
+                echo 'TEACHING_KEYS retained';
+              else
+                exec java -Dloader.main=dev.javafornestjs.security.KeyTool -cp /app/app.jar org.springframework.boot.loader.launch.PropertiesLauncher;
+              fi
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: keys
+              mountPath: /keys
+      volumes:
+        - name: keys
+          persistentVolumeClaim:
+            claimName: teaching-keys
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: teaching
+spec:
+  # RWO volume: never run two MySQL pods against the same data directory.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mysql
+          image: mysql:8.4.7
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MYSQL_DATABASE
+              value: data_lab
+            - name: MYSQL_USER
+              value: lab
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: teaching-passwords
+                  key: TEACHING_DB_PASSWORD
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: teaching-passwords
+                  key: TEACHING_ROOT_PASSWORD
+          ports:
+            - name: mysql
+              containerPort: 3306
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: '1'
+              memory: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+          readinessProbe:
+            exec:
+              command:
+                [
+                  'sh',
+                  '-ec',
+                  'MYSQL_PWD="$MYSQL_PASSWORD" mysql --protocol=tcp -h127.0.0.1 -ulab data_lab -e "SELECT 1" >/dev/null 2>&1',
+                ]
+            periodSeconds: 3
+            timeoutSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            exec:
+              command:
+                [
+                  'sh',
+                  '-ec',
+                  'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysqladmin --protocol=tcp -h127.0.0.1 -uroot ping >/dev/null 2>&1',
+                ]
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mysql-data
+---
+# Same-namespace Service named mysql: the guarded compose-mode JDBC URL resolves here unchanged.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: teaching
+spec:
+  selector:
+    app: mysql
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: teaching
+spec:
+  # One replica on a fresh volume: the disposable admin fixture refuses to seed a
+  # nonempty database, so two simultaneous first boots would race on seeding.
+  # Scale up after the first pod is Ready (see TEACHING.md).
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    # New pod must pass readiness before any old pod is terminated.
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 40
+      initContainers:
+        # Ordered readiness gates replacing Compose depends_on conditions.
+        - name: wait-mysql
+          image: mysql:8.4.7
+          imagePullPolicy: IfNotPresent
+          command: ['sh', '-ec']
+          args:
+            - >-
+              until MYSQL_PWD="$MYSQL_PASSWORD" mysql --connect-timeout=3 --protocol=tcp
+              -hmysql -ulab data_lab -e "SELECT 1" >/dev/null 2>&1; do
+                echo 'waiting for mysql'; sleep 2;
+              done
+          env:
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: teaching-passwords
+                  key: TEACHING_DB_PASSWORD
+        - name: wait-keys
+          image: java-for-nestjs-teaching:local
+          imagePullPolicy: IfNotPresent
+          command: ['sh', '-ec']
+          args:
+            - >-
+              until [ -f /keys/target/demo-keys/private.pem ] && [ -f /keys/target/demo-keys/public.pem ]; do
+                echo 'waiting for keys'; sleep 2;
+              done
+          volumeMounts:
+            - name: keys
+              mountPath: /keys
+              readOnly: true
+      containers:
+        - name: api
+          image: java-for-nestjs-teaching:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8089
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: compose
+            - name: TEACHING_DEPLOYMENT
+              value: disposable
+            - name: TEACHING_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: teaching-passwords
+                  key: TEACHING_ADMIN_PASSWORD
+            - name: DATA_DEPLOYMENT_MODE
+              value: compose
+            - name: DATA_JDBC_URL
+              value: 'jdbc:mysql://mysql:3306/data_lab?allowPublicKeyRetrieval=true&useSSL=false'
+            - name: DATA_DATABASE_USER
+              value: lab
+            - name: DATA_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: teaching-passwords
+                  key: TEACHING_DB_PASSWORD
+            - name: SERVER_ADDRESS
+              value: 0.0.0.0
+            - name: SERVER_PORT
+              value: '8089'
+            - name: SERVER_SHUTDOWN
+              value: graceful
+            - name: SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE
+              value: 20s
+            - name: SECURITY_PRIVATE_KEY_PATH
+              value: /keys/target/demo-keys/private.pem
+            - name: SECURITY_PUBLIC_KEY_PATH
+              value: /keys/target/demo-keys/public.pem
+            - name: MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED
+              value: 'true'
+            - name: MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS
+              value: never
+            - name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE
+              value: 'readinessState,db'
+            # Keep the heap an explicit fraction of the container memory limit.
+            - name: JAVA_TOOL_OPTIONS
+              value: -XX:MaxRAMPercentage=75.0
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: '1'
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 3
+            failureThreshold: 40
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 3
+            timeoutSeconds: 3
+            failureThreshold: 3
+          lifecycle:
+            preStop:
+              # Let the endpoint removal propagate before SIGTERM; drain budget stays at 20s.
+              exec:
+                command: ['sh', '-c', 'sleep 5']
+          volumeMounts:
+            - name: keys
+              mountPath: /keys
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: keys
+          persistentVolumeClaim:
+            claimName: teaching-keys
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: teaching
+spec:
+  selector:
+    app: api
+  ports:
+    - name: http
+      port: 8089
+      targetPort: http

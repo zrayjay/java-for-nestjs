@@ -2,7 +2,7 @@
 title: '40 · 容器与编排'
 description: 从可启动的认证任务API理解镜像、依赖就绪与在途请求排空。
 chapter_id: '40'
-teaching_status: draft
+teaching_status: in_review
 baseline: Temurin21.0.13+9 noble / MySQL8.4.7 / Node22.20.0 / Docker Compose V2
 ---
 
@@ -10,7 +10,7 @@ baseline: Temurin21.0.13+9 noble / MySQL8.4.7 / Node22.20.0 / Docker Compose V2
 
 ## 章节范围与先修
 
-先完成16/23/28章。当前交付P5-03 Docker部分，K8s Deployment/Service/探针/资源限制与滚动更新由P5-04继续，本章保持draft直到两部分完成。完整[操作说明](../../project/deploy/compose/TEACHING.md)、[Dockerfile](../../project/deploy/compose/Dockerfile)、[Compose](../../project/deploy/compose/teaching.yaml)及[真实演练脚本](../../scripts/verify-compose-teaching.mjs)均可定位。运行链是P4认证任务API与真实MySQL，不声称P6全部业务集成。
+先完成16/23/28章。Docker部分由P5-03交付，K8s Deployment/Service/探针/资源限制与滚动更新由P5-04交付；两部分均已实现并通过真实演练，进入in_review。完整[Compose操作说明](../../project/deploy/compose/TEACHING.md)、[K8s操作说明](../../project/deploy/k8s/TEACHING.md)、[Dockerfile](../../project/deploy/compose/Dockerfile)、[Compose](../../project/deploy/compose/teaching.yaml)、[K8s清单](../../project/deploy/k8s/teaching.yaml)及[真实演练脚本](../../scripts/verify-compose-teaching.mjs)、[K8s演练脚本](../../scripts/verify-k8s-teaching.mjs)均可定位。运行链是P4认证任务API与真实MySQL，不声称P6全部业务集成。
 
 ## 知识点
 
@@ -248,14 +248,89 @@ node scripts/verify-compose-teaching.mjs
 
 Node等待实际admitted通知后TERM，draining后补齐正文，HTTP200并退出0。Java必须真实SQL等待后TERM，释放锁后HTTP200、任务更新及单条task.updated审计、退出非137、重启读取成功。两项验证各自边界，不能把Node字节模型当SQL事务证据。
 
+### ch40-kp04 · K8s 编排：副本、探针摘除与滚动更新
+
+#### 1. 一句话定义
+
+Deployment声明期望副本数与替换策略，探针决定何时接流与重启，滚动更新以先备新再停旧的方式替换Pod。
+
+#### 2. 为什么需要它
+
+Compose面向单机依赖编排；副本、端点摘除与按序替换需要集群控制面。写死副本数不等于高可用，探针通过也不等于业务正确；滚动期间的可用性必须由真实持续流量证明。
+
+#### 3. 生活类比
+
+值班表对应期望副本数，前台可派号对应readiness通过并进入Service端点，健康巡查对应liveness，换班必须先有新人到位再让旧人离开对应maxUnavailable为0。换班完成不证明新员工业务必然正确，只是岗位始终有人。
+
+#### 4. Node.js / TypeScript / NestJS 技术对照
+
+Nest应用同样以容器镜像交付后由编排系统管理，Pod/Service/Deployment概念不因语言不同而变化。当前仓库的Node参照是[原生HTTP生命周期模型](../../examples/container-node-reference/README.md)，未部署同题Nest业务到K8s；不能据Java链通过声称Node链等价。K8s健康检查消费的是HTTP语义，与第26/29章的health端点约定一致。
+
+#### 5. 两端代码对照
+
+API Deployment的核心声明（完整清单见[teaching.yaml](../../project/deploy/k8s/teaching.yaml)）：
+
+```yaml
+strategy:
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+startupProbe:
+  httpGet: { path: /actuator/health/liveness, port: http }
+readinessProbe:
+  httpGet: { path: /actuator/health/readiness, port: http }
+lifecycle:
+  preStop:
+    exec: { command: ['sh', '-c', 'sleep 5'] }
+terminationGracePeriodSeconds: 40
+```
+
+startupProbe避免初延误差杀慢迁移；readiness含真实DB，未就绪的Pod不进Service端点；preStop等待摘除传播后再收SIGTERM。数据库Service命名为`mysql`，与API同命名空间，使已验证数据层守卫的固定URL在集群内DNS直接解析，不放宽安全约束。
+
+#### 6. 原理与流程图
+
+```mermaid
+flowchart LR
+  D[Deployment期望2副本] --> P1[新Pod surge] --> R1[readiness含DB] --> E[Service端点更新]
+  E --> T[旧Pod preStop+TERM] --> G[20秒排空] --> X[退出0/143]
+  R1 -.未通过.-> N[不进端点不摘旧]
+```
+
+滚动期间集群内客户端Pod持续请求Service；新Pod就绪前旧Pod继续接流，就绪后旧Pod才进入有限宽限的终止。MySQL使用RWO卷与Recreate策略，不会同时双写同一数据目录。
+
+#### 7. 类比边界与错误直觉
+
+kind是测试集群，通过不等于生产K8s能力；本清单未声明Ingress、TLS、HPA、NetworkPolicy或多可用区。replicas=2不是高可用证明：节点、存储与数据库仍是单点。同镜像rollout restart验证的是Pod替换机制，不是新版本发布；版本化镜像与回滚见41章P5-05。探针路径permitAll范围与Compose一致，仅三个health路径。
+
+#### 8. 企业应用场景与选型
+
+生产滚动发布需要镜像标签、就绪门禁与快速回滚配合；PodDisruptionBudget与反亲和在此教学规模未引入。JVM按容器内存限制感知堆（MaxRAMPercentage），requests与limits显式声明避免与邻居争抢。密钥与数据各自独立PVC，节点存储由StorageClass提供。
+
+#### 9. 常见错误与排查
+
+新Pod卡NotReady查init容器、DB迁移与Secret密码；滚动卡住查新Pod readiness与`kubectl rollout status`；旧Pod退出137查grace预算与preStop；请求间歇失败查端点摘除传播与readiness抖动。空库首启的seed竞态靠首副本Ready后再扩容避免，不能靠重试掩盖。
+
+#### 10. 实操练习与验收
+
+基础题：解释maxUnavailable=0与maxSurge=1的替换顺序。迁移题：对照Compose depends_on与init容器/探针两种就绪方案。思考题：为何readiness含DB而liveness不含？在kind集群执行真实演练：
+
+```powershell
+node scripts/verify-k8s-teaching.mjs
+```
+
+要求零失败完成：空卷迁移登录创建、DB停止时readiness503/liveness200并摘流、恢复、扩容2副本、rollout restart期间Service持续请求零失败、旧Pod优雅退出0/143、新副本保留任务与密钥。集群版本与真实日志见[P5-04](../progress/P5-04.md)；构建失败或静态清单检查不算演练通过。
+
 ## 练习提示与官方资料
 
-先区分镜像、应用状态、依赖状态及业务事实，再决定使用何种探针和日志。P5-04将增加K8s运行物与真实集群滚动实验；本章当前仍为部分交付。
+先区分镜像、应用状态、依赖状态及业务事实，再决定使用何种探针和日志。镜像扫描、版本化发布与回滚演练见41章P5-05。
 
 - [Docker多阶段构建](https://docs.docker.com/build/building/multi-stage/)
 - [Compose启动顺序](https://docs.docker.com/compose/how-tos/startup-order/)
 - [Compose服务规范](https://docs.docker.com/reference/compose-file/services/)
+- [Deployment滚动更新](https://kubernetes.io/zh-cn/docs/concepts/workloads/controllers/deployment/#rolling-update-deployment)
+- [容器探针](https://kubernetes.io/zh-cn/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
 - [Spring Boot优雅停止](https://docs.spring.io/spring-boot/3.5/reference/web/graceful-shutdown.html)
 - [Actuator Kubernetes probes](https://docs.spring.io/spring-boot/3.5/reference/actuator/endpoints.html#actuator.endpoints.kubernetes-probes)
 - [Node HTTP server.close](https://nodejs.org/docs/latest-v22.x/api/http.html#serverclosecallback)
 - [ADR0011](../adr/0011-teaching-container-runtime.md)
+- [ADR0012](../adr/0012-k8s-teaching-runtime.md)

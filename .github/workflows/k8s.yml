@@ -1,0 +1,62 @@
+name: Teaching k8s rollout
+
+on:
+  push:
+    paths:
+      - 'project/deploy/k8s/**'
+      - 'examples/security-lab/**'
+      - 'examples/data-access-lab/**'
+      - 'examples/spring-web-lab/**'
+      - 'pom.xml'
+      - '.mvn/**'
+      - '.dockerignore'
+      - 'project/deploy/compose/Dockerfile'
+      - 'scripts/verify-k8s-teaching.mjs'
+      - '.github/workflows/k8s.yml'
+  pull_request:
+    paths:
+      - 'project/deploy/k8s/**'
+      - 'examples/security-lab/**'
+      - 'examples/data-access-lab/**'
+      - 'examples/spring-web-lab/**'
+      - 'pom.xml'
+      - '.mvn/**'
+      - '.dockerignore'
+      - 'project/deploy/compose/Dockerfile'
+      - 'scripts/verify-k8s-teaching.mjs'
+      - '.github/workflows/k8s.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kind:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - name: Install pinned kind
+        run: |
+          curl -sSLo ./kind https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64
+          chmod +x ./kind
+      - name: Build teaching image
+        run: docker build -f project/deploy/compose/Dockerfile -t java-for-nestjs-teaching:local .
+      - name: Create real kind cluster
+        run: ./kind create cluster --name p5-teaching --image kindest/node:v1.34.0 --wait 180s
+      - name: Load image and drill Deployment, probes, rollout and recovery
+        run: |
+          ./kind load docker-image java-for-nestjs-teaching:local --name p5-teaching
+          node scripts/verify-k8s-teaching.mjs
+      - name: Always delete the cluster this job created
+        if: always()
+        run: ./kind delete cluster --name p5-teaching || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k8s-rollout-evidence
+          path: target/k8s-evidence/
+          retention-days: 7
