@@ -1,0 +1,23 @@
+# Vulnerabilities exempted from the blocking scan, each with rationale.
+# Discipline: fixed versions must be upgraded instead of ignored; an entry
+# without a dated rationale is invalid.
+vulnerabilities:
+  # spring-framework 6.2 line (Boot 3.5 baseline) has no patch for these two;
+  # fixes ship only in Framework 7.0.9 (Boot 4 line). The repo's Boot4
+  # evaluation track (docs/00-introduction/compatibility-matrix.md) is where
+  # the framework jump is decided; removing these entries requires either a
+  # 6.2.x backport release or moving the course baseline to Boot 4.
+  - id: CVE-2026-47884
+    expired_at: '2027-05-01'
+    statement: >
+      spring-webmvc 6.2.19 CRITICAL, no 6.2.x fix available; fixed only in
+      Framework 7.0.9 (Boot 4). Teaching API, loopback/K8s-internal exposure
+      only, no untrusted internet ingress in any delivered runtime. Tracked
+      for removal with the Boot 4 baseline decision. Accepted 2026-11-17.
+  - id: CVE-2026-47890
+    expired_at: '2027-05-01'
+    statement: >
+      spring-webmvc 6.2.19 CRITICAL, no 6.2.x fix available; fixed only in
+      Framework 7.0.9 (Boot 4). Teaching API, loopback/K8s-internal exposure
+      only. Tracked for removal with the Boot 4 baseline decision.
+      Accepted 2026-11-17.
