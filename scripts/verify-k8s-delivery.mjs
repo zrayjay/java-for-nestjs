@@ -203,10 +203,16 @@ try {
     ],
     90000,
   )
-  // Apply the base manifest, then set the api image to :v1 explicitly.
-  // The manifest's :local image boots once, then set image rolls to v1:
-  // two sequential first boots, so allow a generous ready budget.
+  // Apply the base manifest and wait for the :local first boot (mysql init,
+  // migrations, key job) BEFORE switching the image: this keeps the v1
+  // rollout from stacking on a cold first boot.
   await kubectl(['apply', '-f', 'project/deploy/k8s/teaching.yaml'], 90000)
+  await until(
+    async () =>
+      (await nsJson(['deployment', 'api'])).status.readyReplicas === 1,
+    'base :local deployment ready',
+    900000,
+  )
   await ns(['set', 'image', 'deployment/api', `api=${image}:v1`], 60000)
   await until(
     async () => {
@@ -217,7 +223,7 @@ try {
       )
     },
     'v1 deployment ready',
-    1200000,
+    600000,
   )
   await until(
     async () => (await nsJson(['job', 'keys-init'])).status.succeeded === 1,
