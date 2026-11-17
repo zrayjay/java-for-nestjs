@@ -192,6 +192,20 @@ try {
   results.checks.push('marker-distinct-images-built')
 
   console.log('DELIVERY_PHASE deploy-v1')
+  // Apply the base manifest and wait for the :local first boot (mysql init,
+  // migrations, key job) BEFORE switching the image: this keeps the v1
+  // rollout from stacking on a cold first boot.
+  // Trace each step to a file: CI failures showed no stdout at all past this
+  // point, so file traces are the only reliable per-step evidence.
+  const trace = async (step) => {
+    bootTrace.push(`${new Date().toISOString()} ${step}`)
+    await writeFile(
+      resolve(output, 'drill-trace.log'),
+      bootTrace.join('\n') + '\n',
+    )
+  }
+  const bootTrace = []
+  await trace('delete-namespace-start')
   await kubectl(
     [
       'delete',
@@ -203,10 +217,10 @@ try {
     ],
     90000,
   )
-  // Apply the base manifest and wait for the :local first boot (mysql init,
-  // migrations, key job) BEFORE switching the image: this keeps the v1
-  // rollout from stacking on a cold first boot.
+  await trace('delete-namespace-done')
+  await trace('apply-start')
   await kubectl(['apply', '-f', 'project/deploy/k8s/teaching.yaml'], 90000)
+  await trace('apply-done')
   // Progress evidence written to a file (stdout may be buffered away on
   // failure) plus a final-state snapshot embedded in the timeout error.
   const bootLog = []
