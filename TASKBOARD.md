@@ -34,7 +34,7 @@
 | P4-02 | 服务恢复后读取，不猜编号 | Codex，本会话离线实施 | main | 实现in_review，面板未同步 | [34~37及真实诊断观测](docs/progress/P4-02.md)、逐章两轴审查 | 未部署Collector，不自动done |
 | P4-03 / P4-04 | 服务恢复后读取，不猜编号 | Codex，本会话离线实施 | main | 技术验证in_review | [授权矩阵](docs/progress/P4-03.md)、[上传矩阵](docs/progress/P4-04.md) | 未实现租户/真实病毒扫描，范围明确 |
 | G4 | 服务恢复后读取，不猜编号 | Codex，两轴独立验收 | main | 技术准入通过，交用户验收 | [阶段记录](docs/progress/G4.md)、[独立结论](docs/reviews/G4.md)、[综合练习](docs/exercises/P4-capstone.md) | 允许进入P5；P6整合/P7读者验证仍必做 |
-| P5-04 | 服务恢复后读取，不猜编号 | Codex，本会话离线实施 | main | 实现in_review，面板未同步 | [K8s部署实施记录](docs/progress/P5-04.md)、[ADR0012](docs/adr/0012-k8s-teaching-runtime.md) | 本机kind v1.34.0演练五项checkpoint全过（773请求零失败、旧Pod退出143）；40章转in_review；K8s CI与两轴审查待做，不自动done |
+| P5-04 | 服务恢复后读取，不猜编号 | Codex，本会话离线实施 | main | 实现in_review，面板未同步 | [K8s部署实施记录](docs/progress/P5-04.md)、[ADR0012](docs/adr/0012-k8s-teaching-runtime.md)；独立审查PASS无阻塞，建议已修复；本机与CI（[44019986728](https://github.com/zrayjay/java-for-nestjs/actions/runs/44019986728)）各五项checkpoint全过 | 交用户验收，不自动done；G5待P5-05 |
 | 文档预览站 | JAV-56 | Codex，本会话 | main | review | [部署CI通过](https://github.com/zrayjay/java-for-nestjs/actions/runs/42765271826)，提交3f495c0；[线上文档](https://zrayjay.github.io/java-for-nestjs/)首页/目录/图表/部署指南及6项JS/CSS资源HTTP200 | 不等同P7全书发布或Release |
 
 JAV-3至JAV-9已全部按用户指令合并main并标记done，任务分支已删除。2026-11-10用户另行授权公开当前仓库并部署建设中的文档站，以JAV-56跟踪，不提前完成P7-05。其余阶段仍待关卡开放。Java原生Windows Web探针缺口未关闭前，不将G0或完整Java跨平台基线标为通过；本次Windows非Web示例及Node文档站的通过结果单独记录。
