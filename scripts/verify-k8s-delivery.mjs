@@ -257,14 +257,22 @@ try {
         resolve(output, 'boot-progress.log'),
         bootLog.join('\n') + '\n',
       )
-    } catch {
-      // transient list failures are not fatal for a progress log
+    } catch (error) {
+      bootLog.push(`${new Date().toISOString()} PROBE_ERROR ${error.message}`)
+      await writeFile(
+        resolve(output, 'boot-progress.log'),
+        bootLog.join('\n') + '\n',
+      ).catch(() => {})
     }
   }, 30000)
   try {
+    let pollCount = 0
     await until(
-      async () =>
-        (await nsJson(['deployment', 'api'])).status.readyReplicas === 1,
+      async () => {
+        pollCount++
+        if (pollCount % 20 === 1) await trace(`boot-poll #${pollCount}`)
+        return (await nsJson(['deployment', 'api'])).status.readyReplicas === 1
+      },
       async () => {
         try {
           const deployment = await nsJson(['deployment', 'api'])
