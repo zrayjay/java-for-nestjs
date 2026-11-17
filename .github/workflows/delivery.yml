@@ -51,7 +51,7 @@ jobs:
           exit-code: '1'
           ignore-unfixed: true
           severity: HIGH,CRITICAL
-          ignorefile: project/deploy/trivy-ignore.yaml
+          trivyignores: project/deploy/trivy-ignore.yaml
           output: trivy-report.json
       - name: Always upload the scan report
         if: always()
