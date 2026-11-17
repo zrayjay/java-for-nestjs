@@ -245,6 +245,10 @@ try {
   assert.equal(updated.value.status, 200)
   assert.equal(updated.value.json.title, 'Compose drained')
   await stopping
+  await writeFile(
+    resolve(output, 'drain.log'),
+    await compose(['logs', '--no-color', 'api']),
+  )
   const stopped = JSON.parse(
     await docker(['inspect', '--format', '{{json .State}}', apiId]),
   )

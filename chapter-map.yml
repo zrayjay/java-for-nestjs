@@ -1427,8 +1427,19 @@ chapters:
       - project/deploy/compose/verify.mjs
       - examples/container-node-reference/lifecycle.test.mjs
     noCodeReason: null
-    verification: []
-    reviews: []
+    verification:
+      - docs/progress/P5-03.md
+    reviews:
+      - path: docs/reviews/P5-03-compose.md
+        reviewer: p2_foundation_standards
+        date: 2026-11-17
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P5-03-compose.md
+        reviewer: p2_foundation_spec
+        date: 2026-11-17
+        independent: true
+        conclusion: approved
   - id: '41'
     part: '08'
     title: 自动交付
