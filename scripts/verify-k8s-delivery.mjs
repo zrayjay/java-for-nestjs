@@ -207,12 +207,39 @@ try {
   // migrations, key job) BEFORE switching the image: this keeps the v1
   // rollout from stacking on a cold first boot.
   await kubectl(['apply', '-f', 'project/deploy/k8s/teaching.yaml'], 90000)
-  await until(
-    async () =>
-      (await nsJson(['deployment', 'api'])).status.readyReplicas === 1,
-    'base :local deployment ready',
-    900000,
-  )
+  // Progress visibility: cold first boots can take many minutes on CI disks.
+  const bootProbe = setInterval(async () => {
+    try {
+      const pods = await nsJson(['pods'])
+      const lines = pods.items
+        .map((p) => {
+          const states = p.status.containerStatuses
+            ?.map((c) => {
+              if (c.state?.running) return 'running'
+              if (c.state?.waiting) return c.state.waiting.reason || 'waiting'
+              if (c.state?.terminated)
+                return c.state.terminated.reason || 'done'
+              return '?'
+            })
+            .join(',')
+          return `${p.metadata.name}:${p.status.phase}/${states || 'init'}`
+        })
+        .join(' | ')
+      console.log('K8S_BOOT_PROGRESS', lines)
+    } catch {
+      // transient list failures are not fatal for a progress log
+    }
+  }, 30000)
+  try {
+    await until(
+      async () =>
+        (await nsJson(['deployment', 'api'])).status.readyReplicas === 1,
+      'base :local deployment ready',
+      1500000,
+    )
+  } finally {
+    clearInterval(bootProbe)
+  }
   await ns(['set', 'image', 'deployment/api', `api=${image}:v1`], 60000)
   await until(
     async () => {
