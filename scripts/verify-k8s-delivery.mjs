@@ -77,7 +77,7 @@ async function until(check, label, milliseconds = 15000) {
     if (value) return value
     await delay(250)
   }
-  throw new Error(`Timed out waiting for ${label}`)
+  throw new Error(`Timed out waiting for ${await label}`)
 }
 const clientTemplate = (command) => `apiVersion: v1
 kind: Pod
@@ -207,10 +207,13 @@ try {
   // migrations, key job) BEFORE switching the image: this keeps the v1
   // rollout from stacking on a cold first boot.
   await kubectl(['apply', '-f', 'project/deploy/k8s/teaching.yaml'], 90000)
-  // Progress visibility: cold first boots can take many minutes on CI disks.
+  // Progress evidence written to a file (stdout may be buffered away on
+  // failure) plus a final-state snapshot embedded in the timeout error.
+  const bootLog = []
   const bootProbe = setInterval(async () => {
     try {
       const pods = await nsJson(['pods'])
+      const deployment = await nsJson(['deployment', 'api'])
       const lines = pods.items
         .map((p) => {
           const states = p.status.containerStatuses
@@ -222,10 +225,24 @@ try {
               return '?'
             })
             .join(',')
-          return `${p.metadata.name}:${p.status.phase}/${states || 'init'}`
+          const init = p.status.initContainerStatuses
+            ?.map((c) => {
+              if (c.state?.running) return 'running'
+              if (c.state?.terminated)
+                return `done(${c.state.terminated.reason})`
+              return c.state?.waiting?.reason || 'waiting'
+            })
+            .join(',')
+          return `${p.metadata.name}:${p.status.phase}/init[${init || '?'}]/main[${states || '?'}]`
         })
         .join(' | ')
-      console.log('K8S_BOOT_PROGRESS', lines)
+      bootLog.push(
+        `${new Date().toISOString()} ready=${deployment.status.readyReplicas ?? 0} ${lines}`,
+      )
+      await writeFile(
+        resolve(output, 'boot-progress.log'),
+        bootLog.join('\n') + '\n',
+      )
     } catch {
       // transient list failures are not fatal for a progress log
     }
@@ -234,7 +251,14 @@ try {
     await until(
       async () =>
         (await nsJson(['deployment', 'api'])).status.readyReplicas === 1,
-      'base :local deployment ready',
+      async () => {
+        try {
+          const deployment = await nsJson(['deployment', 'api'])
+          return `base :local deployment ready (readyReplicas=${deployment.status.readyReplicas ?? 0}, unavailable=${deployment.status.unavailableReplicas ?? 0})`
+        } catch {
+          return 'base :local deployment ready (query failed)'
+        }
+      },
       1500000,
     )
   } finally {
