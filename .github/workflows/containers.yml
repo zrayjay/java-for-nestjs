@@ -10,6 +10,7 @@ on:
       - '.mvn/**'
       - '.dockerignore'
       - 'scripts/verify-compose-teaching.mjs'
+      - 'examples/container-node-reference/**'
       - '.github/workflows/containers.yml'
   pull_request:
     paths:
@@ -21,6 +22,7 @@ on:
       - '.mvn/**'
       - '.dockerignore'
       - 'scripts/verify-compose-teaching.mjs'
+      - 'examples/container-node-reference/**'
       - '.github/workflows/containers.yml'
   workflow_dispatch:
 permissions:
@@ -36,6 +38,8 @@ jobs:
           node-version: 22.20.0
       - name: Build, migrate, authorize, fail readiness and drain a real SQL request
         run: node scripts/verify-compose-teaching.mjs
+      - name: Native Node process signal comparison
+        run: node --test examples/container-node-reference/lifecycle.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

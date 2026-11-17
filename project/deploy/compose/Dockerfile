@@ -1,4 +1,5 @@
 FROM eclipse-temurin:21.0.13_9-jdk-noble AS build
+RUN apt-get update && apt-get install -y --no-install-recommends unzip && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 COPY .mvn .mvn
 COPY mvnw pom.xml ./
