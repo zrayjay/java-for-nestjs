@@ -37,6 +37,7 @@ baseline:
   rabbitmq: 4.2.2
   amqplib: 0.10.9
   amqplibTypes: 0.10.8
+  temurinImage: 21.0.13_9
 parts:
   - id: '01'
     title: 运行时与工具入门
@@ -1408,7 +1409,7 @@ chapters:
     part: '08'
     title: 容器与编排
     path: docs/08-cloud-native/40-containers-and-orchestration.md
-    status: planned
+    status: draft
     prerequisites:
       - '16'
       - '23'
@@ -1418,8 +1419,13 @@ chapters:
     topics: Docker、Kubernetes、健康检查、滚动更新
     reference: Node Docker 部署
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - project/deploy/compose/teaching.yaml
+      - project/deploy/compose/Dockerfile
+      - examples/container-node-reference/server.mjs
+    tests:
+      - project/deploy/compose/verify.mjs
+      - examples/container-node-reference/lifecycle.test.mjs
     noCodeReason: null
     verification: []
     reviews: []

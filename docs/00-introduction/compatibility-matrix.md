@@ -84,6 +84,8 @@ CI证据：[运行42603068673](https://github.com/zrayjay/java-for-nestjs/action
 
 ## Boot4评估边界
 
+P5容器运行物使用Temurin `21.0.13_9` 的jdk-noble构建阶段与jre-noble运行阶段，MySQL8.4.7。Docker/Compose实际版本与摘要从真实容器CI记录，不把宿主Windows的Engine版本当Linux CI版本。见[ADR0011](../adr/0011-teaching-container-runtime.md)及[P5-03](../progress/P5-03.md)；当前Temurin镜像已在失败CI中成功拉取，完整启动仍待，不泛称全平台部署通过。
+
 P5消息原语基线见[ADR0010](../adr/0010-messaging-and-outbox-runtime.md)：RabbitMQ4.2.2-management（官方v4.2.2发布），Boot3.5.16管理的Java AMQP client5.25.0，Node amqplib0.10.9与@types/amqplib0.10.8，MySQL8.4.7/Flyway11.20.3/mariadb3.5.4。真实服务矩阵与故障证据见[P5-01](../progress/P5-01.md)，当前审查修订待新CI，不把候选版本直接写成全平台验证。底层SDK演示不代表Kafka或Nest transporter验证。
 
 独立`pom-boot4.xml`选择Boot4.1.2、MyBatis-Plus Boot4 Starter3.5.18、springdoc3.2.0。为保持比较变量一致，暂显式固定Testcontainers1.21.4和Flyway11.20.3；这不同于Boot4默认管理的Testcontainers2.0.5/Flyway12.4.0。

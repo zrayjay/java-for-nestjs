@@ -402,7 +402,7 @@
         "topics": "Docker、Kubernetes、健康检查、滚动更新",
         "reference": "Node Docker 部署",
         "pilot": false,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/08-cloud-native/40-containers-and-orchestration.md"
       },
       {

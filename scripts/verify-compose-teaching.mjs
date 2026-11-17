@@ -190,7 +190,10 @@ try {
     20000,
   )
   assert.equal((await request('/actuator/health/liveness')).status, 200)
-  await compose(['start', '--wait', '--wait-timeout', '180', 'mysql'], 240000)
+  await compose(
+    ['up', '-d', '--wait', '--wait-timeout', '180', 'mysql'],
+    240000,
+  )
   await until(
     async () => (await request('/actuator/health/readiness')).status === 200,
     'database recovery',

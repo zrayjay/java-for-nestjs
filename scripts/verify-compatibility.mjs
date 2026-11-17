@@ -24,6 +24,18 @@ export async function verifyCompatibility(root) {
   )
   const messageWorkflow = await read('.github/workflows/messaging.yml')
   const messagePom = await read('examples/messaging-lab/pom.xml')
+  const containerFile = await read('project/deploy/compose/Dockerfile')
+  const containerCompose = await read('project/deploy/compose/teaching.yaml')
+  const containerWorkflow = await read('.github/workflows/containers.yml')
+  const temurinImage = containerFile.match(
+    /FROM eclipse-temurin:([\d._]+)-jdk-noble/,
+  )?.[1]
+  if (
+    !containerFile.includes(`FROM eclipse-temurin:${temurinImage}-jre-noble`) ||
+    containerCompose.match(/image:\s+mysql:([\d.]+)/)?.[1] !== b.mysql ||
+    !containerWorkflow.includes(`node-version: ${b.node}`)
+  )
+    throw new Error('容器JDK/JRE/MySQL/CI Node版本漂移')
   if (
     messagePom.match(/<flyway.version>([^<]+)</)?.[1] !== b.flyway ||
     messagePackage.dependencies.mariadb !== b.mariadb ||
@@ -67,6 +79,7 @@ export async function verifyCompatibility(root) {
     ].map((n) => read(`.github/workflows/${n}.yml`)),
   )
   const actual = {
+    temurinImage,
     rabbitmq: messageWorkflow.match(
       /image:\s+rabbitmq:([\d.]+)-management/,
     )?.[1],

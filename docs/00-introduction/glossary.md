@@ -103,3 +103,6 @@ Spring与数据访问扩展：
 | 事务Outbox | 业务与待发事件同库事务，异步发布后标记 | SQL与代理成为同一事务；SENT代表消费完成 | [第39章](../08-cloud-native/39-distributed-reliability.md) |
 | lease / claim token | 数据库期限与当前领取身份保护SQL状态更新 | 过期能取消旧worker网络操作；随机token自动成为代理fencing | [第39章](../08-cloud-native/39-distributed-reliability.md) |
 | timeout / circuit | 等待期限与依赖失败后暂缓尝试 | 超时证明未执行；单实例熔断自动同步全部副本 | [第39章](../08-cloud-native/39-distributed-reliability.md) |
+| image / container / volume | 运行模板、实际进程与独立持久数据 | 重建容器保留可写层；命名卷等于备份 | [第40章](../08-cloud-native/40-containers-and-orchestration.md) |
+| liveness / readiness | 进程可工作与当前适合接流量，依赖范围需显式定义 | DB掉线必须重启API；health200证明业务正确 | [第40章](../08-cloud-native/40-containers-and-orchestration.md) |
+| graceful / SIGTERM | 停止接纳、有限等待在途、清理退出 | 空闲stop证明事务排空；退出143必定成功 | [第40章](../08-cloud-native/40-containers-and-orchestration.md) |
