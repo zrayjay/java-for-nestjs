@@ -318,7 +318,7 @@ kind是测试集群，通过不等于生产K8s能力；本清单未声明Ingress
 node scripts/verify-k8s-teaching.mjs
 ```
 
-要求零失败完成：空卷迁移登录创建、DB停止时readiness503/liveness200并摘流、恢复、扩容2副本、rollout restart期间Service持续请求零失败、旧Pod优雅退出0/143、新副本保留任务与密钥。集群版本与真实日志见[P5-04](../progress/P5-04.md)；构建失败或静态清单检查不算演练通过。
+要求零失败完成：空卷迁移登录创建、DB停止时readiness503/liveness200并摘流、恢复、扩容2副本、rollout restart期间Service持续请求零失败、旧Pod优雅退出0/143、用滚动前的原refresh token轮换访问并读到任务。集群版本与真实日志见[P5-04](../progress/P5-04.md)；构建失败或静态清单检查不算演练通过。
 
 ## 练习提示与官方资料
 

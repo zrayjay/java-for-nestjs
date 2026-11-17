@@ -65,7 +65,13 @@ async function json(path, timeout) {
 async function until(check, label, milliseconds = 15000) {
   const deadline = Date.now() + milliseconds
   while (Date.now() < deadline) {
-    const value = await check()
+    let value
+    try {
+      value = await check()
+    } catch {
+      // Transient kubectl/await failures are retried until the deadline.
+      value = undefined
+    }
     if (value) return value
     await delay(200)
   }
@@ -158,17 +164,23 @@ try {
   // Real business flow through the cluster-internal Service DNS name.
   console.log('K8S_PHASE login-and-create')
   const login = await clientCommand(
-    `token=$(curl -fsS -X POST http://api.teaching.svc.cluster.local:8089/auth/login -H 'content-type: application/json' -d '{"username":"compose-admin","password":"disposable-admin-password"}' | sed -n 's/.*"accessToken":"\\([^"]*\\)".*/\\1/p') &&
-    test -n "$token" && echo "TOKEN_OK" &&
+    `login=$(curl -fsS -X POST http://api.teaching.svc.cluster.local:8089/auth/login -H 'content-type: application/json' -d '{"username":"compose-admin","password":"disposable-admin-password"}') &&
+    token=$(printf '%s' "$login" | sed -n 's/.*"accessToken":"\\([^"]*\\)".*/\\1/p') &&
+    refresh=$(printf '%s' "$login" | sed -n 's/.*"refreshToken":"\\([^"]*\\)".*/\\1/p') &&
+    test -n "$token" && test -n "$refresh" && echo "TOKEN_OK" &&
     curl -fsS -o /dev/null -w '%{http_code}' -X POST http://api.teaching.svc.cluster.local:8089/tasks -H "authorization: Bearer $token" -H 'content-type: application/json' -d '{"title":"K8s drill","details":{"priority":2}}' > /tmp/create.status &&
     echo "CREATE_$(cat /tmp/create.status)" &&
     curl -fsS http://api.teaching.svc.cluster.local:8089/actuator/health/readiness | grep -q '"status":"UP"' && echo 'READY_UP' &&
-    printf '%s' "$token" > /dev/null`,
+    echo "REFRESH_PREFIX_$refresh"`,
     180000,
   )
   assert.match(login, /TOKEN_OK/)
   assert.match(login, /CREATE_201/)
   assert.match(login, /READY_UP/)
+  // The original refresh token (7-day validity) is kept in memory only; the
+  // access token itself expires after 300s, long before the rollout completes.
+  const originalRefresh = login.match(/REFRESH_PREFIX_([^\s"]+)/)?.[1]
+  assert.ok(originalRefresh, 'original refresh token captured')
   results.checks.push('fresh-volume-migration-login-authorized-create')
 
   console.log('K8S_PHASE database-readiness-failure')
@@ -235,29 +247,72 @@ try {
   const oldPodNames = new Set(
     (await json(['pods', '-l', 'app=api'])).items.map((p) => p.metadata.name),
   )
-  const rollouter = ns(['rollout', 'restart', 'deployment', 'api'], 60000)
-  // Old pod objects are GC'd shortly after termination: capture exit codes live,
-  // while the pod is still Terminating, instead of querying after the rollout.
+  const rollouter = ns(['rollout', 'restart', 'deployment', 'api'], 60_000)
+  // Old pod objects are GC'd shortly after termination. A streaming watch sees
+  // every final terminated state before the DELETED event, so nothing is missed.
+  // kubectl --watch -o json emits a stream of pretty-printed JSON documents
+  // (not newline-delimited): frame them by brace balance, outside strings.
   const capturedExits = new Map()
-  let collecting = true
+  const watchDebug = { docs: 0, bytes: 0, stderr: '' }
+  const watcher = start(
+    ['-n', namespace, 'get', 'pods', '-l', 'app=api', '--watch', '-o', 'json'],
+    3_600_000,
+  )
   const collector = (async () => {
-    while (collecting) {
-      try {
-        const pods = (await json(['pods', '-l', 'app=api'])).items
-        for (const pod of pods) {
-          const terminated =
-            pod.status?.containerStatuses?.[0]?.state?.terminated
-          if (terminated && !capturedExits.has(pod.metadata.name))
-            capturedExits.set(pod.metadata.name, {
-              exitCode: terminated.exitCode,
-              reason: terminated.reason,
-            })
+    // Scan with a persistent cursor: state (depth/strings) must never be
+    // re-applied to bytes already consumed, or brace counts inflate.
+    let buffer = ''
+    let pos = 0
+    let depth = 0
+    let inString = false
+    let escaped = false
+    let start_ = -1
+    watcher.child.stdout.on('data', (data) => {
+      buffer += data
+      watchDebug.bytes += data.length
+      for (; pos < buffer.length; pos++) {
+        const c = buffer[pos]
+        if (start_ < 0) {
+          if (c !== '{') continue
+          start_ = pos
+          depth = 0
+          inString = false
+          escaped = false
         }
-      } catch {
-        // transient list failures are retried on the next poll
+        if (escaped) {
+          escaped = false
+          continue
+        }
+        if (c === '\\' && inString) {
+          escaped = true
+          continue
+        }
+        if (c === '"') inString = !inString
+        if (inString) continue
+        if (c === '{') depth++
+        else if (c === '}') {
+          depth--
+          if (depth === 0) {
+            const document = buffer.slice(start_, pos + 1)
+            start_ = -1
+            try {
+              const pod = JSON.parse(document)
+              watchDebug.docs++
+              const terminated =
+                pod?.status?.containerStatuses?.[0]?.state?.terminated
+              if (terminated && pod.kind === 'Pod')
+                capturedExits.set(pod.metadata.name, {
+                  exitCode: terminated.exitCode,
+                  reason: terminated.reason,
+                })
+            } catch {
+              // skip malformed frames
+            }
+          }
+        }
       }
-      await delay(300)
-    }
+    })
+    await new Promise((resolve) => watcher.child.on('close', resolve))
   })()
   // Continuous in-cluster client traffic during the whole rollout.
   const looper = clientCommand(
@@ -289,7 +344,12 @@ try {
     300000,
   )
   const looperOutput = await looper
-  assert.match(looperOutput, /REQUESTS_\d+ FAILURES_0/)
+  const requestCount = Number(looperOutput.match(/REQUESTS_(\d+)/)?.[1])
+  assert.ok(
+    Number.isSafeInteger(requestCount) && requestCount >= 1,
+    `suspicious looper request count ${requestCount}`,
+  )
+  assert.match(looperOutput, /FAILURES_0/)
   assert.doesNotMatch(looperOutput, /FAILED_REQUEST/)
   const after = await json(['deployment', 'api'])
   assert.notEqual(after.metadata.generation, before.metadata.generation)
@@ -306,10 +366,17 @@ try {
   results.checks.push('rolling-restart-service-requests-zero-failure')
 
   console.log('K8S_PHASE graceful-old-pod-shutdown')
-  // Give the collector a moment to observe the final terminated states.
+  // Final terminated states stream in before the DELETED event; give the
+  // already-received events a moment, then stop the watch.
   await delay(3000)
-  collecting = false
+  watcher.child.kill()
   await collector
+  results.watch = { ...watchDebug }
+  console.log('K8S_WATCH_DEBUG', JSON.stringify(watchDebug))
+  console.log(
+    'K8S_CAPTURED_EXITS',
+    JSON.stringify([...capturedExits.entries()]),
+  )
   results.exitCodes = {}
   for (const name of [...oldPodNames]) {
     if (newPodNames.includes(name)) continue
@@ -324,13 +391,17 @@ try {
   }
 
   console.log('K8S_PHASE restart-preserves-task-session-and-rsa-key')
-  // Directly verify the token from earlier still works against a new pod generation.
-  const relogin = await clientCommand(
-    `token=$(curl -fsS -X POST http://api.teaching.svc.cluster.local:8089/auth/login -H 'content-type: application/json' -d '{"username":"compose-admin","password":"disposable-admin-password"}' | sed -n 's/.*"accessToken":"\\([^"]*\\)".*/\\1/p') &&
+  // The original session's refresh token (captured before the rollout, held
+  // only in this process) must still mint a working access token against the
+  // new pod generation: this proves session and RSA key persisted together.
+  const persisted = await clientCommand(
+    `token=$(curl -fsS -X POST http://api.teaching.svc.cluster.local:8089/auth/refresh -H 'content-type: application/json' -d '{"refreshToken":"${originalRefresh}"}' | sed -n 's/.*"accessToken":"\\([^"]*\\)".*/\\1/p') &&
+    test -n "$token" && echo "REFRESH_OK" &&
     curl -fsS -H "authorization: Bearer $token" http://api.teaching.svc.cluster.local:8089/tasks | grep -q 'K8s drill' && echo 'TASK_PRESERVED'`,
     120000,
   )
-  assert.match(relogin, /TASK_PRESERVED/)
+  assert.match(persisted, /REFRESH_OK/)
+  assert.match(persisted, /TASK_PRESERVED/)
   results.checks.push('rollout-preserves-task-session-and-rsa-key')
 
   results.status = 'passed'

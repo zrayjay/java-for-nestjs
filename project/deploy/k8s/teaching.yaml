@@ -140,6 +140,19 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/mysql
+          startupProbe:
+            # First-time datadir init runs a temporary server with networking
+            # disabled; liveness must not fire during that phase.
+            exec:
+              command:
+                [
+                  'sh',
+                  '-ec',
+                  'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysqladmin --protocol=tcp -h127.0.0.1 -uroot ping >/dev/null 2>&1',
+                ]
+            periodSeconds: 3
+            timeoutSeconds: 3
+            failureThreshold: 40
           readinessProbe:
             exec:
               command:

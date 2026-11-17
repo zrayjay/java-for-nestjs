@@ -8,6 +8,6 @@ RSA密钥从init容器改为K8s Job：同一镜像以相同命令在专用PVC生
 
 API Deployment声明startupProbe避免以初延误差杀慢迁移，liveness只看进程健康，readiness包含真实DB；maxUnavailable=0、maxSurge=1保证滚动期间先备妥新Pod再终止旧Pod，preStop短暂等待与40秒grace匹配应用20秒排空预算。资源requests/limits显式声明，JVM按容器限制感知内存。MySQL使用Recreate策略配合RWO卷。
 
-演练证据由脚本与CI承担：kind集群真实apply、就绪等待、真实登录创建、停DB观察readiness503/liveness200与端点摘除、恢复、`kubectl rollout restart`滚动重启期间由集群内客户端Pod对Service持续请求且零失败、旧Pod优雅停止日志、重启后原Token与任务保留。镜像内容未变的同镜像滚动重启用于验证Pod替换机制本身，不冒充新版本发布；版本化镜像更新与回滚演练属P5-05。测试集群版本与结果如实记录，本机或CI任一环境的失败都不得改写为通过。
+演练证据由脚本与CI承担：kind集群真实apply、就绪等待、真实登录创建、停DB观察readiness503/liveness200与端点摘除、恢复、`kubectl rollout restart`滚动重启期间由集群内客户端Pod对Service持续请求且零失败、旧Pod优雅停止日志、重启后用滚动前捕获的原refresh token轮换出访问令牌并读到任务（同时证明会话与RSA密钥保留）。access token本身300秒过期，不用于跨滚动验证。镜像内容未变的同镜像滚动重启用于验证Pod替换机制本身，不冒充新版本发布；版本化镜像更新与回滚演练属P5-05。测试集群版本与结果如实记录，本机或CI任一环境的失败都不得改写为通过。
 
 Compose与K8s两套运行物并存：Compose负责一次性理解依赖与排空，K8s负责副本、探针摘除与滚动替换。第40章在K8s部分交付并审查后离开draft；镜像扫描、发布与回滚仍由P5-05负责，G5不在本ADR内宣称。
