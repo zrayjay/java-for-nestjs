@@ -40,7 +40,7 @@ baseline:
   temurinImage: 21.0.13_9
   kind: 0.33.0
   kindNode: 1.34.0
-  trivyAction: 0.33.1
+  trivyAction: 0.36.0
 parts:
   - id: '01'
     title: 运行时与工具入门

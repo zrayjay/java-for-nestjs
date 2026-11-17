@@ -3,7 +3,7 @@ title: '41 · 自动交付与回滚'
 description: 从版本化镜像、阻断式扫描到真实集群滚动升级与回滚闭环。
 chapter_id: '41'
 teaching_status: draft
-baseline: Temurin21.0.13+9 noble / MySQL8.4.7 / kind v1.34.0 / Trivy 0.33.1 Action / GitHub Actions
+baseline: Temurin21.0.13+9 noble / MySQL8.4.7 / kind v1.34.0 / Trivy Action 0.36.0 / GitHub Actions
 ---
 
 # 41 · 自动交付与回滚

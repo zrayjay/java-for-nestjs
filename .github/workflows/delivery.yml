@@ -44,7 +44,7 @@ jobs:
       - name: Build the delivery image
         run: docker build --build-arg BUILD_MARKER=ci-${{ github.sha }} -f project/deploy/compose/Dockerfile -t java-for-nestjs-teaching:ci .
       - name: Scan for unpatched HIGH/CRITICAL vulnerabilities (blocking)
-        uses: aquasecurity/trivy-action@v0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: java-for-nestjs-teaching:ci
           format: json
