@@ -31,3 +31,5 @@ Docker部分文本与源码通过，无新增阻断。符合P5-03一键启动、
 镜像构建已实际使用Temurin21.0.13+9：JDK镜像索引sha256为`06c1f157dacf6b68198bd9a4186dd4c34ef24e65d7bbbe2a0cf8e62571ad38c9`，JRE为`0d57a8e90c2bb844c5a8e1b2b71e11eff06dad7edcfd803cd21ed4ae203b2515`。本次应用image id为`f0e358d9dca8845bbf1e5ed7677bdd51069a04535cff4ba2c5731cea2c7af535`，只作为该次构建证据，不假称跨构建可重复的发布摘要。
 
 7965302的[Docs44002059613](https://github.com/zrayjay/java-for-nestjs/actions/runs/44002059613)成功；Foundation最终状态及后续证据保存增补见[进度](../progress/P5-03.md)。仅P5-03进入in_review，40章等待P5-04，未自动done。
+
+592445f仅增加重启前独立drain.log归档并保存本审查记录；[容器44002591734](https://github.com/zrayjay/java-for-nestjs/actions/runs/44002591734)再次完整通过，作者下载artifact实际核对排空开始/完成日志及五checkpoint，Node真实信号1项通过。[Docs44002591751](https://github.com/zrayjay/java-for-nestjs/actions/runs/44002591751)成功；7965302 Foundation44002059546最终成功。以上后补执行核验归作者，不冒称独立审查者重跑。
