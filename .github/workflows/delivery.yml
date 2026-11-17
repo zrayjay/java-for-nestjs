@@ -43,6 +43,13 @@ jobs:
           curl -sSLo ./bin/kubectl https://dl.k8s.io/release/v1.34.0/bin/linux/amd64/kubectl
           chmod +x ./bin/kubectl
           echo "$PWD/bin" >> "$GITHUB_PATH"
+      - name: Reveal which kubectl the drill will invoke
+        run: |
+          echo "PATH=$PATH"
+          type -a kubectl || true
+          command -v kubectl || true
+          kubectl version --client=true 2>&1 | head -2 || true
+          ls -la "$(command -v kubectl)" 2>/dev/null || true
       - name: Install pinned kind
         run: |
           curl -sSLo ./kind https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64
