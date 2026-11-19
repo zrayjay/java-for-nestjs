@@ -7,7 +7,11 @@ on:
       - 'examples/security-lab/**'
       - 'examples/data-access-lab/**'
       - 'examples/spring-web-lab/**'
+      - 'examples/java-basics/**'
+      - 'examples/spring-boot-examples/**'
+      - 'config/**'
       - 'pom.xml'
+      - 'mvnw'
       - '.mvn/**'
       - '.dockerignore'
       - 'scripts/verify-k8s-delivery.mjs'
@@ -18,7 +22,11 @@ on:
       - 'examples/security-lab/**'
       - 'examples/data-access-lab/**'
       - 'examples/spring-web-lab/**'
+      - 'examples/java-basics/**'
+      - 'examples/spring-boot-examples/**'
+      - 'config/**'
       - 'pom.xml'
+      - 'mvnw'
       - '.mvn/**'
       - '.dockerignore'
       - 'scripts/verify-k8s-delivery.mjs'
@@ -37,41 +45,50 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.20.0
-      - name: Install pinned kubectl ahead of a broken runner kubectl
+      - name: Install pinned kubectl
         run: |
-          mkdir -p ./bin
-          curl -sSLo ./bin/kubectl https://dl.k8s.io/release/v1.34.0/bin/linux/amd64/kubectl
-          chmod +x ./bin/kubectl
-          echo "$PWD/bin" >> "$GITHUB_PATH"
-      - name: Reveal which kubectl the drill will invoke
-        run: |
-          echo "PATH=$PATH"
-          type -a kubectl || true
-          command -v kubectl || true
-          kubectl version --client=true 2>&1 | head -2 || true
-          ls -la "$(command -v kubectl)" 2>/dev/null || true
+          mkdir -p "$RUNNER_TEMP/delivery-bin"
+          cd "$RUNNER_TEMP/delivery-bin"
+          curl -fsSLO https://dl.k8s.io/release/v1.34.0/bin/linux/amd64/kubectl
+          curl -fsSLO https://dl.k8s.io/release/v1.34.0/bin/linux/amd64/kubectl.sha256
+          echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+          chmod +x kubectl
+          echo "$PWD" >> "$GITHUB_PATH"
       - name: Install pinned kind
         run: |
-          curl -sSLo ./kind https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64
+          curl -fsSLo ./kind https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64
           chmod +x ./kind
-      - name: Build the delivery image
-        run: docker build --build-arg BUILD_MARKER=ci-${{ github.sha }} -f project/deploy/compose/Dockerfile -t java-for-nestjs-teaching:ci .
-      - name: Scan for unpatched HIGH/CRITICAL vulnerabilities (blocking)
+      - name: Build and check the delivery candidates
+        run: |
+          node --check scripts/verify-k8s-delivery.mjs
+          docker build --build-arg BUILD_MARKER="drill-v1-$GITHUB_SHA" -f project/deploy/compose/Dockerfile -t java-for-nestjs-teaching:v1 .
+          docker build --build-arg BUILD_MARKER=drill-v2-rollback-target -f project/deploy/compose/Dockerfile -t java-for-nestjs-teaching:v2 .
+      - name: Scan v1 for fixable HIGH/CRITICAL vulnerabilities (blocking)
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: java-for-nestjs-teaching:ci
+          image-ref: java-for-nestjs-teaching:v1
           format: json
           exit-code: '1'
           ignore-unfixed: true
           severity: HIGH,CRITICAL
           trivyignores: project/deploy/trivy-ignore.yaml
-          output: trivy-report.json
+          output: trivy-v1.json
+      - name: Scan v2 for fixable HIGH/CRITICAL vulnerabilities (blocking)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: java-for-nestjs-teaching:v2
+          format: json
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          trivyignores: project/deploy/trivy-ignore.yaml
+          output: trivy-v2.json
       - name: Always upload the scan report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: trivy-scan-report
-          path: trivy-report.json
+          path: trivy-v*.json
           retention-days: 7
       - name: Create real kind cluster
         run: ./kind create cluster --name p5-delivery --image kindest/node:v1.34.0 --wait 180s
@@ -82,6 +99,8 @@ jobs:
       - name: Deploy v1, roll to v2, undo, verify markers and business continuity
         run: node scripts/verify-k8s-delivery.mjs
         env:
+          DELIVERY_USE_PREBUILT: '1'
+          KIND_BIN: ./kind
           KIND_CLUSTER_NAME: p5-delivery
       - name: Always delete the cluster this job created
         if: always()

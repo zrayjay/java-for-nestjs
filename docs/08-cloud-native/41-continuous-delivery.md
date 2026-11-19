@@ -3,7 +3,7 @@ title: '41 · 自动交付与回滚'
 description: 从版本化镜像、阻断式扫描到真实集群滚动升级与回滚闭环。
 chapter_id: '41'
 teaching_status: draft
-baseline: Temurin21.0.13+9 noble / MySQL8.4.7 / kind v1.34.0 / Trivy Action 0.36.0 / GitHub Actions
+baseline: Temurin21.0.13+9 noble / MySQL8.4.7 / kind v0.33.0 / Kubernetes v1.34.0 / Trivy Action v0.36.0 / GitHub Actions
 ---
 
 # 41 · 自动交付与回滚
@@ -41,7 +41,7 @@ ARG BUILD_MARKER=unversioned
 ENV BUILD_MARKER=${BUILD_MARKER}
 ```
 
-CI以提交SHA构造标记：`--build-arg BUILD_MARKER=ci-${{ github.sha }}`。演练中`docker run --rm <image> printenv BUILD_MARKER`与`kubectl exec <pod> -- printenv BUILD_MARKER`分别验证镜像内与集群内Pod内的实际值。
+CI以提交SHA构造v1标记：`--build-arg BUILD_MARKER="drill-v1-$GITHUB_SHA"`。演练中`docker run --rm --entrypoint printenv <image> BUILD_MARKER`与`kubectl exec <pod> -- printenv BUILD_MARKER`分别验证镜像与集群内Pod的实际值。证据同时记录运行时的镜像ID，用于比对回滚前后的v1产物。
 
 #### 6. 原理与流程图
 
@@ -76,7 +76,7 @@ Pod内marker与预期不符先查`kubectl rollout history`确认实际部署的r
 
 #### 1. 一句话定义
 
-流水线对每次构建产物做漏洞扫描，未修复的HIGH/CRITICAL漏洞使交付失败，而不是事后告警。
+流水线对演练实际加载的两份镜像做漏洞扫描，存在已有修复版本且未豁免的HIGH/CRITICAL漏洞时阻断交付。
 
 #### 2. 为什么需要它
 
@@ -88,26 +88,26 @@ Pod内marker与预期不符先查`kubectl rollout history`确认实际部署的r
 
 #### 4. Node.js / TypeScript / NestJS 技术对照
 
-Node侧对应`pnpm audit --audit-level high`（本仓库已在用）与镜像扫描互补：npm audit看应用依赖，Trivy看整镜像包括基础层。两者通过的集合不等于零漏洞，只是"已知且未修复的高危为零"。
+Node侧对应`pnpm audit --audit-level high`（本仓库已在用）与镜像扫描互补：npm audit看应用依赖，Trivy看整镜像包括基础层。两项检查各有独立的覆盖范围和严重级别阈值。
 
 #### 5. 两端代码对照
 
 CI扫描步骤，失败即阻断后续部署：
 
 ```yaml
-- uses: aquasecurity/trivy-action@0.33.1
+- uses: aquasecurity/trivy-action@v0.36.0
   with:
-    image-ref: java-for-nestjs-teaching:ci
+    image-ref: java-for-nestjs-teaching:v1
     exit-code: '1'
     ignore-unfixed: true
     severity: HIGH,CRITICAL
 ```
 
-JSON报告无论成败都上传为artifact；LOW/MEDIUM数量如实保留在报告中，不隐藏也不阻断。
+v2使用同样的扫描规则。上传步骤归档已经生成的JSON报告，供失败时排查。
 
 #### 6. 原理与流程图
 
-构建→扫描→（阻断或放行）→集群演练。扫描器比对镜像内包数据库与CVE源；`ignore-unfixed: true`只关注已有修复版本的漏洞，无法修复的漏洞不阻断但仍出现在报告里。
+构建→扫描→（阻断或放行）→集群演练。扫描器比对镜像内包版本与漏洞数据库。门禁报告受严重级别、`ignore-unfixed`和豁免策略过滤，完整盘点要另行运行覆盖所有严重级别和修复状态的扫描。
 
 #### 7. 类比边界与错误直觉
 
@@ -115,7 +115,7 @@ JSON报告无论成败都上传为artifact；LOW/MEDIUM数量如实保留在报�
 
 #### 8. 企业应用场景与选型
 
-生产通常每日重扫已发布镜像（新CVE会追上旧产物）并把扫描接到准入控制。教学管道只扫当次构建；数据库与策略由Action版本固定。
+生产通常每日重扫已发布镜像（新CVE会追上旧产物）并把扫描接到准入控制。教学管道扫描当次构建，扫描工具的Action版本固定，漏洞数据库会更新。
 
 #### 9. 常见错误与排查
 
@@ -129,7 +129,7 @@ JSON报告无论成败都上传为artifact；LOW/MEDIUM数量如实保留在报�
 
 #### 1. 一句话定义
 
-升级以滚动替换发布新版本，回滚以`rollout undo`回到上一revision，两者期间业务请求不失败、数据与会话不丢失。
+升级以滚动替换发布新版本，回滚以`rollout undo`回到上一revision。演练在两次切换前启动Service就绪请求并持续到切换完成，回滚后再用原会话验证业务数据。
 
 #### 2. 为什么需要它
 
@@ -173,7 +173,7 @@ sequenceDiagram
   D->>D: 原refresh token读任务成功
 ```
 
-undo利用ReplicaSet历史，秒级回到已知good revision；数据在PVC与MySQL中跨版本保留。会话/密钥由keys PVC承载，与镜像版本正交。
+undo利用ReplicaSet历史恢复先前的Pod模板，新Pod仍需启动并通过就绪检查。任务与刷新会话保存在MySQL卷中，签名密钥保存在独立的keys PVC中。
 
 #### 7. 类比边界与错误直觉
 
@@ -185,15 +185,11 @@ undo利用ReplicaSet历史，秒级回到已知good revision；数据在PVC与My
 
 #### 9. 常见错误与排查
 
-undo后marker没变查rollout history确认revision顺序；滚动卡住查新Pod readiness与镜像load；零失败断言失败先分辨摘除传播间隙（短暂503/超时）与真实错误；回滚后Token失效查keys PVC是否被删——密钥与会话都靠它。
+undo后marker没变查rollout history确认revision顺序；滚动卡住查新Pod readiness与镜像load；请求断言失败查Service端点与Pod事件；回滚后刷新失败分别检查MySQL会话记录与keys PVC。
 
 #### 10. 实操练习与验收
 
-基础题：解释revision与ReplicaSet的关系。迁移题：对照PM2 reload与Deployment滚动。思考题：什么schema变更会让undo失效？kind集群执行：
-
-```powershell
-node scripts/verify-k8s-delivery.mjs
-```
+基础题：解释revision与ReplicaSet的关系。迁移题：对照PM2 reload与Deployment滚动。思考题：什么schema变更会让undo失效？按[交付演练操作说明](../../project/deploy/k8s/TEACHING.md#版本发布与回滚演练)创建独立kind集群后执行驱动。
 
 要求零失败完成：双marker镜像构建并验证、v1部署登录建任务、v2滚动零失败且marker实测为v2、undo后镜像与marker回到v1且零失败、原refresh token读回任务。CI见[delivery.yml](../../.github/workflows/delivery.yml)，真实证据见[P5-05](../progress/P5-05.md)；扫描阻断与回滚闭环都通过才算本章交付。
 

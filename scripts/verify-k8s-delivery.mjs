@@ -1,481 +1,307 @@
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { mkdir, writeFile } from 'node:fs/promises'
-import { setTimeout as delay } from 'node:timers/promises'
-import { fileURLToPath } from 'node:url'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-// P5-05 delivery drill: build two marker-distinct images, deploy v1, roll to
-// v2 under live traffic, then rollout undo and verify version, business data
-// and the original session all come back. Requires a kind cluster whose
-// context kubectl reaches; images are built locally and kind-loaded.
 const root = fileURLToPath(new URL('../', import.meta.url))
 const output = resolve(root, 'target/delivery-evidence')
 const namespace = 'teaching'
 const image = 'java-for-nestjs-teaching'
-const clusterName = process.env.KIND_CLUSTER_NAME || 'p5-teaching'
-await mkdir(output, { recursive: true })
+const clusterName = process.env.KIND_CLUSTER_NAME || 'p5-delivery'
+const kind = process.env.KIND_BIN || 'kind'
+const source = process.env.GITHUB_SHA || 'local'
+const markers = { v1: `drill-v1-${source}`, v2: 'drill-v2-rollback-target' }
 
-function start(command, args, timeout = 60000) {
-  const child = spawn(command, args, {
-    cwd: root,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  })
-  const state = { child, stdout: '', stderr: '' }
-  child.stdout.on('data', (data) => {
-    state.stdout += data
-  })
-  child.stderr.on('data', (data) => {
-    state.stderr += data
-  })
-  state.done = new Promise((accept, reject) => {
+function run(command, args, { input, timeout = 60_000, label = args[0] } = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { cwd: root, stdio: 'pipe' })
+    let stdout = ''
+    let stderr = ''
     const timer = setTimeout(() => {
       child.kill()
-      reject(new Error('command exceeded bounded deadline'))
+      reject(new Error(`${command} ${label} exceeded ${timeout} ms`))
     }, timeout)
+    child.stdout.setEncoding('utf8').on('data', (data) => {
+      stdout += data
+    })
+    child.stderr.setEncoding('utf8').on('data', (data) => {
+      stderr += data
+    })
+    child.stdin.on('error', reject)
     child.on('error', (error) => {
       clearTimeout(timer)
       reject(error)
     })
     child.on('close', (code) => {
       clearTimeout(timer)
-      if (code === 0) accept(state.stdout)
+      if (code === 0) resolve(stdout)
       else
         reject(
           new Error(
-            `${command} exited ${code}: ${state.stdout.slice(-12000)}\n${state.stderr.slice(-4000)}`,
+            `${command} ${label} exited ${code}\n${stderr.slice(-4000)}`,
           ),
         )
     })
+    child.stdin.end(input)
   })
-  state.done.catch(() => {})
-  return state
-}
-async function run(command, args, timeout) {
-  const state = start(command, args, timeout)
-  state.child.stdin.end()
-  return state.done
-}
-const kubectl = (args, timeout) => run('kubectl', args, timeout)
-const ns = (args, timeout) =>
-  kubectl([args[0], '-n', namespace, ...args.slice(1)], undefined, timeout)
-async function json(args, timeout) {
-  return JSON.parse(await kubectl(args, timeout))
-}
-async function nsJson(args, timeout) {
-  return JSON.parse(await ns(args, timeout))
-}
-async function until(check, label, milliseconds = 15000) {
-  const deadline = Date.now() + milliseconds
-  while (Date.now() < deadline) {
-    let value
-    try {
-      value = await check()
-    } catch {
-      value = undefined
-    }
-    if (value) return value
-    await delay(250)
-  }
-  throw new Error(`Timed out waiting for ${await label}`)
-}
-const clientTemplate = (command) => `apiVersion: v1
-kind: Pod
-metadata:
-  name: drill-client
-  namespace: ${namespace}
-spec:
-  restartPolicy: Never
-  activeDeadlineSeconds: 900
-  containers:
-    - name: client
-      image: ${image}:v1
-      imagePullPolicy: IfNotPresent
-      command: ['sh', '-ec']
-      args:
-        - echo ${Buffer.from(command, 'utf8').toString('base64')} | base64 -d | sh -s
-`
-async function clientCommand(command, timeout = 120000) {
-  await kubectl([
-    'delete',
-    'pod',
-    'drill-client',
-    '-n',
-    namespace,
-    '--ignore-not-found=true',
-    '--wait=true',
-    '--timeout=30s',
-  ])
-  await kubectl(['apply', '-f', '-'], clientTemplate(command))
-  await until(
-    async () =>
-      (await nsJson(['pod', 'drill-client'])).status.phase === 'Succeeded',
-    'drill-client completion',
-    timeout,
-  )
-  return ns(['logs', 'drill-client'], 30000)
 }
 
-const results = {
-  source: process.env.GITHUB_SHA || 'local',
-  cluster: (await json(['version', '-o', 'json'])).serverVersion.gitVersion,
-  checks: [],
-}
-let primaryError
-try {
-  console.log('DELIVERY_PHASE build-two-markers')
-  await run(
-    'docker',
-    [
-      'build',
-      '--build-arg',
-      `BUILD_MARKER=drill-v1-${process.env.GITHUB_SHA || 'local'}`,
-      '-f',
-      'project/deploy/compose/Dockerfile',
-      '-t',
-      `${image}:v1`,
-      '.',
-    ],
-    900000,
+const kubectl = (args, options) =>
+  run('kubectl', ['--context', `kind-${clusterName}`, ...args], {
+    label: args.slice(0, 3).join(' '),
+    ...options,
+  })
+const ns = (args, options) =>
+  kubectl(['-n', namespace, ...args], {
+    label: args.slice(0, 3).join(' '),
+    ...options,
+  })
+const get = async (...resource) =>
+  JSON.parse(await ns(['get', ...resource, '-o', 'json']))
+const client = (input, options) =>
+  ns(['exec', '-i', 'drill-client', '--', 'sh', '-eu'], { input, ...options })
+const rollout = (resource) =>
+  ns(['rollout', 'status', `deployment/${resource}`, '--timeout=300s'], {
+    timeout: 310_000,
+  })
+
+async function verifyVersion(tag) {
+  const deployment = await get('deployment', 'api')
+  const deployedImage = deployment.spec.template.spec.containers.find(
+    ({ name }) => name === 'api',
+  ).image
+  assert.equal(deployedImage, `${image}:${tag}`)
+  const { items } = await get('pods', '-l', 'app=api')
+  const activePods = items.filter(({ metadata }) => !metadata.deletionTimestamp)
+  assert.equal(activePods.length, 1)
+  const pod = activePods[0]
+  const container = pod.status.containerStatuses.find(
+    ({ name }) => name === 'api',
   )
-  await run(
-    'docker',
-    [
-      'build',
-      '--build-arg',
-      'BUILD_MARKER=drill-v2-rollback-target',
-      '-f',
-      'project/deploy/compose/Dockerfile',
-      '-t',
-      `${image}:v2`,
-      '.',
-    ],
-    900000,
-  )
-  const kindBin = process.env.KIND_BIN || 'kind'
-  // The manifest references :local (api image + wait-keys init container).
-  // Alias v1 as :local and load it too, so a fresh cluster never tries to
-  // pull java-for-nestjs-teaching:local from a remote registry.
-  await run('docker', ['tag', `${image}:v1`, `${image}:local`])
-  for (const tag of ['v1', 'v2', 'local']) {
-    await run(
-      kindBin,
-      ['load', 'docker-image', `${image}:${tag}`, '--name', clusterName],
-      300000,
-    )
+  assert.ok(container.ready)
+  assert.equal(container.image, deployedImage)
+  const marker = (
+    await ns([
+      'exec',
+      pod.metadata.name,
+      '-c',
+      'api',
+      '--',
+      'printenv',
+      'BUILD_MARKER',
+    ])
+  ).trim()
+  assert.equal(marker, markers[tag])
+  return {
+    image: deployedImage,
+    imageID: container.imageID,
+    pod: pod.metadata.name,
+    marker,
   }
-  // --entrypoint avoids launching the app: the data-layer guard correctly
-  // rejects a container without its compose environment.
-  const localMarker = (
-    await run('docker', [
+}
+
+const api = 'http://api.teaching.svc.cluster.local:8089'
+
+async function underTraffic(change) {
+  const requests = client(
+    `
+    requests=0
+    failures=0
+    while [ ! -f /tmp/probe-stop ]; do
+      code=$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' ${api}/actuator/health/readiness) || code=error
+      requests=$((requests + 1))
+      if [ "$code" != 200 ]; then failures=$((failures + 1)); fi
+      touch /tmp/probe-started
+      sleep 0.3
+    done
+    printf '%s %s\n' "$requests" "$failures"
+  `,
+    { timeout: 360_000 },
+  )
+  // Attach a handler immediately while the rollout is in flight.
+  requests.catch(() => {})
+  try {
+    await client(`
+      for attempt in $(seq 1 20); do
+        if [ -f /tmp/probe-started ]; then exit 0; fi
+        sleep 1
+      done
+      exit 1
+    `)
+    await change()
+    await rollout('api')
+  } finally {
+    await client('touch /tmp/probe-stop\n')
+  }
+  const [count, failures] = (await requests).trim().split(' ').map(Number)
+  await client('rm /tmp/probe-started /tmp/probe-stop\n')
+  assert.ok(Number.isSafeInteger(count) && count > 0)
+  assert.equal(failures, 0, `Readiness request failures out of ${count}`)
+  return { requests: count, failures }
+}
+
+const results = { source, checks: [] }
+let namespaceCreated = false
+await mkdir(output, { recursive: true })
+
+try {
+  const version = JSON.parse(await kubectl(['version', '-o', 'json']))
+  results.cluster = version.serverVersion.gitVersion
+  const existing = await kubectl([
+    'get',
+    'namespace',
+    namespace,
+    '--ignore-not-found',
+    '-o',
+    'name',
+  ])
+  assert.equal(
+    existing.trim(),
+    '',
+    'Use a fresh, dedicated kind cluster for this drill',
+  )
+
+  console.log('DELIVERY_PHASE prepare-images')
+  for (const [tag, marker] of Object.entries(markers)) {
+    const ref = `${image}:${tag}`
+    if (process.env.DELIVERY_USE_PREBUILT !== '1') {
+      await run(
+        'docker',
+        [
+          'build',
+          '--build-arg',
+          `BUILD_MARKER=${marker}`,
+          '-f',
+          'project/deploy/compose/Dockerfile',
+          '-t',
+          ref,
+          '.',
+        ],
+        { timeout: 900_000, label: `build ${ref}` },
+      )
+    }
+    const actual = await run('docker', [
       'run',
       '--rm',
       '--entrypoint',
       'printenv',
-      `${image}:v1`,
+      ref,
       'BUILD_MARKER',
     ])
-  ).trim()
-  assert.match(localMarker, /^drill-v1-/)
-  const v2Marker = (
-    await run('docker', [
-      'run',
-      '--rm',
-      '--entrypoint',
-      'printenv',
-      `${image}:v2`,
-      'BUILD_MARKER',
-    ])
-  ).trim()
-  assert.equal(v2Marker, 'drill-v2-rollback-target')
-  results.markers = { v1: localMarker, v2: v2Marker }
+    assert.equal(actual.trim(), marker)
+    await run(kind, ['load', 'docker-image', ref, '--name', clusterName], {
+      timeout: 300_000,
+    })
+  }
   results.checks.push('marker-distinct-images-built')
 
   console.log('DELIVERY_PHASE deploy-v1')
-  // Apply the base manifest and wait for the :local first boot (mysql init,
-  // migrations, key job) BEFORE switching the image: this keeps the v1
-  // rollout from stacking on a cold first boot.
-  // Trace each step to a file: CI failures showed no stdout at all past this
-  // point, so file traces are the only reliable per-step evidence.
-  const trace = async (step) => {
-    bootTrace.push(`${new Date().toISOString()} ${step}`)
-    await writeFile(
-      resolve(output, 'drill-trace.log'),
-      bootTrace.join('\n') + '\n',
-    )
-  }
-  const bootTrace = []
-  await trace('delete-namespace-start')
-  await kubectl(
-    [
-      'delete',
-      'namespace',
-      namespace,
-      '--ignore-not-found=true',
-      '--wait=true',
-      '--timeout=60s',
-    ],
-    90000,
+  // The teaching image appears in the keys Job, the init container, and the
+  // API. Set all three to v1 before applying so v1 is the initial revision.
+  const manifest = await readFile(
+    resolve(root, 'project/deploy/k8s/teaching.yaml'),
+    'utf8',
   )
-  await trace('delete-namespace-done')
-  await trace('apply-start')
-  await kubectl(['apply', '-f', 'project/deploy/k8s/teaching.yaml'], 90000)
-  await trace('apply-done')
-  // Progress evidence written to a file (stdout may be buffered away on
-  // failure) plus a final-state snapshot embedded in the timeout error.
-  const bootLog = []
-  const bootProbe = setInterval(async () => {
-    try {
-      const pods = await nsJson(['pods'])
-      const deployment = await nsJson(['deployment', 'api'])
-      const lines = pods.items
-        .map((p) => {
-          const states = p.status.containerStatuses
-            ?.map((c) => {
-              if (c.state?.running) return 'running'
-              if (c.state?.waiting) return c.state.waiting.reason || 'waiting'
-              if (c.state?.terminated)
-                return c.state.terminated.reason || 'done'
-              return '?'
-            })
-            .join(',')
-          const init = p.status.initContainerStatuses
-            ?.map((c) => {
-              if (c.state?.running) return 'running'
-              if (c.state?.terminated)
-                return `done(${c.state.terminated.reason})`
-              return c.state?.waiting?.reason || 'waiting'
-            })
-            .join(',')
-          return `${p.metadata.name}:${p.status.phase}/init[${init || '?'}]/main[${states || '?'}]`
-        })
-        .join(' | ')
-      bootLog.push(
-        `${new Date().toISOString()} ready=${deployment.status.readyReplicas ?? 0} ${lines}`,
-      )
-      await writeFile(
-        resolve(output, 'boot-progress.log'),
-        bootLog.join('\n') + '\n',
-      )
-    } catch (error) {
-      bootLog.push(`${new Date().toISOString()} PROBE_ERROR ${error.message}`)
-      await writeFile(
-        resolve(output, 'boot-progress.log'),
-        bootLog.join('\n') + '\n',
-      ).catch(() => {})
-    }
-  }, 30000)
-  try {
-    let pollCount = 0
-    await until(
-      async () => {
-        pollCount++
-        const deployment = await nsJson(['deployment', 'api'])
-        if (pollCount % 50 === 1)
-          await trace(
-            `boot-poll #${pollCount} ready=${deployment.status.readyReplicas ?? 0} unavailable=${deployment.status.unavailableReplicas ?? 0}`,
-          )
-        return deployment.status.readyReplicas === 1
-      },
-      async () => {
-        try {
-          const deployment = await nsJson(['deployment', 'api'])
-          return `base :local deployment ready (readyReplicas=${deployment.status.readyReplicas ?? 0}, unavailable=${deployment.status.unavailableReplicas ?? 0})`
-        } catch {
-          return 'base :local deployment ready (query failed)'
-        }
-      },
-      1500000,
-    )
-  } finally {
-    clearInterval(bootProbe)
-  }
-  await ns(['set', 'image', 'deployment/api', `api=${image}:v1`], 60000)
-  await until(
-    async () => {
-      const deployment = await nsJson(['deployment', 'api'])
-      return (
-        deployment.status.readyReplicas === 1 &&
-        deployment.spec.template.spec.containers[0].image === `${image}:v1`
-      )
+  await kubectl(['create', 'namespace', namespace])
+  namespaceCreated = true
+  await kubectl(['apply', '-f', '-'], {
+    input: manifest.replaceAll(`${image}:local`, `${image}:v1`),
+  })
+  await ns(
+    ['wait', '--for=condition=complete', 'job/keys-init', '--timeout=180s'],
+    { timeout: 190_000 },
+  )
+  await rollout('api')
+  results.initial = await verifyVersion('v1')
+
+  const clientPod = {
+    apiVersion: 'v1',
+    kind: 'Pod',
+    metadata: { name: 'drill-client' },
+    spec: {
+      restartPolicy: 'Never',
+      activeDeadlineSeconds: 900,
+      containers: [
+        {
+          name: 'client',
+          image: `${image}:v1`,
+          command: ['sleep', '900'],
+        },
+      ],
     },
-    'v1 deployment ready',
-    600000,
+  }
+  await ns(['apply', '-f', '-'], { input: JSON.stringify(clientPod) })
+  await ns(
+    ['wait', '--for=condition=Ready', 'pod/drill-client', '--timeout=60s'],
+    { timeout: 70_000 },
   )
-  await until(
-    async () => (await nsJson(['job', 'keys-init'])).status.succeeded === 1,
-    'keys job success',
-    240000,
-  )
-  const login = await clientCommand(
-    `login=$(curl -fsS -X POST http://api.teaching.svc.cluster.local:8089/auth/login -H 'content-type: application/json' -d '{"username":"compose-admin","password":"disposable-admin-password"}') &&
-    token=$(printf '%s' "$login" | sed -n 's/.*"accessToken":"\\([^"]*\\)".*/\\1/p') &&
-    refresh=$(printf '%s' "$login" | sed -n 's/.*"refreshToken":"\\([^"]*\\)".*/\\1/p') &&
-    test -n "$token" && test -n "$refresh" && echo "TOKEN_OK" &&
-    curl -fsS -o /dev/null -w '%{http_code}' -X POST http://api.teaching.svc.cluster.local:8089/tasks -H "authorization: Bearer $token" -H 'content-type: application/json' -d '{"title":"Delivery drill","details":{"priority":1}}' > /tmp/c.status &&
-    echo "CREATE_$(cat /tmp/c.status)" &&
-    echo "REFRESH_PREFIX_$refresh"`,
-    180000,
-  )
-  assert.match(login, /TOKEN_OK/)
-  assert.match(login, /CREATE_201/)
-  const originalRefresh = login.match(/REFRESH_PREFIX_([^\s"]+)/)?.[1]
-  assert.ok(originalRefresh, 'original refresh token captured')
+
+  // Refresh credentials stay in the client container's private file and do
+  // not appear in Pod manifests, command arguments from the host, or evidence.
+  await client(`
+    umask 077
+    login=$(curl -fsS --max-time 15 -X POST ${api}/auth/login -H 'content-type: application/json' -d '{"username":"compose-admin","password":"disposable-admin-password"}')
+    token=$(printf '%s' "$login" | sed -n 's/.*"accessToken":"\\([^"]*\\)".*/\\1/p')
+    refresh=$(printf '%s' "$login" | sed -n 's/.*"refreshToken":"\\([^"]*\\)".*/\\1/p')
+    test -n "$token"
+    test -n "$refresh"
+    printf '%s' "$refresh" > /tmp/drill-refresh
+    status=$(curl -fsS --max-time 15 -o /dev/null -w '%{http_code}' -X POST ${api}/tasks -H "authorization: Bearer $token" -H 'content-type: application/json' -d '{"title":"Delivery drill","details":{"priority":1}}')
+    test "$status" = 201
+  `)
   results.checks.push('v1-deployed-login-and-task-created')
 
   console.log('DELIVERY_PHASE roll-to-v2')
-  const beforeImage = (await nsJson(['deployment', 'api'])).spec.template.spec
-    .containers[0].image
-  await ns(['set', 'image', 'deployment/api', `api=${image}:v2`], 60000)
-  const looper = clientCommand(
-    `failures=0; requests=0;
-    deadline=$(( $(date +%s) + 180 ));
-    while [ "$(date +%s)" -lt "$deadline" ]; do
-      code=$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://api.teaching.svc.cluster.local:8089/actuator/health/readiness || echo curl_error);
-      requests=$((requests+1));
-      case "$code" in
-        200) : ;;
-        *) failures=$((failures+1)); echo "FAILED_REQUEST $code" ;;
-      esac;
-      sleep 0.3;
-    done;
-    echo "REQUESTS_$requests FAILURES_$failures"`,
-    300000,
+  const forward = await underTraffic(() =>
+    ns(['set', 'image', 'deployment/api', `api=${image}:v2`]),
   )
-  await until(
-    async () => {
-      const status = await ns(
-        ['rollout', 'status', 'deployment', 'api', '--timeout=5s'],
-        20000,
-      ).catch((error) => String(error))
-      return String(status).trim().endsWith('successfully rolled out')
-    },
-    'v2 rollout completion',
-    300000,
-  )
-  const looperOutput = await looper
-  const requestCount = Number(looperOutput.match(/REQUESTS_(\d+)/)?.[1])
-  assert.ok(
-    Number.isSafeInteger(requestCount) && requestCount >= 1,
-    `suspicious looper request count ${requestCount}`,
-  )
-  assert.match(looperOutput, /FAILURES_0/)
-  assert.doesNotMatch(looperOutput, /FAILED_REQUEST/)
-  const podV2 = (await nsJson(['pods', '-l', 'app=api'])).items.find(
-    (p) => !p.metadata.deletionTimestamp,
-  )
-  const podMarkerV2 = (
-    await ns(['exec', podV2.metadata.name, '--', 'printenv', 'BUILD_MARKER'])
-  ).trim()
-  assert.equal(podMarkerV2, 'drill-v2-rollback-target')
-  const afterImage = (await nsJson(['deployment', 'api'])).spec.template.spec
-    .containers[0].image
-  assert.equal(afterImage, `${image}:v2`)
-  assert.notEqual(afterImage, beforeImage)
-  results.rollForward = {
-    requests: requestCount,
-    failures: 0,
-    marker: podMarkerV2,
-  }
+  results.rollForward = { ...forward, ...(await verifyVersion('v2')) }
   results.checks.push('v2-rollout-zero-failure-marker-v2')
 
   console.log('DELIVERY_PHASE rollback-to-v1')
-  await ns(['rollout', 'undo', 'deployment', 'api'], 60000)
-  const looper2 = clientCommand(
-    `failures=0; requests=0;
-    deadline=$(( $(date +%s) + 180 ));
-    while [ "$(date +%s)" -lt "$deadline" ]; do
-      code=$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://api.teaching.svc.cluster.local:8089/actuator/health/readiness || echo curl_error);
-      requests=$((requests+1));
-      case "$code" in
-        200) : ;;
-        *) failures=$((failures+1)); echo "FAILED_REQUEST $code" ;;
-      esac;
-      sleep 0.3;
-    done;
-    echo "REQUESTS_$requests FAILURES_$failures"`,
-    300000,
+  const backward = await underTraffic(() =>
+    ns(['rollout', 'undo', 'deployment/api']),
   )
-  await until(
-    async () => {
-      const status = await ns(
-        ['rollout', 'status', 'deployment', 'api', '--timeout=5s'],
-        20000,
-      ).catch((error) => String(error))
-      return String(status).trim().endsWith('successfully rolled out')
-    },
-    'rollback completion',
-    300000,
+  results.rollback = { ...backward, ...(await verifyVersion('v1')) }
+  assert.equal(results.rollback.imageID, results.initial.imageID)
+  await writeFile(
+    resolve(output, 'rollout-history.log'),
+    await ns(['rollout', 'history', 'deployment/api']),
   )
-  const looperOutput2 = await looper2
-  const requestCount2 = Number(looperOutput2.match(/REQUESTS_(\d+)/)?.[1])
-  assert.ok(
-    Number.isSafeInteger(requestCount2) && requestCount2 >= 1,
-    `suspicious looper request count ${requestCount2}`,
-  )
-  assert.match(looperOutput2, /FAILURES_0/)
-  assert.doesNotMatch(looperOutput2, /FAILED_REQUEST/)
-  const rolledBackImage = (await nsJson(['deployment', 'api'])).spec.template
-    .spec.containers[0].image
-  assert.equal(rolledBackImage, `${image}:v1`)
-  const podV1 = (await nsJson(['pods', '-l', 'app=api'])).items.find(
-    (p) => !p.metadata.deletionTimestamp,
-  )
-  const podMarkerV1 = (
-    await ns(['exec', podV1.metadata.name, '--', 'printenv', 'BUILD_MARKER'])
-  ).trim()
-  assert.match(podMarkerV1, /^drill-v1-/)
-  const history = await ns(['rollout', 'history', 'deployment', 'api'], 60000)
-  results.rollback = {
-    requests: requestCount2,
-    failures: 0,
-    marker: podMarkerV1,
-    image: rolledBackImage,
-  }
-  await writeFile(resolve(output, 'rollout-history.log'), history)
   results.checks.push('undo-returns-v1-image-and-marker')
 
   console.log('DELIVERY_PHASE business-continuity-after-rollback')
-  const persisted = await clientCommand(
-    `token=$(curl -fsS -X POST http://api.teaching.svc.cluster.local:8089/auth/refresh -H 'content-type: application/json' -d '{"refreshToken":"${originalRefresh}"}' | sed -n 's/.*"accessToken":"\\([^"]*\\)".*/\\1/p') &&
-    test -n "$token" && echo "REFRESH_OK" &&
-    curl -fsS -H "authorization: Bearer $token" http://api.teaching.svc.cluster.local:8089/tasks | grep -q 'Delivery drill' && echo 'TASK_PRESERVED'`,
-    120000,
-  )
-  assert.match(persisted, /REFRESH_OK/)
-  assert.match(persisted, /TASK_PRESERVED/)
+  await client(`
+    refresh=$(cat /tmp/drill-refresh)
+    rm /tmp/drill-refresh
+    reply=$(curl -fsS --max-time 15 -X POST ${api}/auth/refresh -H 'content-type: application/json' -d "{\\"refreshToken\\":\\"$refresh\\"}")
+    token=$(printf '%s' "$reply" | sed -n 's/.*"accessToken":"\\([^"]*\\)".*/\\1/p')
+    test -n "$token"
+    tasks=$(curl -fsS --max-time 15 -H "authorization: Bearer $token" ${api}/tasks)
+    printf '%s' "$tasks" | grep -q 'Delivery drill'
+  `)
   results.checks.push('rollback-preserves-task-and-original-session')
-
   results.status = 'passed'
   console.log('DELIVERY_RESULT', JSON.stringify(results))
 } catch (error) {
-  primaryError = error
   results.status = 'failed'
   results.error = error.message
   throw error
 } finally {
-  const cleanupErrors = []
-  try {
-    const describe = await ns(['describe', 'deployment', 'api'], 60000).catch(
-      (error) => `describe failed: ${error.message}`,
-    )
-    await writeFile(resolve(output, 'api-describe.log'), describe)
-  } catch (error) {
-    cleanupErrors.push(error)
+  if (namespaceCreated) {
+    const diagnostics = [
+      ['pods.log', ['get', 'pods', '-o', 'wide']],
+      ['events.log', ['get', 'events', '--sort-by=.lastTimestamp']],
+      ['api-describe.log', ['describe', 'deployment', 'api']],
+    ]
+    for (const [filename, args] of diagnostics) {
+      const log = await ns(args).catch((error) => error.message)
+      await writeFile(resolve(output, filename), log)
+    }
   }
-  try {
-    await writeFile(
-      resolve(output, 'summary.json'),
-      JSON.stringify(results, null, 2) + '\n',
-    )
-  } catch (error) {
-    cleanupErrors.push(error)
-  }
-  if (cleanupErrors.length && !primaryError)
-    throw new AggregateError(cleanupErrors, 'Delivery evidence failed')
-  if (cleanupErrors.length)
-    console.error(
-      'DELIVERY_CLEANUP_ERRORS',
-      cleanupErrors.map((error) => error.message),
-    )
+  await writeFile(
+    resolve(output, 'summary.json'),
+    JSON.stringify(results, null, 2) + '\n',
+  )
 }

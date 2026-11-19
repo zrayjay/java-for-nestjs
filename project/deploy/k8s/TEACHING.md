@@ -43,3 +43,20 @@ node scripts/verify-k8s-teaching.mjs
 ## 排错
 
 Pod起不来先看`kubectl -n teaching describe pod`与`kubectl -n teaching logs`。`wait-mysql` init容器卡住查MySQL Pod与Secret密码；`wait-keys`卡住查`keys-init` Job日志与PVC权限。滚动卡住查新Pod readiness与DB连接；退出137查grace预算与排空超时。清除全部教学数据：`kubectl delete namespace teaching`（PVC与密钥一并丢弃，旧Token全部失效）。
+
+## 版本发布与回滚演练
+
+使用独立的kind集群，驱动通过`kind-p5-delivery`上下文访问它。仓库根目录执行：
+
+```powershell
+kind create cluster --name p5-delivery --image kindest/node:v1.34.0 --wait 180s
+docker pull --platform linux/amd64 mysql:8.4.7
+docker save --platform linux/amd64 -o target/delivery-mysql-amd64.tar mysql:8.4.7
+kind load image-archive target/delivery-mysql-amd64.tar --name p5-delivery
+$env:GITHUB_SHA = git rev-parse HEAD
+node scripts/verify-k8s-delivery.mjs
+```
+
+示例适用于amd64节点。若kind未加入PATH，将`KIND_BIN`设为kind程序的绝对路径。驱动在发现已有`teaching`命名空间时终止，因此每次演练需要干净集群。
+
+`target/delivery-evidence/summary.json`记录三次版本检查、两次切换期间的请求数及失败数，以及回滚后会话和任务验证结果。同目录包含发布历史、Pod与事件记录。检查完毕可用`kind delete cluster --name p5-delivery`清理该专用集群。GitHub Actions先扫描实际参与演练的两份镜像，见[交付工作流](../../../.github/workflows/delivery.yml)和[第41章](../../../docs/08-cloud-native/41-continuous-delivery.md)。
