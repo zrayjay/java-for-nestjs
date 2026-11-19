@@ -48,9 +48,9 @@ public class RequestErrors {
         HttpStatus status = switch (failure.code()) {
             case VALIDATION_ERROR -> HttpStatus.BAD_REQUEST;
             case UNAUTHENTICATED -> HttpStatus.UNAUTHORIZED;
-            case FORBIDDEN -> HttpStatus.FORBIDDEN;
+            case FORBIDDEN, SELF_APPROVAL_FORBIDDEN -> HttpStatus.FORBIDDEN;
             case NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case RESOURCE_CONFLICT -> HttpStatus.CONFLICT;
+            case RESOURCE_CONFLICT, VERSION_CONFLICT, INVALID_TRANSITION -> HttpStatus.CONFLICT;
         };
         var response = ResponseEntity.status(status);
         if (status == HttpStatus.UNAUTHORIZED) {

@@ -1,6 +1,6 @@
 # 毕业项目
 
-此目录用于Vue3管理端与Spring Boot模块化单体。后端已提供身份、用户管理、会话撤销、角色和菜单管理。[工作区Compose](../docs/00-introduction/workspace.md)提供本地MySQL/Redis，P5的任务API继续使用[独立教学部署](deploy/compose/TEACHING.md)。
+此目录用于Vue3管理端与Spring Boot模块化单体。后端已提供身份、用户与角色管理、菜单和订单审批。[工作区Compose](../docs/00-introduction/workspace.md)提供本地MySQL/Redis，P5的任务API继续使用[独立教学部署](deploy/compose/TEACHING.md)。
 
 | 后续路径 | 职责 |
 |---|---|
@@ -74,6 +74,8 @@ Invoke-RestMethod "$api/api/v1/me" -Headers @{ Authorization = "Bearer $($sessio
 
 ## 验证角色与菜单
 
-初始库含`ORDER_CLERK`与`ORDER_REVIEWER`角色。使用管理员令牌读取`GET /api/v1/roles`，通过`PUT /api/v1/users/{id}/roles`为普通用户分配角色。登录为该用户，`GET /api/v1/me`返回业务能力，`GET /api/v1/me/menus`只返回当前可访问的导航。普通用户直接访问角色或菜单管理接口返回403。订单接口由后续业务阶段接入。
+初始库含`ORDER_CLERK`与`ORDER_REVIEWER`角色。使用管理员令牌读取`GET /api/v1/roles`，通过`PUT /api/v1/users/{id}/roles`为普通用户分配角色。登录为该用户，`GET /api/v1/me`返回业务能力，`GET /api/v1/me/menus`只返回当前可访问的导航。普通用户直接访问角色或菜单管理接口返回403。
+
+在同一部门使用两个账号分别领取录单和复核角色。录单员用`POST /api/v1/orders`创建草稿，提交时向`POST /api/v1/orders/{id}/submit`发送当前`version`。复核员读取订单后调用`/approve`并提交所读版本。历史接口`GET /api/v1/orders/{id}/history`依次记录创建、提交和批准。跨部门访问返回404，已过期版本返回409。完整输入及负例见[项目契约](ARCHITECTURE.md#http-契约)。
 
 见 [实施计划](../JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md)、[任务清单](../TASKBOARD.md) 与 [贡献指南](../CONTRIBUTING.md)。

@@ -219,10 +219,7 @@ class CapstoneIdentityTest {
         String memberId = member.path("id").asText();
         long department = member.path("departmentId").asLong();
         var unrelated = newUser(admin);
-        String outsideCode = "other-" + UUID.randomUUID().toString().substring(0, 8);
-        jdbc.update("INSERT INTO sys_department(code, name) VALUES (?, ?)", outsideCode, "Outside department");
-        long outsideDepartment = jdbc.queryForObject(
-                "SELECT id FROM sys_department WHERE code = ?", Long.class, outsideCode);
+        long outsideDepartment = Long.parseLong(newDepartment());
 
         assertError(get("/roles", null), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
         assertError(get("/roles", memberToken), HttpStatus.FORBIDDEN, "FORBIDDEN");
@@ -365,13 +362,151 @@ class CapstoneIdentityTest {
         }
     }
 
+    @Test
+    void orderHttpEnforcesOwnershipDepartmentAndConflictsThroughApproval() throws Exception {
+        var admin = access(login(ADMIN, ADMIN_PASSWORD));
+        var clerk = newUser(admin);
+        var reviewer = newUser(admin);
+        var outside = newUser(admin, newDepartment());
+        assignRoles(admin, clerk, seededRole("ORDER_CLERK"));
+        assignRoles(admin, reviewer, seededRole("ORDER_REVIEWER"));
+        assignRoles(admin, outside, seededRole("ORDER_REVIEWER"));
+        String clerkToken = access(login(clerk.path("username").asText(), USER_PASSWORD));
+        String reviewerToken = access(login(reviewer.path("username").asText(), USER_PASSWORD));
+        String outsideToken = access(login(outside.path("username").asText(), USER_PASSWORD));
+
+        assertError(get("/orders", null), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
+        assertError(request(HttpMethod.POST, "/api/v1/orders", admin,
+                        Map.of("customerName", "No write permission", "totalAmountCents", 500)),
+                HttpStatus.FORBIDDEN, "FORBIDDEN");
+        assertError(request(HttpMethod.POST, "/api/v1/orders", clerkToken,
+                        Map.of("customerName", "Wrong input", "totalAmountCents", 500, "ownerId", "1")),
+                HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+        var created = createOrder(clerkToken);
+        String id = created.path("id").asText();
+        String relative = "/orders/" + id;
+        String route = "/api/v1" + relative;
+        assertThat(created.path("ownerId").asText()).isEqualTo(clerk.path("id").asText());
+        assertThat(created.path("departmentId").asText()).isEqualTo(clerk.path("departmentId").asText());
+        assertThat(created.path("version").asInt()).isEqualTo(1);
+        assertThat(created.path("allowedActions")).extracting(JsonNode::asText)
+                .containsExactlyInAnyOrder("EDIT", "SUBMIT", "CANCEL");
+        assertThat(get(relative, reviewerToken).getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertError(get(relative, outsideToken), HttpStatus.NOT_FOUND, "NOT_FOUND");
+        assertError(get(relative + "/history", outsideToken), HttpStatus.NOT_FOUND, "NOT_FOUND");
+        assertThat(get("/orders", outsideToken).getBody().path("total").asInt()).isZero();
+
+        var edited = request(HttpMethod.PATCH, route, clerkToken,
+                Map.of("customerName", "Updated customer", "totalAmountCents", 777, "version", 1));
+        assertThat(edited.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(edited.getBody().path("totalAmountCents").asInt()).isEqualTo(777);
+        assertError(action(route, "cancel", reviewerToken, 2), HttpStatus.CONFLICT, "INVALID_TRANSITION");
+        var submitted = action(route, "submit", clerkToken, 2);
+        assertThat(submitted.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(submitted.getBody().path("status").asText()).isEqualTo("SUBMITTED");
+        assertThat(get(relative, reviewerToken).getBody().path("allowedActions")).extracting(JsonNode::asText)
+                .containsExactlyInAnyOrder("APPROVE", "CANCEL");
+        assertError(action(route, "approve", outsideToken, 3), HttpStatus.NOT_FOUND, "NOT_FOUND");
+
+        String ownApproval = createRole(admin, "Global approver").path("id").asText();
+        replaceGrants(admin, ownApproval, List.of(Map.of("permission", "orders:approve", "scope", "ALL")));
+        assignRoles(admin, clerk, seededRole("ORDER_CLERK"), ownApproval);
+        assertError(action(route, "approve", clerkToken, 3), HttpStatus.FORBIDDEN, "SELF_APPROVAL_FORBIDDEN");
+        assertThat(get(relative + "/history", clerkToken).getBody().size()).isEqualTo(3);
+        assertError(action(route, "submit", clerkToken, 2), HttpStatus.CONFLICT, "VERSION_CONFLICT");
+
+        var outcomes = simultaneousRequests(
+                () -> action(route, "approve", reviewerToken, 3),
+                () -> action(route, "approve", reviewerToken, 3));
+        assertThat(outcomes).extracting(ResponseEntity::getStatusCode)
+                .containsExactlyInAnyOrder(HttpStatus.OK, HttpStatus.CONFLICT);
+        var conflict = outcomes.stream().filter(result -> result.getStatusCode() == HttpStatus.CONFLICT)
+                .findFirst().orElseThrow();
+        assertError(conflict, HttpStatus.CONFLICT, "VERSION_CONFLICT");
+        var approved = get(relative, clerkToken).getBody();
+        assertThat(approved.path("status").asText()).isEqualTo("APPROVED");
+        assertThat(approved.path("version").asInt()).isEqualTo(4);
+        assertThat(approved.path("allowedActions").isEmpty()).isTrue();
+        assertError(action(route, "cancel", clerkToken, 4), HttpStatus.CONFLICT, "INVALID_TRANSITION");
+        var history = get(relative + "/history", reviewerToken).getBody();
+        assertThat(history).extracting(row -> row.path("action").asText())
+                .containsExactly("CREATE", "EDIT", "SUBMIT", "APPROVE");
+        assertThat(history.get(3).path("actorId").asText()).isEqualTo(reviewer.path("id").asText());
+        assertThat(get("/orders?status=APPROVED", clerkToken).getBody().path("total").asInt()).isEqualTo(1);
+
+        String draftRoute = "/api/v1/orders/" + createOrder(clerkToken).path("id").asText();
+        var cancelled = action(draftRoute, "cancel", clerkToken, 1);
+        assertThat(cancelled.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(cancelled.getBody().path("status").asText()).isEqualTo("CANCELLED");
+    }
+
+    @Test
+    void historyWriteFailureRollsBackOrderStateAndVersionInMysql() {
+        var admin = access(login(ADMIN, ADMIN_PASSWORD));
+        var clerk = newUser(admin);
+        assignRoles(admin, clerk, seededRole("ORDER_CLERK"));
+        String token = access(login(clerk.path("username").asText(), USER_PASSWORD));
+        long id = createOrder(token).path("id").asLong();
+        String relative = "/orders/" + id;
+        String route = "/api/v1" + relative;
+        // Occupy the next history version to make the real history INSERT fail.
+        // The application updates the order first, so that update must roll back.
+        jdbc.update("""
+                INSERT INTO sales_order_history(order_id, actor_id, action, from_status, to_status, version, occurred_at)
+                VALUES (?, ?, 'SUBMIT', 'DRAFT', 'SUBMITTED', 2, ?)
+                """, id, clerk.path("id").asLong(), clock.millis());
+        try {
+            var beforeHistory = get(relative + "/history", token).getBody();
+            assertThat(action(route, "submit", token, 1).getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+            var after = get(relative, token).getBody();
+            assertThat(after.path("status").asText()).isEqualTo("DRAFT");
+            assertThat(after.path("version").asInt()).isEqualTo(1);
+            assertThat(get(relative + "/history", token).getBody()).isEqualTo(beforeHistory);
+        } finally {
+            jdbc.update("DELETE FROM sales_order_history WHERE order_id = ? AND version = 2", id);
+        }
+        assertThat(action(route, "submit", token, 1).getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(get(relative + "/history", token).getBody().size()).isEqualTo(2);
+    }
+
     private JsonNode newUser(String admin) {
         String department = get("/departments", admin).getBody().get(0).path("id").asText();
+        return newUser(admin, department);
+    }
+
+    private JsonNode newUser(String admin, String department) {
         var created = request(HttpMethod.POST, "/api/v1/users", admin, Map.of(
                 "username", "user-" + UUID.randomUUID().toString().replace("-", ""),
                 "displayName", "Authorization test", "departmentId", department, "password", USER_PASSWORD));
         assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         return created.getBody();
+    }
+
+    private String newDepartment() {
+        String code = "other-" + UUID.randomUUID().toString().substring(0, 8);
+        jdbc.update("INSERT INTO sys_department(code, name) VALUES (?, ?)", code, "Outside department");
+        return Long.toString(jdbc.queryForObject("SELECT id FROM sys_department WHERE code = ?", Long.class, code));
+    }
+
+    private String seededRole(String code) {
+        return Long.toString(jdbc.queryForObject("SELECT id FROM sys_role WHERE code = ?", Long.class, code));
+    }
+
+    private void assignRoles(String admin, JsonNode user, String... ids) {
+        var response = request(HttpMethod.PUT, "/api/v1/users/" + user.path("id").asText() + "/roles",
+                admin, Map.of("roleIds", List.of(ids)));
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
+
+    private JsonNode createOrder(String token) {
+        var created = request(HttpMethod.POST, "/api/v1/orders", token,
+                Map.of("customerName", "Test customer", "totalAmountCents", 950));
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        return created.getBody();
+    }
+
+    private ResponseEntity<JsonNode> action(String route, String action, String token, int version) {
+        return request(HttpMethod.POST, route + "/" + action, token, Map.of("version", version));
     }
 
     private JsonNode createRole(String admin, String label) {
