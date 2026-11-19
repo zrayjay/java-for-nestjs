@@ -13,6 +13,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,8 @@ import static dev.javafornestjs.capstone.core.RequestFailure.Code.VERSION_CONFLI
 
 @Service
 public class OrdersService {
+    private static final Pattern CUSTOMER_EDGE_SPACE = Pattern.compile("^\\s+|\\s+$",
+            Pattern.UNICODE_CHARACTER_CLASS);
     private final OrdersMapper orders;
     private final OrderAccessLookup lookup;
     private final AuditTrail audit;
@@ -150,7 +153,7 @@ public class OrdersService {
     }
 
     private static Draft draft(String name, Integer amount) {
-        String customer = name == null ? "" : name.strip();
+        String customer = name == null ? "" : CUSTOMER_EDGE_SPACE.matcher(name).replaceAll("");
         if (customer.isEmpty() || customer.codePointCount(0, customer.length()) > 100
                 || amount == null || amount < 1 || amount > 999_999_999) {
             throw new RequestFailure(VALIDATION_ERROR, "Invalid customer name or total amount");

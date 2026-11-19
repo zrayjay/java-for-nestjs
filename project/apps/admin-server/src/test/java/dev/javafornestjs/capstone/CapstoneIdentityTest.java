@@ -401,7 +401,15 @@ class CapstoneIdentityTest {
         assertError(request(HttpMethod.POST, "/api/v1/orders", clerkToken,
                         Map.of("customerName", "Wrong input", "totalAmountCents", 500, "ownerId", "1")),
                 HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
-        var created = createOrder(clerkToken);
+        String boundaryName = "📦".repeat(100);
+        assertError(request(HttpMethod.POST, "/api/v1/orders", clerkToken,
+                        Map.of("customerName", boundaryName + "📦", "totalAmountCents", 950)),
+                HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+        var withUnicodeName = request(HttpMethod.POST, "/api/v1/orders", clerkToken,
+                Map.of("customerName", "\u202f" + boundaryName + "\u202f", "totalAmountCents", 950));
+        assertThat(withUnicodeName.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        var created = withUnicodeName.getBody();
+        assertThat(created.path("customerName").asText()).isEqualTo(boundaryName);
         String id = created.path("id").asText();
         String relative = "/orders/" + id;
         String route = "/api/v1" + relative;

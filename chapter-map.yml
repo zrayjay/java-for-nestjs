@@ -1511,7 +1511,7 @@ chapters:
     part: '09'
     title: Spring Boot 业务实现
     path: docs/09-enterprise-project/43-business-implementation.md
-    status: planned
+    status: draft
     prerequisites:
       - '42'
     tags:
@@ -1519,10 +1519,16 @@ chapters:
     topics: 用户、认证、RBAC、订单/代理商、审计、测试
     reference: NestJS 对照实现
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - project/pom.xml
+      - project/apps/admin-server/src/main/java/dev/javafornestjs/capstone/OrdersController.java
+      - examples/nestjs-reference/src/api/order-reference.ts
+    tests:
+      - project/apps/admin-server/src/test/java/dev/javafornestjs/capstone/CapstoneIdentityTest.java
+      - examples/nestjs-reference/src/api/order-reference.test.ts
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P6-02-F.md
     reviews: []
   - id: '44'
     part: '09'
