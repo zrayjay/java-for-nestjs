@@ -1447,7 +1447,7 @@ chapters:
     part: '08'
     title: 自动交付
     path: docs/08-cloud-native/41-continuous-delivery.md
-    status: draft
+    status: in_review
     prerequisites:
       - '35'
       - '40'
@@ -1464,7 +1464,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P5-05.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/G5.md
+        reviewer: delivery_standards
+        date: 2026-11-19
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/G5.md
+        reviewer: delivery_spec
+        date: 2026-11-19
+        independent: true
+        conclusion: approved
   - id: '42'
     part: '09'
     title: 需求与架构设计

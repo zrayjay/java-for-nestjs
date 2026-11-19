@@ -9,6 +9,7 @@
 | Java语言级别 | 21 | 以21编译；25作为兼容运行与构建目标 | 分环境记录见下表 |
 | Spring Boot | 3.5.16 | starter-parent统一管理Spring与插件 | 真实Web上下文与4项集成测试 |
 | Spring Security | 6.5.11 | Boot 3.5.16 BOM | 初始探针401/200；P4真实JWT/RBAC证据见下文 |
+| 内嵌 Tomcat / Jackson 2 | 10.1.59 / 2.21.7 | 根POM显式覆盖Boot管理版本以修复教学镜像扫描发现 | 同一补丁提交的[安全CI](https://github.com/zrayjay/java-for-nestjs/actions/runs/44028962800)、[Compose CI](https://github.com/zrayjay/java-for-nestjs/actions/runs/44028962878)和[K8s CI](https://github.com/zrayjay/java-for-nestjs/actions/runs/44028962812)通过，交付门禁见[P5-05](../progress/P5-05.md) |
 | Maven | 3.9.11 | 独立固定构建工具；Wrapper由P0-05统一交付 | clean verify含打包 |
 | Gradle对照 | 9.2.1 | 独立任务图/本地缓存小实验，见[ADR-0005](../adr/0005-gradle-comparison-runtime.md) | Windows/Microsoft21加已知临时套接字目录修正后任务/缓存通过；新矩阵步骤待CI |
 | MyBatis-Plus | 3.5.18 | mybatis-plus-spring-boot3-starter | MySQL查询、写入与回滚 |

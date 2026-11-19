@@ -2,7 +2,7 @@
 title: '41 · 自动交付与回滚'
 description: 从版本化镜像、阻断式扫描到真实集群滚动升级与回滚闭环。
 chapter_id: '41'
-teaching_status: draft
+teaching_status: in_review
 baseline: Temurin21.0.13+9 noble / MySQL8.4.7 / kind v0.33.0 / Kubernetes v1.34.0 / Trivy Action v0.36.0 / GitHub Actions
 ---
 
@@ -26,13 +26,15 @@ baseline: Temurin21.0.13+9 noble / MySQL8.4.7 / kind v0.33.0 / Kubernetes v1.34.
 
 #### 3. 生活类比
 
-产品批次号对应镜像标签，装箱单对应构建标记：外箱标签可被换贴，箱内单据才是内证。只有两端同时核对，才确认没有调包。
+产品批次号对应镜像标签，装箱单对应构建标记。核对两处可以发现标签与单据不一致，装箱单本身无法证明箱中实物来自所写批次。
 
 #### 4. Node.js / TypeScript / NestJS 技术对照
 
 Node镜像同样以构建参数注入版本（如`npm version`或git SHA写进环境变量），追溯链概念与语言无关。当前仓库的Node参照仍是[原生HTTP生命周期模型](../../examples/container-node-reference/README.md)，未发布版本化Node镜像；不能据Java链通过声称Node交付链等价。
 
 #### 5. 两端代码对照
+
+**Node.js** · 采用同样构建参数的Node镜像可以用`node -p 'process.env.BUILD_MARKER'`读取标记。本仓库的[Node生命周期示例](../../examples/container-node-reference/README.md)只运行本地进程。
 
 **Java** · 教学Dockerfile在构建期注入标记：
 
@@ -41,9 +43,7 @@ ARG BUILD_MARKER=unversioned
 ENV BUILD_MARKER=${BUILD_MARKER}
 ```
 
-CI以提交SHA构造v1标记：`--build-arg BUILD_MARKER="drill-v1-$GITHUB_SHA"`。演练中`docker run --rm --entrypoint printenv <image> BUILD_MARKER`与`kubectl exec <pod> -- printenv BUILD_MARKER`分别验证镜像与集群内Pod的实际值。证据同时记录运行时的镜像ID，用于比对回滚前后的v1产物。
-
-**Node.js** · 采用同样构建参数的Node镜像可以用`node -p 'process.env.BUILD_MARKER'`读取标记。本仓库的[Node生命周期示例](../../examples/container-node-reference/README.md)只运行本地进程。
+CI以提交SHA构造两个标记，例如`--build-arg BUILD_MARKER="drill-v1-$GITHUB_SHA"`。演练中`docker run --rm --entrypoint printenv <image> BUILD_MARKER`与`kubectl exec <pod> -- printenv BUILD_MARKER`分别验证镜像与集群内Pod的实际值。证据同时记录运行时的镜像ID，用于比对回滚前后的v1产物。
 
 #### 6. 原理与流程图
 
@@ -56,7 +56,7 @@ flowchart LR
   P -.核对.-> G
 ```
 
-四点核对链上任何一点对不上（标签漂移、缓存复用旧层、set image笔误）都会被演练断言捕获。tag只是指针，摘要才是内容身份；本教学链以标记+标签双保险，生产应以摘要固定。
+演练核对构建时声明的提交标记、Deployment镜像标签和运行容器的镜像ID。错误的应用层也可能带预期标记，构建内容还需由构建和测试作业验证。回滚前后的镜像ID比对确认两次加载了同一个v1产物。
 
 #### 7. 类比边界与错误直觉
 
@@ -86,13 +86,15 @@ Pod内marker与预期不符先查`kubectl rollout history`确认实际部署的r
 
 #### 3. 生活类比
 
-出厂质检不合格就不得入库，而不是贴张"有瑕疵"的标签继续卖。质检标准（严重级别阈值）是明确契约，不是质检员心情。
+出厂质检的拒收等级对应漏洞严重级别门槛。特定缺陷的临时放行单对应逐条豁免，放行单必须标明原因与有效期。
 
 #### 4. Node.js / TypeScript / NestJS 技术对照
 
 Node侧对应`pnpm audit --audit-level high`（本仓库已在用）与镜像扫描互补：npm audit看应用依赖，Trivy看整镜像包括基础层。两项检查各有独立的覆盖范围和严重级别阈值。
 
 #### 5. 两端代码对照
+
+**Node.js** · 仓库用`pnpm audit --audit-level high`检查工作区依赖。它没有检查镜像中的系统包。若为NestJS构建容器，扫描作业仍应引用实际要部署的镜像。
 
 **Java** · CI扫描步骤，失败即阻断后续部署：
 
@@ -106,8 +108,6 @@ Node侧对应`pnpm audit --audit-level high`（本仓库已在用）与镜像扫
 ```
 
 v2使用同样的扫描规则。上传步骤归档已经生成的JSON报告，供失败时排查。
-
-**Node.js** · 仓库用`pnpm audit --audit-level high`检查工作区依赖。它没有检查镜像中的系统包。若为NestJS构建容器，扫描作业仍应引用实际要部署的镜像。
 
 #### 6. 原理与流程图
 
@@ -149,6 +149,8 @@ Node应用同样依赖编排系统的滚动与回滚；PM2等进程管理器的r
 
 #### 5. 两端代码对照
 
+**Node.js** · [本地生命周期模型](../../examples/container-node-reference/README.md)通过向进程发SIGTERM来验证请求排空。Deployment历史由Kubernetes管理，仓库没有对应的NestJS滚动实验。
+
 **Java** · 演练核心命令链：
 
 ```sh
@@ -160,7 +162,7 @@ kubectl -n teaching rollout history deployment/api
 
 断言不只看退出码：Deployment镜像字段从v1→v2→v1、Pod内`printenv BUILD_MARKER`随之变化、两次滚动期间集群内客户端对Service持续请求零失败、回滚后用v1期间的原refresh token仍能换新令牌读到v1期间创建的任务。
 
-**Node.js** · [本地生命周期模型](../../examples/container-node-reference/README.md)通过向进程发SIGTERM来验证请求排空。Deployment历史由Kubernetes管理，仓库没有对应的NestJS滚动实验。部署配置也要与镜像版本兼容，例如[教学清单](../../project/deploy/k8s/teaching.yaml)从Secret注入数据库连接参数，`rollout undo`只恢复Pod模板，独立修改的Secret仍需另行处理。
+部署配置也要与镜像版本兼容。[教学清单](../../project/deploy/k8s/teaching.yaml)从Secret注入数据库连接参数，`rollout undo`只恢复Pod模板，独立修改的Secret仍需另行处理。
 
 #### 6. 原理与流程图
 
@@ -201,7 +203,7 @@ undo后marker没变查rollout history确认revision顺序；滚动卡住查新Po
 
 ## 练习提示与官方资料
 
-先区分"发布完成"与"业务验证通过"，再谈自动化程度。回滚不是失败兜底的遮羞布，是发布策略的一部分。
+完成演练后，可在[P5 综合练习](../exercises/P5-capstone.md)中将应用回滚与消息重投、Outbox恢复和容器排空对照验证。
 
 - [Deployment回滚](https://kubernetes.io/zh-cn/docs/concepts/workloads/controllers/deployment/#rollback-to-a-previous-revision)
 - [Trivy Action](https://github.com/aquasecurity/trivy-action)
