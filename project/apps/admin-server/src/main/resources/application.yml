@@ -1,6 +1,21 @@
 spring:
   application:
     name: capstone-admin
+  datasource:
+    url: ${CAPSTONE_JDBC_URL}
+    username: ${CAPSTONE_DATABASE_USER}
+    password: ${CAPSTONE_DATABASE_PASSWORD}
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
+capstone:
+  security:
+    signing-key: ${CAPSTONE_SIGNING_KEY}
+    verification-key: ${CAPSTONE_VERIFICATION_KEY}
+  bootstrap:
+    username: ${CAPSTONE_ADMIN_USERNAME:}
+    password: ${CAPSTONE_ADMIN_PASSWORD:}
 
 server:
   address: ${CAPSTONE_BIND_ADDRESS:127.0.0.1}
