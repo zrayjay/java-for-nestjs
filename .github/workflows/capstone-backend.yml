@@ -57,6 +57,12 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
           cache-dependency-path: '**/pom.xml'
+      - name: Initialize the checksummed Maven Wrapper distribution
+        run: |
+          if ! ./mvnw --version; then
+            MVNW_REPOURL=https://repo1.maven.org/maven2 ./mvnw --version
+            echo "MVNW_REPOURL=https://repo1.maven.org/maven2" >> "$GITHUB_ENV"
+          fi
       - name: Verify the reactor, Flyway migration, and HTTP identity contracts
         run: ./mvnw --batch-mode --no-transfer-progress -f project/pom.xml clean verify
       - uses: actions/upload-artifact@v4

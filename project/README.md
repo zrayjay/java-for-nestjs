@@ -60,7 +60,7 @@ try {
 java -jar project/apps/admin-server/target/admin-server-0.1.0-SNAPSHOT.jar
 ```
 
-KeyTool保留已生成的文件，可直接将环境变量指向原密钥。应用默认绑定`127.0.0.1`。在另一终端验证身份接口：
+KeyTool保留已生成的文件，可直接将环境变量指向原密钥。应用默认绑定`127.0.0.1`。在另一终端设置同一管理员登录名和密码环境变量，再验证身份接口：
 
 ```powershell
 $api = 'http://127.0.0.1:8091'

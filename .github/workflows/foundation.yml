@@ -28,6 +28,14 @@ jobs:
       - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
       - name: Native JDK HTTP loopback regression
         run: java examples/compatibility-probe/tools/HttpClientProbe.java
+      - name: Initialize the checksummed Maven Wrapper distribution
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          if ! ./mvnw --version; then
+            MVNW_REPOURL=https://repo1.maven.org/maven2 ./mvnw --version
+            echo "MVNW_REPOURL=https://repo1.maven.org/maven2" >> "$GITHUB_ENV"
+          fi
       - name: Java style, compile and tests with pinned Wrapper
         shell: pwsh
         run: |
