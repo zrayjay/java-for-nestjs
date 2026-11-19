@@ -38,6 +38,7 @@
 | P5-05 | 服务恢复后读取，不猜编号 | Codex，本会话离线实施 | codex/p5-05-delivery-recovery | 实现in_review，面板未同步 | [交付记录](docs/progress/P5-05.md)、[第41章](docs/08-cloud-native/41-continuous-delivery.md)、[交付CI](https://github.com/zrayjay/java-for-nestjs/actions/runs/44494173332) | 交用户验收 |
 | G5 | 服务恢复后读取，不猜编号 | Codex，两轴独立验收 | codex/p5-05-delivery-recovery | 技术准入通过，交用户验收 | [验收记录](docs/progress/G5.md)、[独立复核](docs/reviews/G5.md) | 允许进入P6，真实试学仍在P7-03 |
 | P6-01 | 服务恢复后读取，不猜编号 | Codex，本会话离线实施 | codex/p6-01-orders-architecture | 设计in_review，面板未同步 | [订单契约](project/ARCHITECTURE.md)、[ADR0014](docs/adr/0014-capstone-order-management.md)、[独立审查](docs/reviews/P6-01.md) | 后端实现按P6-02推进 |
+| P6-02-A | 服务恢复后读取，不猜编号 | Codex，本会话离线实施 | codex/p6-02-a-backend-reactor | 骨架已构建，验证中 | [后端Reactor](project/pom.xml)、[启动与架构规则验证](docs/progress/P6-02-A.md) | 本机已通过，待Linux CI |
 | 文档预览站 | JAV-56 | Codex，本会话 | main | review | [部署CI通过](https://github.com/zrayjay/java-for-nestjs/actions/runs/42765271826)，提交3f495c0；[线上文档](https://zrayjay.github.io/java-for-nestjs/)首页/目录/图表/部署指南及6项JS/CSS资源HTTP200 | 不等同P7全书发布或Release |
 
 JAV-3至JAV-9已全部按用户指令合并main并标记done，任务分支已删除。2026-11-10用户另行授权公开当前仓库并部署建设中的文档站，以JAV-56跟踪，不提前完成P7-05。其余阶段仍待关卡开放。Java原生Windows Web探针缺口未关闭前，不将G0或完整Java跨平台基线标为通过；本次Windows非Web示例及Node文档站的通过结果单独记录。

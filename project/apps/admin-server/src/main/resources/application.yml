@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: capstone-admin
+
+server:
+  address: ${CAPSTONE_BIND_ADDRESS:127.0.0.1}
+  port: ${CAPSTONE_PORT:8091}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

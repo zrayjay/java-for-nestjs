@@ -1,0 +1,52 @@
+name: Capstone backend
+
+on:
+  push:
+    paths:
+      - 'project/pom.xml'
+      - 'project/apps/admin-server/**'
+      - 'project/java-modules/**'
+      - 'config/checkstyle.xml'
+      - 'pom.xml'
+      - '.mvn/**'
+      - 'mvnw*'
+      - '.github/workflows/capstone-backend.yml'
+  pull_request:
+    paths:
+      - 'project/pom.xml'
+      - 'project/apps/admin-server/**'
+      - 'project/java-modules/**'
+      - 'config/checkstyle.xml'
+      - 'pom.xml'
+      - '.mvn/**'
+      - 'mvnw*'
+      - '.github/workflows/capstone-backend.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reactor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ['21', '25']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+          cache-dependency-path: '**/pom.xml'
+      - name: Verify the reactor and start the admin service in an HTTP test
+        run: ./mvnw --batch-mode --no-transfer-progress -f project/pom.xml clean verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capstone-backend-java-${{ matrix.java }}
+          path: project/apps/admin-server/target/surefire-reports/
+          retention-days: 7

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>dev.javafornestjs</groupId>
+    <artifactId>course-examples</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>capstone-parent</artifactId>
+  <packaging>pom</packaging>
+
+  <properties>
+    <capstone.assembly>false</capstone.assembly>
+  </properties>
+
+  <modules>
+    <module>java-modules/common-core</module>
+    <module>java-modules/common-web</module>
+    <module>java-modules/common-security</module>
+    <module>java-modules/module-system</module>
+    <module>java-modules/module-business</module>
+    <module>apps/admin-server</module>
+  </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.6.3</version>
+        <executions>
+          <execution>
+            <id>capstone-module-boundaries</id>
+            <goals><goal>enforce</goal></goals>
+            <configuration>
+              <skip>${capstone.assembly}</skip>
+              <rules>
+                <bannedDependencies>
+                  <excludes>
+                    <exclude>dev.javafornestjs:module-*</exclude>
+                    <exclude>dev.javafornestjs:admin-server</exclude>
+                  </excludes>
+                  <message>Only admin-server may depend on business or system modules.</message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
