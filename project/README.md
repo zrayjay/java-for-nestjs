@@ -16,6 +16,6 @@
 
 公共模块禁止反向依赖业务模块；不能把所有 DTO、实体或 SQL 集中放入 `common-core`。Java 由 Maven 管理，前端由 pnpm 管理。
 
-业务范围、API 契约与模块化单体取舍在 P6-01 提交 ADR 后锁定；复用前期示例和部署能力。真实启动、迁移、测试、备份恢复和监控命令在对应实现交付时补充。
+P6-01选择内部订单管理。[项目契约](ARCHITECTURE.md)记录业务范围、模块依赖、数据模型与API，[ADR 0014](../docs/adr/0014-capstone-order-management.md)记录架构和持久层取舍。后续任务按契约实现并记录启动、迁移、测试、恢复和监控命令。
 
 见 [实施计划](../JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md)、[任务清单](../TASKBOARD.md) 与 [贡献指南](../CONTRIBUTING.md)。

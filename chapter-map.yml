@@ -1479,7 +1479,7 @@ chapters:
     part: '09'
     title: 需求与架构设计
     path: docs/09-enterprise-project/42-requirements-and-architecture.md
-    status: planned
+    status: in_review
     prerequisites:
       - '31'
       - '33'
@@ -1490,11 +1490,23 @@ chapters:
     topics: 模块边界、数据库设计、ADR、API 契约
     reference: NestJS 项目拆分
     pilot: false
-    examples: []
+    examples:
+      - project/ARCHITECTURE.md
     tests: []
-    noCodeReason: null
-    verification: []
-    reviews: []
+    noCodeReason: 本章交付需求、数据规则和模块/API契约；可执行后端与客户端在后续实施任务交付。
+    verification:
+      - docs/progress/P6-01.md
+    reviews:
+      - path: docs/reviews/P6-01.md
+        reviewer: delivery_standards
+        date: 2026-11-19
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P6-01.md
+        reviewer: delivery_spec
+        date: 2026-11-19
+        independent: true
+        conclusion: approved
   - id: '43'
     part: '09'
     title: Spring Boot 业务实现

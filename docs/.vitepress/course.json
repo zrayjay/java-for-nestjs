@@ -426,7 +426,7 @@
         "topics": "模块边界、数据库设计、ADR、API 契约",
         "reference": "NestJS 项目拆分",
         "pilot": false,
-        "status": "planned",
+        "status": "in_review",
         "path": "docs/09-enterprise-project/42-requirements-and-architecture.md"
       },
       {
