@@ -1,5 +1,7 @@
 package dev.javafornestjs.capstone.system;
 
+import dev.javafornestjs.capstone.core.AuditTrail;
+import dev.javafornestjs.capstone.core.AuditTrail.Event;
 import dev.javafornestjs.capstone.core.RequestFailure;
 import dev.javafornestjs.capstone.security.SessionIdentity;
 import dev.javafornestjs.capstone.system.AuthorizationMapper.MenuRow;
@@ -10,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static dev.javafornestjs.capstone.core.RequestFailure.Code.NOT_FOUND;
@@ -29,19 +32,23 @@ public class MenuService {
     private final AccountSessions sessions;
     private final CurrentOrderAccess access;
     private final AuthorizationMapper menus;
+    private final MenuCatalog catalog;
+    private final AuditTrail audit;
 
     MenuService(AccountsService accounts, AccountSessions sessions, CurrentOrderAccess access,
-            AuthorizationMapper menus) {
+            AuthorizationMapper menus, MenuCatalog catalog, AuditTrail audit) {
         this.accounts = accounts;
         this.sessions = sessions;
         this.access = access;
         this.menus = menus;
+        this.catalog = catalog;
+        this.audit = audit;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public List<Node> visible(SessionIdentity actor) {
         var capabilities = Set.copyOf(access.capabilities(sessions.currentAccount(actor, false)));
-        var children = menus.menus().stream().collect(Collectors.groupingBy(
+        var children = catalog.current().stream().collect(Collectors.groupingBy(
                 row -> row.parentId() == null ? 0L : row.parentId()));
         return visibleChildren(0, children, capabilities);
     }
@@ -61,7 +68,10 @@ public class MenuService {
         } catch (DuplicateKeyException duplicate) {
             throw new RequestFailure(RESOURCE_CONFLICT, "A menu already uses this route");
         }
-        return view(requireMenu(menus.lastInsertId()));
+        long id = menus.lastInsertId();
+        menus.rotateMenuRevision();
+        audit.record(actor.userId(), Event.MENU_CREATED, id);
+        return view(requireMenu(id));
     }
 
     @Transactional
@@ -77,6 +87,8 @@ public class MenuService {
         } catch (DuplicateKeyException duplicate) {
             throw new RequestFailure(RESOURCE_CONFLICT, "A menu already uses this route");
         }
+        menus.rotateMenuRevision();
+        audit.record(actor.userId(), Event.MENU_UPDATED, id);
         return view(requireMenu(id));
     }
 
@@ -88,6 +100,8 @@ public class MenuService {
             throw new RequestFailure(RESOURCE_CONFLICT, "Delete child menus first");
         }
         menus.deleteMenu(id);
+        menus.rotateMenuRevision();
+        audit.record(actor.userId(), Event.MENU_DELETED, id);
     }
 
     private String validateChange(Long id, MenuChange change) {

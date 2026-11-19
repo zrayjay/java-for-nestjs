@@ -1,5 +1,7 @@
 package dev.javafornestjs.capstone.system;
 
+import dev.javafornestjs.capstone.core.AuditTrail;
+import dev.javafornestjs.capstone.core.AuditTrail.Event;
 import dev.javafornestjs.capstone.core.RequestFailure;
 import dev.javafornestjs.capstone.security.OrderPermission;
 import dev.javafornestjs.capstone.security.OrderScope;
@@ -25,11 +27,14 @@ public class AuthorizationService {
     private final AccountsService access;
     private final AccountsMapper accounts;
     private final AuthorizationMapper authorization;
+    private final AuditTrail audit;
 
-    AuthorizationService(AccountsService access, AccountsMapper accounts, AuthorizationMapper authorization) {
+    AuthorizationService(AccountsService access, AccountsMapper accounts, AuthorizationMapper authorization,
+            AuditTrail audit) {
         this.access = access;
         this.accounts = accounts;
         this.authorization = authorization;
+        this.audit = audit;
     }
 
     @Transactional(readOnly = true)
@@ -55,7 +60,9 @@ public class AuthorizationService {
         } catch (DuplicateKeyException duplicate) {
             throw new RequestFailure(RESOURCE_CONFLICT, "Role code already exists");
         }
-        return view(authorization.roleByCode(code), List.of());
+        var role = authorization.roleByCode(code);
+        audit.record(actor.userId(), Event.ROLE_CREATED, role.id());
+        return view(role, List.of());
     }
 
     @Transactional
@@ -63,6 +70,7 @@ public class AuthorizationService {
         access.requireAdministrator(actor, true);
         requireRole(id);
         authorization.renameRole(id, requireName(name));
+        audit.record(actor.userId(), Event.ROLE_RENAMED, id);
         return view(requireRole(id), grantsByRole(List.of(id)).getOrDefault(id, List.of()));
     }
 
@@ -84,6 +92,7 @@ public class AuthorizationService {
         }
         authorization.deleteGrants(roleId);
         grants.forEach((permission, scope) -> authorization.insertGrant(roleId, permission.code(), scope.name()));
+        audit.record(actor.userId(), Event.GRANTS_REPLACED, roleId);
     }
 
     @Transactional
@@ -97,6 +106,7 @@ public class AuthorizationService {
         roleIds.forEach(this::requireRole);
         authorization.deleteUserRoles(userId);
         roleIds.forEach(id -> authorization.insertUserRole(userId, id));
+        audit.record(actor.userId(), Event.ROLES_ASSIGNED, userId);
     }
 
     @Transactional
@@ -107,6 +117,7 @@ public class AuthorizationService {
             throw new RequestFailure(RESOURCE_CONFLICT, "At least one active administrator is required");
         }
         authorization.changeAdministrator(userId, enabled);
+        audit.record(actor.userId(), enabled ? Event.ADMIN_GRANTED : Event.ADMIN_REVOKED, userId);
     }
 
     private Map<Long, List<Grant>> grantsByRole(List<Long> ids) {

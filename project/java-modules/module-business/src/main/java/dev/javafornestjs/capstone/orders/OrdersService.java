@@ -1,5 +1,7 @@
 package dev.javafornestjs.capstone.orders;
 
+import dev.javafornestjs.capstone.core.AuditTrail;
+import dev.javafornestjs.capstone.core.AuditTrail.Event;
 import dev.javafornestjs.capstone.core.RequestFailure;
 import dev.javafornestjs.capstone.orders.OrdersMapper.OrderRow;
 import dev.javafornestjs.capstone.security.OrderAccess;
@@ -25,11 +27,13 @@ import static dev.javafornestjs.capstone.core.RequestFailure.Code.VERSION_CONFLI
 public class OrdersService {
     private final OrdersMapper orders;
     private final OrderAccessLookup lookup;
+    private final AuditTrail audit;
     private final Clock clock;
 
-    OrdersService(OrdersMapper orders, OrderAccessLookup lookup, Clock clock) {
+    OrdersService(OrdersMapper orders, OrderAccessLookup lookup, AuditTrail audit, Clock clock) {
         this.orders = orders;
         this.lookup = lookup;
+        this.audit = audit;
         this.clock = clock;
     }
 
@@ -69,6 +73,7 @@ public class OrdersService {
         orders.create(input.customer(), input.amount(), actor.userId(), actor.departmentId(), now);
         long id = orders.lastInsertId();
         orders.append(id, actor.userId(), "CREATE", null, Status.DRAFT.name(), 1, now);
+        audit.record(actor.userId(), Event.ORDER_CREATED, id);
         return view(actor, find(id, actor, OrderScope.OWN));
     }
 
@@ -116,6 +121,7 @@ public class OrdersService {
             throw conflict();
         }
         orders.append(id, actor.userId(), action.name(), before.status(), action.target.name(), version + 1, now);
+        audit.record(actor.userId(), action.event, id);
         return view(actor, find(id, actor, scope));
     }
 
@@ -185,17 +191,19 @@ public class OrdersService {
     }
 
     public enum Action {
-        EDIT(OrderPermission.EDIT, Status.DRAFT),
-        SUBMIT(OrderPermission.SUBMIT, Status.SUBMITTED),
-        APPROVE(OrderPermission.APPROVE, Status.APPROVED),
-        CANCEL(OrderPermission.CANCEL, Status.CANCELLED);
+        EDIT(OrderPermission.EDIT, Status.DRAFT, Event.ORDER_EDITED),
+        SUBMIT(OrderPermission.SUBMIT, Status.SUBMITTED, Event.ORDER_SUBMITTED),
+        APPROVE(OrderPermission.APPROVE, Status.APPROVED, Event.ORDER_APPROVED),
+        CANCEL(OrderPermission.CANCEL, Status.CANCELLED, Event.ORDER_CANCELLED);
 
         private final OrderPermission permission;
         private final Status target;
+        private final Event event;
 
-        Action(OrderPermission permission, Status target) {
+        Action(OrderPermission permission, Status target, Event event) {
             this.permission = permission;
             this.target = target;
+            this.event = event;
         }
     }
 

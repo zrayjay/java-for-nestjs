@@ -8,6 +8,12 @@ spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: true
+  data:
+    redis:
+      host: ${CAPSTONE_REDIS_HOST:127.0.0.1}
+      port: ${CAPSTONE_REDIS_PORT:6379}
+      connect-timeout: 300ms
+      timeout: 300ms
 
 capstone:
   security:
@@ -16,12 +22,17 @@ capstone:
   bootstrap:
     username: ${CAPSTONE_ADMIN_USERNAME:}
     password: ${CAPSTONE_ADMIN_PASSWORD:}
+  menu-cache:
+    enabled: ${CAPSTONE_MENU_CACHE_ENABLED:false}
 
 server:
   address: ${CAPSTONE_BIND_ADDRESS:127.0.0.1}
   port: ${CAPSTONE_PORT:8091}
 
 management:
+  health:
+    redis:
+      enabled: false
   endpoints:
     web:
       exposure:

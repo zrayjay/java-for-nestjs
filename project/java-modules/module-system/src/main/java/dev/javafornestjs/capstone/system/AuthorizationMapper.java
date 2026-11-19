@@ -94,6 +94,12 @@ interface AuthorizationMapper {
     @Select("SELECT LAST_INSERT_ID()")
     long lastInsertId();
 
+    @Select("SELECT revision FROM sys_menu_revision WHERE id = 1")
+    String menuRevision();
+
+    @Update("UPDATE sys_menu_revision SET revision = UUID() WHERE id = 1")
+    void rotateMenuRevision();
+
     record GrantRow(String permission, String scope) {
     }
 

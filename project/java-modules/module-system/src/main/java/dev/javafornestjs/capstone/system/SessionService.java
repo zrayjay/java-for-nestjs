@@ -1,5 +1,7 @@
 package dev.javafornestjs.capstone.system;
 
+import dev.javafornestjs.capstone.core.AuditTrail;
+import dev.javafornestjs.capstone.core.AuditTrail.Event;
 import dev.javafornestjs.capstone.core.RequestFailure;
 import dev.javafornestjs.capstone.security.AccessTokens;
 import dev.javafornestjs.capstone.security.SessionIdentity;
@@ -13,7 +15,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.HexFormat;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,16 +31,18 @@ public class SessionService {
     private final AccessTokens accessTokens;
     private final PasswordEncoder passwords;
     private final Clock clock;
+    private final AuditTrail audit;
     private final SecureRandom random = new SecureRandom();
     private final String missingUserHash;
 
     SessionService(AccountsMapper accounts, SessionsMapper sessions, AccessTokens accessTokens,
-            PasswordEncoder passwords, Clock clock) {
+            PasswordEncoder passwords, Clock clock, AuditTrail audit) {
         this.accounts = accounts;
         this.sessions = sessions;
         this.accessTokens = accessTokens;
         this.passwords = passwords;
         this.clock = clock;
+        this.audit = audit;
         this.missingUserHash = passwords.encode(UUID.randomUUID().toString());
     }
 
@@ -59,33 +62,35 @@ public class SessionService {
         }
         String family = UUID.randomUUID().toString();
         sessions.insertFamily(family, account.id(), account.credentialVersion(), now() + FAMILY_SECONDS);
+        audit.record(account.id(), Event.LOGIN, account.id());
         return issue(account, family);
     }
 
     @Transactional
-    public Optional<TokenPair> refresh(String token) {
+    public RefreshResult refresh(String token) {
         if (!wellFormed(token)) {
-            return Optional.empty();
+            return new RefreshResult(null, null);
         }
         String digest = digest(token);
         Long userId = sessions.tokenOwner(digest);
         if (userId == null) {
-            return Optional.empty();
+            return new RefreshResult(null, null);
         }
         // All state-changing session paths lock the user before the family.
         Account account = accounts.lock(userId);
         RefreshState current = sessions.lockToken(digest);
         long now = now();
         if (!active(account, current, now)) {
-            return Optional.empty();
+            return new RefreshResult(null, null);
         }
         if (current.consumedAt() != null) {
             sessions.revoke(current.id(), now);
-            // Return rejection as a value so the revocation commits.
-            return Optional.empty();
+            // Return the replay outcome so revocation commits before the HTTP
+            // failure and any best-effort follow-up audit write.
+            return new RefreshResult(null, account.id());
         }
         sessions.consume(digest, now);
-        return Optional.of(issue(account, current.id()));
+        return new RefreshResult(issue(account, current.id()), null);
     }
 
     @Transactional
@@ -106,6 +111,7 @@ public class SessionService {
             throw invalidAuthentication();
         }
         sessions.revoke(current.id(), now);
+        audit.record(caller.userId(), Event.LOGOUT, caller.userId());
     }
 
     private TokenPair issue(Account account, String family) {
@@ -145,5 +151,8 @@ public class SessionService {
     }
 
     public record TokenPair(String accessToken, String refreshToken, int expiresIn) {
+    }
+
+    public record RefreshResult(TokenPair tokens, Long replayedAccount) {
     }
 }

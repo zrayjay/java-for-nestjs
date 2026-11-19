@@ -1,5 +1,6 @@
 package dev.javafornestjs.capstone.web;
 
+import dev.javafornestjs.capstone.core.RequestCorrelation;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,15 +10,29 @@ import java.util.UUID;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
-class RequestIds extends OncePerRequestFilter {
+class RequestIds extends OncePerRequestFilter implements RequestCorrelation {
     private static final String KEY = RequestIds.class.getName();
 
     static String read(HttpServletRequest request) {
         return (String) request.getAttribute(KEY);
+    }
+
+    @Override
+    public String currentId() {
+        var context = RequestContextHolder.getRequestAttributes();
+        if (context instanceof ServletRequestAttributes attributes) {
+            String id = read(attributes.getRequest());
+            if (id != null) {
+                return id;
+            }
+        }
+        return UUID.randomUUID().toString();
     }
 
     @Override

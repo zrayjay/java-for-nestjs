@@ -20,15 +20,17 @@ P6-01选择内部订单管理。[项目契约](ARCHITECTURE.md)记录业务范�
 
 ## 构建与测试后端
 
-身份集成测试使用一次性MySQL库和随机生成的RSA密钥。仓库根目录用JDK 21执行：
+后端集成测试使用一次性MySQL、Redis和随机生成的RSA密钥。仓库根目录用JDK 21执行：
 
 ```powershell
 docker run --rm -d --name capstone-test-mysql -p 127.0.0.1:13319:3306 -e MYSQL_DATABASE=capstone_test -e MYSQL_USER=capstone_test -e MYSQL_PASSWORD=capstone-test-password -e MYSQL_ROOT_PASSWORD=capstone-test-root mysql:8.4.7
+docker run --rm -d --name capstone-test-redis -p 127.0.0.1:16319:6379 redis:7.4.6-alpine
 docker exec capstone-test-mysql mysqladmin ping -h127.0.0.1 -pcapstone-test-root --silent
+docker exec capstone-test-redis redis-cli ping
 ./mvnw.cmd --batch-mode --no-transfer-progress -f project/pom.xml clean verify
 ```
 
-等MySQL ping通过再构建。Linux将`./mvnw.cmd`换成`./mvnw`，测试端口可用`CAPSTONE_TEST_DB_PORT`覆盖。测试后可用`docker stop capstone-test-mysql`清理该容器。
+等MySQL和Redis探测通过再构建。Linux将`./mvnw.cmd`换成`./mvnw`，测试端口可用`CAPSTONE_TEST_DB_PORT`与`CAPSTONE_TEST_REDIS_PORT`覆盖。测试后可用`docker stop capstone-test-mysql capstone-test-redis`清理测试容器。
 
 Windows出现`Unable to establish loopback connection`并伴随`UnixDomainSockets.connect`异常时，按[G0记录](../docs/progress/G0.md#windows最小复现与局部修复)在当前终端为测试JVM指定支持AF_UNIX的临时目录。构建包含真实HTTP启动测试与[Maven Enforcer依赖规则](https://maven.apache.org/components/enforcer/enforcer-rules/bannedDependencies.html)，由[后端CI](../.github/workflows/capstone-backend.yml)在Java 21及25验证。
 
@@ -42,6 +44,8 @@ Windows出现`Unable to establish loopback connection`并伴随`UnixDomainSocket
 | `CAPSTONE_SIGNING_KEY`、`CAPSTONE_VERIFICATION_KEY` | RSA私钥（PKCS#8）和公钥（X.509）的`file:` URI。 |
 | `CAPSTONE_ADMIN_USERNAME`、`CAPSTONE_ADMIN_PASSWORD` | 空库首启的管理员登录名和密码。密码至少12个字符，最多72个UTF-8字节。 |
 | `CAPSTONE_PORT` | HTTP端口，默认8091。 |
+| `CAPSTONE_MENU_CACHE_ENABLED` | 设为`true`启用Redis菜单定义缓存，默认从MySQL读取。 |
+| `CAPSTONE_REDIS_HOST`、`CAPSTONE_REDIS_PORT` | 缓存地址，默认`127.0.0.1:6379`。 |
 
 本地演示密钥可复用[教学KeyTool](../examples/security-lab/src/main/java/dev/javafornestjs/security/KeyTool.java)。在仓库根目录用分离的临时目录生成：
 
@@ -77,5 +81,7 @@ Invoke-RestMethod "$api/api/v1/me" -Headers @{ Authorization = "Bearer $($sessio
 初始库含`ORDER_CLERK`与`ORDER_REVIEWER`角色。使用管理员令牌读取`GET /api/v1/roles`，通过`PUT /api/v1/users/{id}/roles`为普通用户分配角色。登录为该用户，`GET /api/v1/me`返回业务能力，`GET /api/v1/me/menus`只返回当前可访问的导航。普通用户直接访问角色或菜单管理接口返回403。
 
 在同一部门使用两个账号分别领取录单和复核角色。录单员用`POST /api/v1/orders`创建草稿，提交时向`POST /api/v1/orders/{id}/submit`发送当前`version`。复核员读取订单后调用`/approve`并提交所读版本。历史接口`GET /api/v1/orders/{id}/history`依次记录创建、提交和批准。跨部门访问返回404，已过期版本返回409。完整输入及负例见[项目契约](ARCHITECTURE.md#http-契约)。
+
+平台管理员可用`GET /api/v1/audit-events?resourceType=ORDER&resourceId={id}`查找关联的写入事件。响应头`X-Request-Id`与事件的`requestId`对应。Redis短时不可用时，菜单从MySQL回源，请求继续按实时用户权限过滤。
 
 见 [实施计划](../JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md)、[任务清单](../TASKBOARD.md) 与 [贡献指南](../CONTRIBUTING.md)。

@@ -47,8 +47,16 @@ jobs:
         options: >-
           --health-cmd="mysqladmin ping -h127.0.0.1 -pcapstone-test-root --silent"
           --health-interval=5s --health-timeout=5s --health-retries=30
+      redis:
+        image: redis:7.4.6-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s --health-timeout=5s --health-retries=20
     env:
       CAPSTONE_TEST_DB_PORT: '3306'
+      CAPSTONE_TEST_REDIS_PORT: '6379'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -63,7 +71,7 @@ jobs:
             MVNW_REPOURL=https://repo1.maven.org/maven2 ./mvnw --version
             echo "MVNW_REPOURL=https://repo1.maven.org/maven2" >> "$GITHUB_ENV"
           fi
-      - name: Verify the reactor, Flyway migration, and HTTP identity contracts
+      - name: Verify the reactor and HTTP contracts with MySQL and Redis
         run: ./mvnw --batch-mode --no-transfer-progress -f project/pom.xml clean verify
       - uses: actions/upload-artifact@v4
         if: always()

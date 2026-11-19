@@ -1,5 +1,7 @@
 package dev.javafornestjs.capstone.system;
 
+import dev.javafornestjs.capstone.core.AuditTrail;
+import dev.javafornestjs.capstone.core.AuditTrail.Event;
 import dev.javafornestjs.capstone.core.RequestFailure;
 import dev.javafornestjs.capstone.security.SessionIdentity;
 import dev.javafornestjs.capstone.system.AccountsMapper.Account;
@@ -23,14 +25,16 @@ public class AccountsService {
     private final AuthorizationMapper authorization;
     private final CurrentOrderAccess access;
     private final PasswordEncoder passwords;
+    private final AuditTrail audit;
 
     AccountsService(AccountsMapper accounts, AccountSessions sessions, AuthorizationMapper authorization,
-            CurrentOrderAccess access, PasswordEncoder passwords) {
+            CurrentOrderAccess access, PasswordEncoder passwords, AuditTrail audit) {
         this.accounts = accounts;
         this.sessions = sessions;
         this.authorization = authorization;
         this.access = access;
         this.passwords = passwords;
+        this.audit = audit;
     }
 
     @Transactional
@@ -92,7 +96,9 @@ public class AccountsService {
         } catch (DuplicateKeyException duplicate) {
             throw new RequestFailure(RESOURCE_CONFLICT, "Username already exists");
         }
-        return view(accounts.byUsername(username));
+        var created = accounts.byUsername(username);
+        audit.record(actor.userId(), Event.USER_CREATED, created.id());
+        return view(created);
     }
 
     @Transactional
@@ -102,13 +108,16 @@ public class AccountsService {
         if (displayName == null && department == null && status == null) {
             throw new RequestFailure(VALIDATION_ERROR, "Provide at least one field to update");
         }
-        return updateAccount(account, displayName, department, status);
+        var result = updateAccount(account, displayName, department, status);
+        audit.record(actor.userId(), Event.USER_UPDATED, id);
+        return result;
     }
 
     @Transactional
     public void disable(SessionIdentity actor, long id) {
         requireAdministrator(actor, true);
         updateAccount(requireAccount(accounts.lock(id)), null, null, "DISABLED");
+        audit.record(actor.userId(), Event.USER_DISABLED, id);
     }
 
     @Transactional
@@ -117,6 +126,7 @@ public class AccountsService {
         requireAccount(accounts.lock(id));
         AccountInputs.validatePassword(password);
         accounts.replacePassword(id, passwords.encode(password));
+        audit.record(actor.userId(), Event.PASSWORD_CHANGED, id);
     }
 
     private User updateAccount(Account account, String name, Long department, String requestedStatus) {

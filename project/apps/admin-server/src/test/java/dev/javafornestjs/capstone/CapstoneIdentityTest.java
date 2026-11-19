@@ -6,11 +6,13 @@ import dev.javafornestjs.capstone.security.OrderPermission;
 import dev.javafornestjs.capstone.security.OrderScope;
 import dev.javafornestjs.capstone.security.SessionIdentity;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyPairGenerator;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -26,12 +28,17 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -45,6 +52,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ExtendWith(OutputCaptureExtension.class)
 class CapstoneIdentityTest {
     private static final String ADMIN = "test-admin";
     private static final String ADMIN_PASSWORD = "test-only-admin-password";
@@ -57,6 +65,9 @@ class CapstoneIdentityTest {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private StringRedisTemplate redis;
 
     @Autowired
     private TestClock clock;
@@ -75,6 +86,7 @@ class CapstoneIdentityTest {
         signingKey = pemFile("PRIVATE KEY", keys.getPrivate().getEncoded());
         verificationKey = pemFile("PUBLIC KEY", keys.getPublic().getEncoded());
         int port = Integer.parseInt(System.getenv().getOrDefault("CAPSTONE_TEST_DB_PORT", "13319"));
+        int redisPort = Integer.parseInt(System.getenv().getOrDefault("CAPSTONE_TEST_REDIS_PORT", "16319"));
         properties.add("spring.datasource.url",
                 () -> "jdbc:mysql://127.0.0.1:" + port + "/capstone_test?allowPublicKeyRetrieval=true&useSSL=false");
         properties.add("spring.datasource.username", () -> "capstone_test");
@@ -83,6 +95,9 @@ class CapstoneIdentityTest {
         properties.add("capstone.bootstrap.password", () -> ADMIN_PASSWORD);
         properties.add("capstone.security.signing-key", () -> signingKey.toUri().toString());
         properties.add("capstone.security.verification-key", () -> verificationKey.toUri().toString());
+        properties.add("capstone.menu-cache.enabled", () -> true);
+        properties.add("spring.data.redis.host", () -> "127.0.0.1");
+        properties.add("spring.data.redis.port", () -> redisPort);
     }
 
     @BeforeEach
@@ -141,7 +156,11 @@ class CapstoneIdentityTest {
         assertThat(rotated.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(refreshToken(rotated.getBody())).isNotEqualTo(refreshToken(original));
         assertThat(access(rotated.getBody())).isNotEqualTo(access(original));
-        assertError(refresh(original), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
+        var replay = refresh(original);
+        assertError(replay, HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM sys_audit_event WHERE request_id = ? AND action = 'REFRESH_REPLAY'",
+                Long.class, replay.getHeaders().getFirst("X-Request-Id"))).isEqualTo(1);
         assertError(refresh(rotated.getBody()), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
         assertError(get("/me", access(rotated.getBody())), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
         assertThat(get("/me", access(other)).getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -480,11 +499,113 @@ class CapstoneIdentityTest {
             assertThat(after.path("status").asText()).isEqualTo("DRAFT");
             assertThat(after.path("version").asInt()).isEqualTo(1);
             assertThat(get(relative + "/history", token).getBody()).isEqualTo(beforeHistory);
+            assertThat(get("/audit-events?resourceType=ORDER&resourceId=" + id, admin)
+                    .getBody().path("total").asInt()).isEqualTo(1);
         } finally {
             jdbc.update("DELETE FROM sales_order_history WHERE order_id = ? AND version = 2", id);
         }
         assertThat(action(route, "submit", token, 1).getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(get(relative + "/history", token).getBody().size()).isEqualTo(2);
+    }
+
+    @Test
+    void auditEventsCorrelateCommittedWritesWithoutStoringSensitiveData(CapturedOutput output) {
+        var adminSession = login(ADMIN, ADMIN_PASSWORD);
+        String admin = access(adminSession);
+        String actorId = get("/me", admin).getBody().path("id").asText();
+        var member = newUser(admin);
+        String memberId = member.path("id").asText();
+        String memberToken = access(login(member.path("username").asText(), USER_PASSWORD));
+        String newPassword = "sensitive-test-marker-password";
+        var change = request(HttpMethod.PUT, "/api/v1/users/" + memberId + "/password", admin,
+                Map.of("password", newPassword));
+        assertThat(change.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertError(get("/audit-events", memberToken), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
+        assertError(get("/audit-events", access(login(member.path("username").asText(), newPassword))),
+                HttpStatus.FORBIDDEN, "FORBIDDEN");
+        var result = get("/audit-events?resourceType=USER&resourceId=" + memberId, admin);
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody().path("items")).anySatisfy(event -> {
+            assertThat(event.path("action").asText()).isEqualTo("PASSWORD_CHANGED");
+            assertThat(event.path("requestId").asText()).isEqualTo(change.getHeaders().getFirst("X-Request-Id"));
+            assertThat(event.path("actorId").asText()).isEqualTo(actorId);
+            assertThat(event.path("resourceId").asText()).isEqualTo(memberId);
+        });
+        assertThat(result.getBody().toString()).doesNotContain(
+                newPassword, USER_PASSWORD, refreshToken(adminSession), admin);
+        assertThat(output.getAll()).doesNotContain(newPassword, refreshToken(adminSession), admin);
+    }
+
+    @Test
+    void replayStillRevokesFamilyWhenTheFollowUpAuditInsertFails(CapturedOutput output) {
+        var admin = access(login(ADMIN, ADMIN_PASSWORD));
+        var member = newUser(admin);
+        long id = member.path("id").asLong();
+        var initial = login(member.path("username").asText(), USER_PASSWORD);
+        var successor = refresh(initial);
+        assertThat(successor.getStatusCode()).isEqualTo(HttpStatus.OK);
+        String constraint = "fail_replay_audit_" + id;
+        jdbc.execute("ALTER TABLE sys_audit_event ADD CONSTRAINT " + constraint
+                + " CHECK (action <> 'REFRESH_REPLAY' OR actor_id <> " + id + ")");
+        try {
+            var replay = refresh(initial);
+            assertError(replay, HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
+            assertError(refresh(successor.getBody()), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
+            assertError(get("/me", access(successor.getBody())), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
+            assertThat(output.getAll())
+                    .contains("Replay revoked but audit insert failed requestId="
+                            + replay.getHeaders().getFirst("X-Request-Id"))
+                    .doesNotContain(refreshToken(initial), refreshToken(successor.getBody()));
+        } finally {
+            jdbc.execute("ALTER TABLE sys_audit_event DROP CHECK " + constraint);
+        }
+    }
+
+    @Test
+    void menuRevisionInvalidatesRedisAndTimeoutFallsBackToMysql() throws InterruptedException {
+        String admin = access(login(ADMIN, ADMIN_PASSWORD));
+        var member = newUser(admin);
+        String unauthorizedForOrders = access(login(member.path("username").asText(), USER_PASSWORD));
+        var prior = get("/menus", admin).getBody().get(0);
+        String id = prior.path("id").asText();
+        String originalLabel = prior.path("label").asText();
+        String route = "/api/v1/menus/" + id;
+        String originalKey = menuCacheKey();
+        assertThat(get("/me/menus", admin).getBody().get(0).path("label").asText()).isEqualTo(originalLabel);
+        assertThat(redis.opsForValue().get(originalKey)).contains(originalLabel);
+
+        String updatedLabel = "Redis verified menu";
+        var patched = request(HttpMethod.PATCH, route, admin, Map.of("label", updatedLabel));
+        assertThat(patched.getStatusCode()).isEqualTo(HttpStatus.OK);
+        try {
+            String currentKey = menuCacheKey();
+            assertThat(currentKey).isNotEqualTo(originalKey);
+            assertThat(redis.opsForValue().get(originalKey)).contains(originalLabel);
+            assertThat(get("/me/menus", admin).getBody().get(0).path("label").asText()).isEqualTo(updatedLabel);
+            String definitions = redis.opsForValue().get(currentKey);
+            assertThat(definitions).contains(updatedLabel);
+            assertThat(redis.getExpire(currentKey)).isBetween(1L, 300L);
+            redis.opsForValue().set(currentKey, definitions.replace(updatedLabel, "Incorrect cached label"),
+                    Duration.ofMinutes(1));
+            assertThat(get("/me/menus", admin).getBody().get(0).path("label").asText())
+                    .isEqualTo("Incorrect cached label");
+            redis.execute((RedisCallback<Object>) connection -> connection.execute("CLIENT",
+                    "PAUSE".getBytes(StandardCharsets.US_ASCII), "2200".getBytes(StandardCharsets.US_ASCII),
+                    "ALL".getBytes(StandardCharsets.US_ASCII)));
+            var fallback = get("/me/menus", admin);
+            assertThat(fallback.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(fallback.getBody().get(0).path("label").asText()).isEqualTo(updatedLabel);
+            assertError(get("/orders", unauthorizedForOrders), HttpStatus.FORBIDDEN, "FORBIDDEN");
+            Thread.sleep(2_300);
+        } finally {
+            assertThat(request(HttpMethod.PATCH, route, admin, Map.of("label", originalLabel)).getStatusCode())
+                    .isEqualTo(HttpStatus.OK);
+        }
+    }
+
+    private String menuCacheKey() {
+        return "capstone:menu:" + jdbc.queryForObject(
+                "SELECT revision FROM sys_menu_revision WHERE id = 1", String.class);
     }
 
     private JsonNode newUser(String admin) {

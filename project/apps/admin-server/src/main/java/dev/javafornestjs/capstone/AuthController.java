@@ -1,5 +1,6 @@
 package dev.javafornestjs.capstone;
 
+import dev.javafornestjs.capstone.core.AuditTrail;
 import dev.javafornestjs.capstone.security.SessionIdentity;
 import dev.javafornestjs.capstone.system.SessionService;
 import dev.javafornestjs.capstone.system.SessionService.TokenPair;
@@ -16,9 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 class AuthController {
     private final SessionService sessions;
+    private final AuditTrail audit;
 
-    AuthController(SessionService sessions) {
+    AuthController(SessionService sessions, AuditTrail audit) {
         this.sessions = sessions;
+        this.audit = audit;
     }
 
     @PostMapping("/login")
@@ -29,8 +32,14 @@ class AuthController {
 
     @PostMapping("/refresh")
     ResponseEntity<TokenPair> refresh(@RequestBody Refresh request) {
-        var pair = sessions.refresh(request.refreshToken()).orElseThrow(SessionService::invalidAuthentication);
-        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(pair);
+        var result = sessions.refresh(request.refreshToken());
+        if (result.replayedAccount() != null) {
+            audit.recordCommittedReplay(result.replayedAccount());
+        }
+        if (result.tokens() == null) {
+            throw SessionService.invalidAuthentication();
+        }
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(result.tokens());
     }
 
     @PostMapping("/logout")
