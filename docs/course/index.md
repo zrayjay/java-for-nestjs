@@ -93,7 +93,7 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 | 38 | [消息队列](../../docs/08-cloud-native/38-messaging.md) | RabbitMQ/Kafka、确认、重试、DLQ、幂等 | BullMQ、Node MQ 客户端 | 待独立审查 |
 | 39 | [分布式可靠性](../../docs/08-cloud-native/39-distributed-reliability.md) | 超时、熔断、Outbox、最终一致性、租约 | Agent Worker 设计 | 待独立审查 |
 | 40 | [容器与编排](../../docs/08-cloud-native/40-containers-and-orchestration.md) | Docker、Kubernetes、健康检查、滚动更新 | Node Docker 部署 | 待独立审查 |
-| 41 | 自动交付 | GitLab CI/GitHub Actions、镜像、配置、回滚 | 现有 Node CI/CD | 待编写 |
+| 41 | [自动交付](../../docs/08-cloud-native/41-continuous-delivery.md) | GitLab CI/GitHub Actions、镜像、配置、回滚 | 现有 Node CI/CD | 编写中 |
 
 ## Part 09 · 最终工程实战 {#part-09}
 

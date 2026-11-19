@@ -411,7 +411,7 @@
         "topics": "GitLab CI/GitHub Actions、镜像、配置、回滚",
         "reference": "现有 Node CI/CD",
         "pilot": false,
-        "status": "planned",
+        "status": "draft",
         "path": "docs/08-cloud-native/41-continuous-delivery.md"
       }
     ]

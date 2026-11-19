@@ -4,7 +4,7 @@
 
 教学镜像新增`ARG/ENV BUILD_MARKER`：构建期注入的版本标识默认`unversioned`，运行期可在容器内`printenv BUILD_MARKER`验证。这是镜像内容差异的最小可观测载体；不修改已审查的Java代码与安全守卫。版本追溯链是git提交SHA→镜像标签→容器内marker→Deployment镜像字段，四者可在演练中同时核对。
 
-镜像扫描用固定版本Trivy对实际构建产物执行，未修复的HIGH/CRITICAL漏洞使流水线失败；扫描结果归档为CI artifact，LOW/MEDIUM如实保留不隐藏。扫描基线漂移会随依赖升级出现，失败即阻断，不允许为通过而加白名单；确需豁免必须单独提交理由。
+Trivy Action使用固定版本，分别扫描kind实际加载的v1与v2镜像。门禁涵盖有无上游修复的HIGH/CRITICAL漏洞，允许带理由和到期时间的逐条豁免。CI归档门禁生成的JSON报告，报告的范围由严重级别和豁免规则决定。出现未处理的高危问题或扫描自身失败时，工作流停止在部署之前。
 
 回滚演练在kind集群真实执行：部署v1镜像→登录创建任务→滚动到v2镜像（集群内持续请求零失败、容器内marker变为v2）→`kubectl rollout undo`回滚（marker回到v1、任务与原refresh token仍可用、期间请求零失败）。回滚证据包含rollout历史、前后Deployment镜像字段、marker实测值与业务连续性；不把"undo成功"简化为命令退出码。
 

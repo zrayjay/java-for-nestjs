@@ -59,27 +59,29 @@ jobs:
           curl -fsSLo ./kind https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64
           chmod +x ./kind
       - name: Build and check the delivery candidates
+        id: build
         run: |
           node --check scripts/verify-k8s-delivery.mjs
           docker build --build-arg BUILD_MARKER="drill-v1-$GITHUB_SHA" -f project/deploy/compose/Dockerfile -t java-for-nestjs-teaching:v1 .
-          docker build --build-arg BUILD_MARKER=drill-v2-rollback-target -f project/deploy/compose/Dockerfile -t java-for-nestjs-teaching:v2 .
-      - name: Scan v1 for fixable HIGH/CRITICAL vulnerabilities (blocking)
+          docker build --build-arg BUILD_MARKER="drill-v2-$GITHUB_SHA" -f project/deploy/compose/Dockerfile -t java-for-nestjs-teaching:v2 .
+      - name: Scan v1 for HIGH/CRITICAL vulnerabilities (blocking)
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: java-for-nestjs-teaching:v1
           format: json
           exit-code: '1'
-          ignore-unfixed: true
+          ignore-unfixed: false
           severity: HIGH,CRITICAL
           trivyignores: project/deploy/trivy-ignore.yaml
           output: trivy-v1.json
-      - name: Scan v2 for fixable HIGH/CRITICAL vulnerabilities (blocking)
+      - name: Scan v2 for HIGH/CRITICAL vulnerabilities (blocking)
+        if: ${{ !cancelled() && steps.build.conclusion == 'success' }}
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: java-for-nestjs-teaching:v2
           format: json
           exit-code: '1'
-          ignore-unfixed: true
+          ignore-unfixed: false
           severity: HIGH,CRITICAL
           trivyignores: project/deploy/trivy-ignore.yaml
           output: trivy-v2.json

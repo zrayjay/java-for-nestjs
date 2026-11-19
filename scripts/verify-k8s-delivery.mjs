@@ -11,7 +11,7 @@ const image = 'java-for-nestjs-teaching'
 const clusterName = process.env.KIND_CLUSTER_NAME || 'p5-delivery'
 const kind = process.env.KIND_BIN || 'kind'
 const source = process.env.GITHUB_SHA || 'local'
-const markers = { v1: `drill-v1-${source}`, v2: 'drill-v2-rollback-target' }
+const markers = { v1: `drill-v1-${source}`, v2: `drill-v2-${source}` }
 
 function run(command, args, { input, timeout = 60_000, label = args[0] } = {}) {
   return new Promise((resolve, reject) => {
@@ -80,7 +80,11 @@ async function verifyVersion(tag) {
     ({ name }) => name === 'api',
   )
   assert.ok(container.ready)
-  assert.equal(container.image, deployedImage)
+  assert.equal(
+    container.image.replace(/^docker\.io\/library\//, ''),
+    deployedImage,
+  )
+  assert.ok(container.imageID, 'The runtime must report the deployed image ID')
   const marker = (
     await ns([
       'exec',
@@ -121,6 +125,7 @@ async function underTraffic(change) {
   )
   // Attach a handler immediately while the rollout is in flight.
   requests.catch(() => {})
+  let rolloutError
   try {
     await client(`
       for attempt in $(seq 1 20); do
@@ -131,18 +136,24 @@ async function underTraffic(change) {
     `)
     await change()
     await rollout('api')
+  } catch (error) {
+    rolloutError = error
+    throw error
   } finally {
-    await client('touch /tmp/probe-stop\n')
+    await client('touch /tmp/probe-stop\n').catch((error) => {
+      if (!rolloutError) throw error
+      console.error(error.message)
+    })
   }
   const [count, failures] = (await requests).trim().split(' ').map(Number)
   await client('rm /tmp/probe-started /tmp/probe-stop\n')
   assert.ok(Number.isSafeInteger(count) && count > 0)
-  assert.equal(failures, 0, `Readiness request failures out of ${count}`)
   return { requests: count, failures }
 }
 
 const results = { source, checks: [] }
 let namespaceCreated = false
+let primaryError
 await mkdir(output, { recursive: true })
 
 try {
@@ -256,14 +267,27 @@ try {
   const forward = await underTraffic(() =>
     ns(['set', 'image', 'deployment/api', `api=${image}:v2`]),
   )
-  results.rollForward = { ...forward, ...(await verifyVersion('v2')) }
+  results.rollForward = forward
+  assert.equal(
+    forward.failures,
+    0,
+    `Readiness request failures during upgrade out of ${forward.requests}`,
+  )
+  Object.assign(forward, await verifyVersion('v2'))
+  assert.notEqual(forward.imageID, results.initial.imageID)
   results.checks.push('v2-rollout-zero-failure-marker-v2')
 
   console.log('DELIVERY_PHASE rollback-to-v1')
   const backward = await underTraffic(() =>
     ns(['rollout', 'undo', 'deployment/api']),
   )
-  results.rollback = { ...backward, ...(await verifyVersion('v1')) }
+  results.rollback = backward
+  assert.equal(
+    backward.failures,
+    0,
+    `Readiness request failures during rollback out of ${backward.requests}`,
+  )
+  Object.assign(backward, await verifyVersion('v1'))
   assert.equal(results.rollback.imageID, results.initial.imageID)
   await writeFile(
     resolve(output, 'rollout-history.log'),
@@ -285,10 +309,12 @@ try {
   results.status = 'passed'
   console.log('DELIVERY_RESULT', JSON.stringify(results))
 } catch (error) {
+  primaryError = error
   results.status = 'failed'
   results.error = error.message
   throw error
 } finally {
+  const writeErrors = []
   if (namespaceCreated) {
     const diagnostics = [
       ['pods.log', ['get', 'pods', '-o', 'wide']],
@@ -297,11 +323,16 @@ try {
     ]
     for (const [filename, args] of diagnostics) {
       const log = await ns(args).catch((error) => error.message)
-      await writeFile(resolve(output, filename), log)
+      await writeFile(resolve(output, filename), log).catch((error) =>
+        writeErrors.push(error),
+      )
     }
   }
   await writeFile(
     resolve(output, 'summary.json'),
     JSON.stringify(results, null, 2) + '\n',
-  )
+  ).catch((error) => writeErrors.push(error))
+  if (writeErrors.length && !primaryError)
+    throw new AggregateError(writeErrors, 'Delivery evidence write failed')
+  for (const error of writeErrors) console.error(error.message)
 }

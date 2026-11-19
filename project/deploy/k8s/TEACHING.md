@@ -50,6 +50,7 @@ Pod起不来先看`kubectl -n teaching describe pod`与`kubectl -n teaching logs
 
 ```powershell
 kind create cluster --name p5-delivery --image kindest/node:v1.34.0 --wait 180s
+New-Item -ItemType Directory -Force target | Out-Null
 docker pull --platform linux/amd64 mysql:8.4.7
 docker save --platform linux/amd64 -o target/delivery-mysql-amd64.tar mysql:8.4.7
 kind load image-archive target/delivery-mysql-amd64.tar --name p5-delivery

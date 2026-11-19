@@ -34,7 +34,7 @@ Node镜像同样以构建参数注入版本（如`npm version`或git SHA写进�
 
 #### 5. 两端代码对照
 
-镜像构建期注入标记，运行期可观测：
+**Java** · 教学Dockerfile在构建期注入标记：
 
 ```dockerfile
 ARG BUILD_MARKER=unversioned
@@ -42,6 +42,8 @@ ENV BUILD_MARKER=${BUILD_MARKER}
 ```
 
 CI以提交SHA构造v1标记：`--build-arg BUILD_MARKER="drill-v1-$GITHUB_SHA"`。演练中`docker run --rm --entrypoint printenv <image> BUILD_MARKER`与`kubectl exec <pod> -- printenv BUILD_MARKER`分别验证镜像与集群内Pod的实际值。证据同时记录运行时的镜像ID，用于比对回滚前后的v1产物。
+
+**Node.js** · 采用同样构建参数的Node镜像可以用`node -p 'process.env.BUILD_MARKER'`读取标记。本仓库的[Node生命周期示例](../../examples/container-node-reference/README.md)只运行本地进程。
 
 #### 6. 原理与流程图
 
@@ -76,7 +78,7 @@ Pod内marker与预期不符先查`kubectl rollout history`确认实际部署的r
 
 #### 1. 一句话定义
 
-流水线对演练实际加载的两份镜像做漏洞扫描，存在已有修复版本且未豁免的HIGH/CRITICAL漏洞时阻断交付。
+流水线扫描演练实际加载的两份镜像。发现未豁免的HIGH/CRITICAL漏洞时阻断交付。
 
 #### 2. 为什么需要它
 
@@ -92,30 +94,32 @@ Node侧对应`pnpm audit --audit-level high`（本仓库已在用）与镜像扫
 
 #### 5. 两端代码对照
 
-CI扫描步骤，失败即阻断后续部署：
+**Java** · CI扫描步骤，失败即阻断后续部署：
 
 ```yaml
 - uses: aquasecurity/trivy-action@v0.36.0
   with:
     image-ref: java-for-nestjs-teaching:v1
     exit-code: '1'
-    ignore-unfixed: true
+    ignore-unfixed: false
     severity: HIGH,CRITICAL
 ```
 
 v2使用同样的扫描规则。上传步骤归档已经生成的JSON报告，供失败时排查。
 
+**Node.js** · 仓库用`pnpm audit --audit-level high`检查工作区依赖。它没有检查镜像中的系统包。若为NestJS构建容器，扫描作业仍应引用实际要部署的镜像。
+
 #### 6. 原理与流程图
 
-构建→扫描→（阻断或放行）→集群演练。扫描器比对镜像内包版本与漏洞数据库。门禁报告受严重级别、`ignore-unfixed`和豁免策略过滤，完整盘点要另行运行覆盖所有严重级别和修复状态的扫描。
+构建→扫描→（阻断或放行）→集群演练。扫描器比对镜像内包版本与漏洞数据库。门禁报告受严重级别和豁免策略过滤，完整盘点要另行运行覆盖所有严重级别的扫描。
 
 #### 7. 类比边界与错误直觉
 
-扫描通过不等于无漏洞：未知CVE、LOW/MEDIUM、以及扫描器数据库的时效都是边界。`ignore-unfixed`是务实选择而非放任——上游没补丁的漏洞阻断也没有出路，但升级路径出现时要重新审视。绝不以加白名单换取通过；确需豁免必须单独提交理由，这是仓库明确约定。
+门禁覆盖扫描数据库已知的HIGH和CRITICAL。没有上游补丁的高危问题也会触发阻断，维护者可替换组件或提交逐条豁免理由与到期时间。
 
 #### 8. 企业应用场景与选型
 
-生产通常每日重扫已发布镜像（新CVE会追上旧产物）并把扫描接到准入控制。教学管道扫描当次构建，扫描工具的Action版本固定，漏洞数据库会更新。
+生产通常每日重扫已发布镜像并把扫描接到准入控制。教学管道扫描当次构建，漏洞数据库会更新。GitLab CI中的扫描job和artifacts可表达相同的门禁与证据保留机制，仓库的可执行版本见GitHub Actions。
 
 #### 9. 常见错误与排查
 
@@ -123,7 +127,7 @@ v2使用同样的扫描规则。上传步骤归档已经生成的JSON报告，�
 
 #### 10. 实操练习与验收
 
-基础题：为什么exit-code=1是阻断的关键。迁移题：对照pnpm audit与镜像扫描各自覆盖面。思考题：ignore-unfixed的取舍何时会反过来咬人？完整验收见kp03的CI证据。
+基础题：为什么exit-code=1是阻断的关键。迁移题：对照pnpm audit与镜像扫描各自覆盖面。思考题：无上游修复时，逐条豁免要记录哪些条件和到期时间？完整验收见kp03的CI证据。
 
 ### ch41-kp03 · 滚动升级与回滚闭环
 
@@ -145,7 +149,7 @@ Node应用同样依赖编排系统的滚动与回滚；PM2等进程管理器的r
 
 #### 5. 两端代码对照
 
-演练核心命令链：
+**Java** · 演练核心命令链：
 
 ```sh
 kubectl -n teaching set image deployment/api api=java-for-nestjs-teaching:v2
@@ -155,6 +159,8 @@ kubectl -n teaching rollout history deployment/api
 ```
 
 断言不只看退出码：Deployment镜像字段从v1→v2→v1、Pod内`printenv BUILD_MARKER`随之变化、两次滚动期间集群内客户端对Service持续请求零失败、回滚后用v1期间的原refresh token仍能换新令牌读到v1期间创建的任务。
+
+**Node.js** · [本地生命周期模型](../../examples/container-node-reference/README.md)通过向进程发SIGTERM来验证请求排空。Deployment历史由Kubernetes管理，仓库没有对应的NestJS滚动实验。部署配置也要与镜像版本兼容，例如[教学清单](../../project/deploy/k8s/teaching.yaml)从Secret注入数据库连接参数，`rollout undo`只恢复Pod模板，独立修改的Secret仍需另行处理。
 
 #### 6. 原理与流程图
 
