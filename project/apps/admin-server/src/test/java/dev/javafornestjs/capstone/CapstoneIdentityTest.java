@@ -1,6 +1,10 @@
 package dev.javafornestjs.capstone;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import dev.javafornestjs.capstone.security.OrderAccessLookup;
+import dev.javafornestjs.capstone.security.OrderPermission;
+import dev.javafornestjs.capstone.security.OrderScope;
+import dev.javafornestjs.capstone.security.SessionIdentity;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,11 +16,13 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +38,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -53,6 +60,12 @@ class CapstoneIdentityTest {
 
     @Autowired
     private TestClock clock;
+
+    @Autowired
+    private OrderAccessLookup orderAccess;
+
+    @Autowired
+    private JwtDecoder jwtDecoder;
 
     @DynamicPropertySource
     static void runtimeProperties(DynamicPropertyRegistry properties) throws GeneralSecurityException, IOException {
@@ -102,7 +115,8 @@ class CapstoneIdentityTest {
         var me = get("/me", access(tokens));
         assertThat(me.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(me.getBody().path("username").asText()).isEqualTo(ADMIN);
-        assertThat(me.getBody().path("permissions").get(0).asText()).isEqualTo("system:admin");
+        assertThat(me.getBody().path("permissions")).extracting(JsonNode::asText)
+                .contains("system:admin", "orders:read");
         assertThat(jdbc.queryForObject("SELECT password_hash FROM sys_user WHERE username = ?", String.class, ADMIN))
                 .startsWith("$2a$").doesNotContain(ADMIN_PASSWORD);
     }
@@ -146,22 +160,13 @@ class CapstoneIdentityTest {
     @Test
     void concurrentReuseIssuesAtMostOneTokenPairAndRevokesTheFamily() throws Exception {
         var tokens = login(ADMIN, ADMIN_PASSWORD);
-        var ready = new CountDownLatch(2);
-        var start = new CountDownLatch(1);
-        try (var workers = Executors.newFixedThreadPool(2)) {
-            var first = workers.submit(() -> simultaneousRefresh(tokens, ready, start));
-            var second = workers.submit(() -> simultaneousRefresh(tokens, ready, start));
-            boolean reachedStart = ready.await(5, TimeUnit.SECONDS);
-            start.countDown();
-            assertThat(reachedStart).isTrue();
-            var left = first.get(10, TimeUnit.SECONDS);
-            var right = second.get(10, TimeUnit.SECONDS);
-            assertThat(List.of(left.getStatusCode(), right.getStatusCode()))
-                    .containsExactlyInAnyOrder(HttpStatus.OK, HttpStatus.UNAUTHORIZED);
-            var accepted = left.getStatusCode() == HttpStatus.OK ? left : right;
-            assertError(refresh(accepted.getBody()), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
-            assertError(get("/me", access(tokens)), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
-        }
+        var results = simultaneousRequests(() -> refresh(tokens), () -> refresh(tokens));
+        assertThat(results).extracting(ResponseEntity::getStatusCode)
+                .containsExactlyInAnyOrder(HttpStatus.OK, HttpStatus.UNAUTHORIZED);
+        var accepted = results.stream().filter(response -> response.getStatusCode() == HttpStatus.OK)
+                .findFirst().orElseThrow();
+        assertError(refresh(accepted.getBody()), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
+        assertError(get("/me", access(tokens)), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
     }
 
     @Test
@@ -206,6 +211,181 @@ class CapstoneIdentityTest {
                 HttpStatus.CONFLICT, "RESOURCE_CONFLICT");
     }
 
+    @Test
+    void rolesRespectActionScopesAndMenuUpdatesAreVisibleInExistingSessions() {
+        var admin = access(login(ADMIN, ADMIN_PASSWORD));
+        var member = newUser(admin);
+        String memberToken = access(login(member.path("username").asText(), USER_PASSWORD));
+        String memberId = member.path("id").asText();
+        long department = member.path("departmentId").asLong();
+        var unrelated = newUser(admin);
+        String outsideCode = "other-" + UUID.randomUUID().toString().substring(0, 8);
+        jdbc.update("INSERT INTO sys_department(code, name) VALUES (?, ?)", outsideCode, "Outside department");
+        long outsideDepartment = jdbc.queryForObject(
+                "SELECT id FROM sys_department WHERE code = ?", Long.class, outsideCode);
+
+        assertError(get("/roles", null), HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED");
+        assertError(get("/roles", memberToken), HttpStatus.FORBIDDEN, "FORBIDDEN");
+        assertThat(get("/me/menus", memberToken).getBody().isEmpty()).isTrue();
+        var reader = createRole(admin, "Reader");
+        var handler = createRole(admin, "Handler");
+        String readerId = reader.path("id").asText();
+        String handlerId = handler.path("id").asText();
+        replaceGrants(admin, readerId, List.of(Map.of("permission", "orders:read", "scope", "DEPARTMENT")));
+        replaceGrants(admin, handlerId, List.of(Map.of("permission", "orders:cancel", "scope", "OWN"),
+                Map.of("permission", "orders:read", "scope", "OWN")));
+        var invalidGrant = request(HttpMethod.PUT, "/api/v1/roles/" + handlerId + "/grants", admin,
+                Map.of("grants", List.of(Map.of("permission", "orders:submit", "scope", "ALL"))));
+        assertError(invalidGrant, HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+        var requestRoles = Map.of("roleIds", List.of(readerId, handlerId));
+        var rolesRoute = "/api/v1/users/" + memberId + "/roles";
+        assertError(request(HttpMethod.PUT, rolesRoute, memberToken, requestRoles),
+                HttpStatus.FORBIDDEN, "FORBIDDEN");
+        assertThat(request(HttpMethod.PUT, rolesRoute, admin, requestRoles).getStatusCode())
+                .isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(get("/users/" + memberId, admin).getBody().path("roleIds")).extracting(JsonNode::asText)
+                .containsExactlyInAnyOrder(readerId, handlerId);
+        assertThat(get("/roles", admin).getBody().path("items")).anySatisfy(role -> {
+            assertThat(role.path("id").asText()).isEqualTo(handlerId);
+            assertThat(role.path("grants").get(0).path("permission").asText()).isEqualTo("orders:cancel");
+        });
+
+        var identity = SessionIdentity.from(jwtDecoder.decode(memberToken));
+        var permissions = orderAccess.forSession(identity);
+        long anotherUser = unrelated.path("id").asLong();
+        assertThat(permissions.grants()).containsEntry(OrderPermission.READ, OrderScope.DEPARTMENT)
+                .containsEntry(OrderPermission.CANCEL, OrderScope.OWN);
+        assertThat(permissions.allows(OrderPermission.READ, anotherUser, department)).isTrue();
+        assertThat(permissions.allows(OrderPermission.CANCEL, anotherUser, department)).isFalse();
+        assertThat(permissions.allows(OrderPermission.CANCEL, identity.userId(), department)).isTrue();
+        assertThat(permissions.allows(OrderPermission.READ, anotherUser, outsideDepartment)).isFalse();
+        assertThat(get("/me/menus", memberToken).getBody().get(0).path("routeKey").asText()).isEqualTo("orders");
+
+        assertThat(request(HttpMethod.PUT, rolesRoute, admin, Map.of("roleIds", List.of(handlerId))).getStatusCode())
+                .isEqualTo(HttpStatus.NO_CONTENT);
+        var narrowed = orderAccess.forSession(identity);
+        assertThat(narrowed.grants()).containsEntry(OrderPermission.READ, OrderScope.OWN);
+        assertThat(narrowed.allows(OrderPermission.READ, anotherUser, department)).isFalse();
+        assertThat(request(HttpMethod.PUT, rolesRoute, admin, Map.of("roleIds", List.of())).getStatusCode())
+                .isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(get("/me/menus", memberToken).getBody().isEmpty()).isTrue();
+    }
+
+    @Test
+    void menusRejectCyclesAndAdministratorFlagCannotBeSelfAssigned() {
+        var admin = access(login(ADMIN, ADMIN_PASSWORD));
+        var member = newUser(admin);
+        String memberId = member.path("id").asText();
+        String memberToken = access(login(member.path("username").asText(), USER_PASSWORD));
+        String toggle = "/api/v1/users/" + memberId + "/platform-admin";
+        assertError(request(HttpMethod.PUT, toggle, memberToken, Map.of("enabled", true)),
+                HttpStatus.FORBIDDEN, "FORBIDDEN");
+        assertError(request(HttpMethod.PUT, toggle, admin, Map.of("enabled", "true")),
+                HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+        assertError(get("/menus", memberToken), HttpStatus.FORBIDDEN, "FORBIDDEN");
+        assertError(request(HttpMethod.POST, "/api/v1/menus", admin, Map.of("label", "Fraction", "sortOrder", 1.5)),
+                HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+        var first = request(HttpMethod.POST, "/api/v1/menus", admin, Map.of("label", "Group", "sortOrder", 80));
+        assertThat(first.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String parent = first.getBody().path("id").asText();
+        var childMenu = request(HttpMethod.POST, "/api/v1/menus", admin,
+                Map.of("label", "Child", "sortOrder", 80, "parentId", parent));
+        assertThat(childMenu.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String child = childMenu.getBody().path("id").asText();
+        var parentRoute = "/api/v1/menus/" + parent;
+        assertError(request(HttpMethod.PATCH, parentRoute, admin,
+                        Map.of("label", "Group", "sortOrder", 80, "parentId", child)),
+                HttpStatus.CONFLICT, "RESOURCE_CONFLICT");
+        assertError(request(HttpMethod.DELETE, parentRoute, admin, null),
+                HttpStatus.CONFLICT, "RESOURCE_CONFLICT");
+        var orderMenu = get("/menus", admin).getBody().get(0);
+        String orderMenuRoute = "/api/v1/menus/" + orderMenu.path("id").asText();
+        var moved = request(HttpMethod.PATCH, orderMenuRoute, admin, Map.of("parentId", parent));
+        assertThat(moved.getStatusCode()).isEqualTo(HttpStatus.OK);
+        try {
+            var renamed = request(HttpMethod.PATCH, orderMenuRoute, admin, Map.of("label", "Edited order menu"));
+            assertThat(renamed.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(renamed.getBody().path("parentId").asText()).isEqualTo(parent);
+            assertThat(renamed.getBody().path("routeKey").asText()).isEqualTo("orders");
+            assertThat(renamed.getBody().path("permission").asText()).isEqualTo("orders:read");
+            assertThat(get("/me/menus", admin).getBody()).anySatisfy(node -> {
+                assertThat(node.path("id").asText()).isEqualTo(parent);
+                assertThat(node.path("children").get(0).path("label").asText()).isEqualTo("Edited order menu");
+            });
+        } finally {
+            var restored = request(HttpMethod.PATCH, orderMenuRoute, admin,
+                    Map.of("label", orderMenu.path("label").asText()));
+            assertThat(restored.getStatusCode()).isEqualTo(HttpStatus.OK);
+            var root = request(HttpMethod.PATCH, orderMenuRoute, admin,
+                    new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode().putNull("parentId"));
+            assertThat(root.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+        assertThat(request(HttpMethod.DELETE, "/api/v1/menus/" + child, admin, null).getStatusCode())
+                .isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(request(HttpMethod.DELETE, parentRoute, admin, null).getStatusCode())
+                .isEqualTo(HttpStatus.NO_CONTENT);
+
+        assertThat(request(HttpMethod.PUT, toggle, admin, Map.of("enabled", true)).getStatusCode())
+                .isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(get("/menus", memberToken).getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(request(HttpMethod.PUT, toggle, admin, Map.of("enabled", false)).getStatusCode())
+                .isEqualTo(HttpStatus.NO_CONTENT);
+        assertError(get("/menus", memberToken), HttpStatus.FORBIDDEN, "FORBIDDEN");
+    }
+
+    @Test
+    void simultaneousAdministratorRevocationsPreserveOneActiveAdministrator() throws Exception {
+        String firstToken = access(login(ADMIN, ADMIN_PASSWORD));
+        String firstId = get("/me", firstToken).getBody().path("id").asText();
+        var second = newUser(firstToken);
+        String secondId = second.path("id").asText();
+        String secondToken = access(login(second.path("username").asText(), USER_PASSWORD));
+        String firstRoute = "/api/v1/users/" + firstId + "/platform-admin";
+        String secondRoute = "/api/v1/users/" + secondId + "/platform-admin";
+        assertThat(request(HttpMethod.PUT, secondRoute, firstToken, Map.of("enabled", true)).getStatusCode())
+                .isEqualTo(HttpStatus.NO_CONTENT);
+
+        try {
+            var outcomes = simultaneousRequests(
+                    () -> request(HttpMethod.PUT, firstRoute, firstToken, Map.of("enabled", false)),
+                    () -> request(HttpMethod.PUT, secondRoute, secondToken, Map.of("enabled", false)));
+            assertThat(outcomes).extracting(ResponseEntity::getStatusCode)
+                    .containsExactlyInAnyOrder(HttpStatus.NO_CONTENT, HttpStatus.CONFLICT);
+            assertThat(jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM sys_user WHERE platform_admin AND status = 'ACTIVE'", Long.class))
+                    .isEqualTo(1);
+        } finally {
+            var firstStillAdmin = get("/roles", firstToken).getStatusCode() == HttpStatus.OK;
+            if (!firstStillAdmin) {
+                assertThat(request(HttpMethod.PUT, firstRoute, secondToken, Map.of("enabled", true)).getStatusCode())
+                        .isEqualTo(HttpStatus.NO_CONTENT);
+            }
+            assertThat(request(HttpMethod.PUT, secondRoute, firstToken, Map.of("enabled", false)).getStatusCode())
+                    .isEqualTo(HttpStatus.NO_CONTENT);
+        }
+    }
+
+    private JsonNode newUser(String admin) {
+        String department = get("/departments", admin).getBody().get(0).path("id").asText();
+        var created = request(HttpMethod.POST, "/api/v1/users", admin, Map.of(
+                "username", "user-" + UUID.randomUUID().toString().replace("-", ""),
+                "displayName", "Authorization test", "departmentId", department, "password", USER_PASSWORD));
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        return created.getBody();
+    }
+
+    private JsonNode createRole(String admin, String label) {
+        String code = "TEST_" + UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
+        var created = request(HttpMethod.POST, "/api/v1/roles", admin, Map.of("code", code, "name", label));
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        return created.getBody();
+    }
+
+    private void replaceGrants(String admin, String id, List<Map<String, String>> grants) {
+        var response = request(HttpMethod.PUT, "/api/v1/roles/" + id + "/grants", admin, Map.of("grants", grants));
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
+
     private ResponseEntity<JsonNode> get(String route, String token) {
         return request(HttpMethod.GET, "/api/v1" + route, token, null);
     }
@@ -221,13 +401,27 @@ class CapstoneIdentityTest {
         return request(HttpMethod.POST, "/api/v1/auth/refresh", null, Map.of("refreshToken", refreshToken(source)));
     }
 
-    private ResponseEntity<JsonNode> simultaneousRefresh(JsonNode tokens, CountDownLatch ready,
-            CountDownLatch start) throws InterruptedException {
+    private List<ResponseEntity<JsonNode>> simultaneousRequests(Supplier<ResponseEntity<JsonNode>> first,
+            Supplier<ResponseEntity<JsonNode>> second) throws Exception {
+        var ready = new CountDownLatch(2);
+        var start = new CountDownLatch(1);
+        try (var workers = Executors.newFixedThreadPool(2)) {
+            var left = workers.submit(() -> awaitStart(first, ready, start));
+            var right = workers.submit(() -> awaitStart(second, ready, start));
+            boolean reachedStart = ready.await(5, TimeUnit.SECONDS);
+            start.countDown();
+            assertThat(reachedStart).isTrue();
+            return List.of(left.get(10, TimeUnit.SECONDS), right.get(10, TimeUnit.SECONDS));
+        }
+    }
+
+    private ResponseEntity<JsonNode> awaitStart(Supplier<ResponseEntity<JsonNode>> operation,
+            CountDownLatch ready, CountDownLatch start) throws InterruptedException {
         ready.countDown();
         if (!start.await(5, TimeUnit.SECONDS)) {
-            throw new IllegalStateException("Refresh test did not start");
+            throw new IllegalStateException("Concurrent test did not start");
         }
-        return refresh(tokens);
+        return operation.get();
     }
 
     private ResponseEntity<JsonNode> request(HttpMethod method, String path, String bearer, Object body) {

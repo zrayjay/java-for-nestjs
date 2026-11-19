@@ -49,7 +49,7 @@ flowchart LR
 |---|---|
 | `sys_department` | 主键、唯一部门代码、名称。 |
 | `sys_user` | 主键、唯一登录名、显示名、部门外键、密码哈希、状态、凭据版本、平台管理员标记。删除对外表现为停用，保留已有业务引用。 |
-| `sys_role`、`sys_user_role` | 唯一角色代码与名称，用户与角色关联键唯一。 |
+| `sys_role`、`sys_user_role` | 角色代码唯一，显示名称可改。用户与角色的关联键唯一。 |
 | `sys_role_grant` | 角色、订单权限键与作用范围 `OWN`、`DEPARTMENT` 或 `ALL`。同一角色不能重复授予同一权限键。 |
 | `sys_admin_guard` | 单行授权锁。平台管理员授予、撤销、停用及重新启用操作在同一事务内取得行锁后执行。 |
 | `sys_menu` | 主键、父级、显示名称、已定义前端路由键、可见所需权限、显示顺序。父子关系无环。 |
@@ -90,7 +90,7 @@ stateDiagram-v2
 | `PUT /users/{id}/platform-admin` | `enabled`布尔值 → 204，设置平台管理员标记。 |
 | `GET /roles`、`POST /roles`、`PATCH /roles/{id}` | 200角色分页、201创建、200更新显示名。角色输出为 `id, code, name, grants`；创建接收 `code, name`，编辑接收 `name`。 |
 | `PUT /roles/{id}/grants` | `grants`为 `permission, scope` 数组，全量替换后返回204。 |
-| `GET /menus`、`POST /menus`、`PATCH /menus/{id}`、`DELETE /menus/{id}` | 200列表、201创建、200修改、204删除叶节点。输入 `parentId, label, routeKey, permission, sortOrder`，菜单详情另返回 `id`。 |
+| `GET /menus`、`POST /menus`、`PATCH /menus/{id}`、`DELETE /menus/{id}` | 200列表、201创建、200修改、204删除叶节点。输入 `parentId, label, routeKey, permission, sortOrder`，详情另返回 `id`。编辑保留省略字段，`parentId: null`将菜单移到根层。 |
 | `GET /orders`、`GET /orders/{id}` | 200 已授权的列表或详情。列表支持 `status`。订单含 `id, customerName, totalAmountCents, ownerId, departmentId, status, version, createdAt, updatedAt, allowedActions`。 |
 | `POST /orders` | `customerName, totalAmountCents` → 201 草稿。 |
 | `PATCH /orders/{id}` | `customerName, totalAmountCents, version` → 200 更新后的草稿。 |

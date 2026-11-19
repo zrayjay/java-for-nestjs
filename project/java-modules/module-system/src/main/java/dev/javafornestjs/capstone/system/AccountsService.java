@@ -3,8 +3,9 @@ package dev.javafornestjs.capstone.system;
 import dev.javafornestjs.capstone.core.RequestFailure;
 import dev.javafornestjs.capstone.security.SessionIdentity;
 import dev.javafornestjs.capstone.system.AccountsMapper.Account;
-import java.time.Clock;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,21 +14,23 @@ import org.springframework.transaction.annotation.Transactional;
 import static dev.javafornestjs.capstone.core.RequestFailure.Code.FORBIDDEN;
 import static dev.javafornestjs.capstone.core.RequestFailure.Code.NOT_FOUND;
 import static dev.javafornestjs.capstone.core.RequestFailure.Code.RESOURCE_CONFLICT;
-import static dev.javafornestjs.capstone.core.RequestFailure.Code.UNAUTHENTICATED;
 import static dev.javafornestjs.capstone.core.RequestFailure.Code.VALIDATION_ERROR;
 
 @Service
 public class AccountsService {
     private final AccountsMapper accounts;
     private final AccountSessions sessions;
+    private final AuthorizationMapper authorization;
+    private final CurrentOrderAccess access;
     private final PasswordEncoder passwords;
-    private final Clock clock;
 
-    AccountsService(AccountsMapper accounts, AccountSessions sessions, PasswordEncoder passwords, Clock clock) {
+    AccountsService(AccountsMapper accounts, AccountSessions sessions, AuthorizationMapper authorization,
+            CurrentOrderAccess access, PasswordEncoder passwords) {
         this.accounts = accounts;
         this.sessions = sessions;
+        this.authorization = authorization;
+        this.access = access;
         this.passwords = passwords;
-        this.clock = clock;
     }
 
     @Transactional
@@ -46,9 +49,9 @@ public class AccountsService {
 
     @Transactional(readOnly = true)
     public Me me(SessionIdentity actor) {
-        Account account = authenticatedAccount(actor, accounts.find(actor.userId()));
+        Account account = sessions.currentAccount(actor, false);
         return new Me(Long.toString(account.id()), account.username(), account.displayName(),
-                Long.toString(account.departmentId()), account.platformAdmin() ? List.of("system:admin") : List.of());
+                Long.toString(account.departmentId()), access.capabilities(account));
     }
 
     @Transactional(readOnly = true)
@@ -65,7 +68,9 @@ public class AccountsService {
         if (page < 1 || size < 1 || size > 100) {
             throw new RequestFailure(VALIDATION_ERROR, "Page must be positive and size must be between 1 and 100");
         }
-        var items = accounts.page(size, (long) (page - 1) * size).stream().map(AccountsService::view).toList();
+        var records = accounts.page(size, (long) (page - 1) * size);
+        var roles = rolesByUser(records.stream().map(Account::id).toList());
+        var items = records.stream().map(account -> view(account, roles.getOrDefault(account.id(), List.of()))).toList();
         return new Page(items, page, size, accounts.count());
     }
 
@@ -131,26 +136,17 @@ public class AccountsService {
         return view(accounts.find(account.id()));
     }
 
-    private void requireAdministrator(SessionIdentity actor, boolean mutation) {
+    void requireAdministrator(SessionIdentity actor, boolean mutation) {
         if (mutation) {
             accounts.lockAdministration();
         }
-        var account = authenticatedAccount(actor,
-                mutation ? accounts.lock(actor.userId()) : accounts.find(actor.userId()));
+        var account = sessions.currentAccount(actor, mutation);
         if (!account.platformAdmin()) {
             throw new RequestFailure(FORBIDDEN, "Platform administrator required");
         }
     }
 
-    private Account authenticatedAccount(SessionIdentity actor, Account account) {
-        if (account == null || !account.enabled() || account.credentialVersion() != actor.credentialVersion()
-                || !sessions.contains(actor, clock.instant())) {
-            throw new RequestFailure(UNAUTHENTICATED, "Authentication required");
-        }
-        return account;
-    }
-
-    private static Account requireAccount(Account account) {
+    static Account requireAccount(Account account) {
         if (account == null) {
             throw new RequestFailure(NOT_FOUND, "User not found");
         }
@@ -171,9 +167,22 @@ public class AccountsService {
         return name;
     }
 
-    private static User view(Account account) {
+    private Map<Long, List<String>> rolesByUser(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return authorization.rolesForUsers(ids).stream().collect(Collectors.groupingBy(
+                AuthorizationMapper.UserRole::userId,
+                Collectors.mapping(row -> Long.toString(row.roleId()), Collectors.toList())));
+    }
+
+    private User view(Account account) {
+        return view(account, rolesByUser(List.of(account.id())).getOrDefault(account.id(), List.of()));
+    }
+
+    private static User view(Account account, List<String> roleIds) {
         return new User(Long.toString(account.id()), account.username(), account.displayName(),
-                Long.toString(account.departmentId()), account.status(), List.of(), account.platformAdmin());
+                Long.toString(account.departmentId()), account.status(), roleIds, account.platformAdmin());
     }
 
     public record Me(String id, String username, String displayName, String departmentId, List<String> permissions) {

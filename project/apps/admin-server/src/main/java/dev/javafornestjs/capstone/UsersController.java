@@ -1,6 +1,5 @@
 package dev.javafornestjs.capstone;
 
-import dev.javafornestjs.capstone.core.RequestFailure;
 import dev.javafornestjs.capstone.security.SessionIdentity;
 import dev.javafornestjs.capstone.system.AccountsService;
 import java.net.URI;
@@ -19,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import static dev.javafornestjs.capstone.core.RequestFailure.Code.VALIDATION_ERROR;
+import static dev.javafornestjs.capstone.ResourceIds.parseId;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -77,17 +76,6 @@ class UsersController {
             @RequestBody PasswordChange request) {
         accounts.changePassword(SessionIdentity.from(jwt), parseId(id), request.password());
         return ResponseEntity.noContent().build();
-    }
-
-    private static long parseId(String id) {
-        if (id != null && id.matches("[1-9][0-9]{0,18}")) {
-            try {
-                return Long.parseLong(id);
-            } catch (NumberFormatException outOfBounds) {
-                throw new RequestFailure(VALIDATION_ERROR, "ID is out of range");
-            }
-        }
-        throw new RequestFailure(VALIDATION_ERROR, "ID must be a positive decimal string");
     }
 
     record CreateUser(String username, String displayName, String departmentId, String password) {

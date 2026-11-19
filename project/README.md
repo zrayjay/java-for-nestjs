@@ -1,6 +1,6 @@
 # 毕业项目
 
-此目录用于Vue3管理端与Spring Boot模块化单体。后端已提供用户管理、登录、访问和刷新令牌、会话撤销与健康检查。[工作区Compose](../docs/00-introduction/workspace.md)提供本地MySQL/Redis，P5的任务API继续使用[独立教学部署](deploy/compose/TEACHING.md)。
+此目录用于Vue3管理端与Spring Boot模块化单体。后端已提供身份、用户管理、会话撤销、角色和菜单管理。[工作区Compose](../docs/00-introduction/workspace.md)提供本地MySQL/Redis，P5的任务API继续使用[独立教学部署](deploy/compose/TEACHING.md)。
 
 | 后续路径 | 职责 |
 |---|---|
@@ -71,5 +71,9 @@ Invoke-RestMethod "$api/api/v1/me" -Headers @{ Authorization = "Bearer $($sessio
 ```
 
 健康检查预期返回`{"status":"UP"}`，身份接口预期返回当前管理员及`system:admin`权限。接口与错误语义见[项目契约](ARCHITECTURE.md#http-契约)。
+
+## 验证角色与菜单
+
+初始库含`ORDER_CLERK`与`ORDER_REVIEWER`角色。使用管理员令牌读取`GET /api/v1/roles`，通过`PUT /api/v1/users/{id}/roles`为普通用户分配角色。登录为该用户，`GET /api/v1/me`返回业务能力，`GET /api/v1/me/menus`只返回当前可访问的导航。普通用户直接访问角色或菜单管理接口返回403。订单接口由后续业务阶段接入。
 
 见 [实施计划](../JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md)、[任务清单](../TASKBOARD.md) 与 [贡献指南](../CONTRIBUTING.md)。

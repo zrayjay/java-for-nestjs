@@ -29,10 +29,18 @@ public class RequestErrors {
 
     @Bean
     static Jackson2ObjectMapperBuilderCustomizer strictTextInput() {
-        return builder -> builder.postConfigurer(mapper -> mapper.coercionConfigFor(LogicalType.Textual)
-                .setCoercion(CoercionInputShape.Integer, CoercionAction.Fail)
-                .setCoercion(CoercionInputShape.Float, CoercionAction.Fail)
-                .setCoercion(CoercionInputShape.Boolean, CoercionAction.Fail));
+        return builder -> builder.postConfigurer(mapper -> {
+            mapper.coercionConfigFor(LogicalType.Textual)
+                    .setCoercion(CoercionInputShape.Integer, CoercionAction.Fail)
+                    .setCoercion(CoercionInputShape.Float, CoercionAction.Fail)
+                    .setCoercion(CoercionInputShape.Boolean, CoercionAction.Fail);
+            mapper.coercionConfigFor(LogicalType.Boolean)
+                    .setCoercion(CoercionInputShape.String, CoercionAction.Fail)
+                    .setCoercion(CoercionInputShape.Integer, CoercionAction.Fail);
+            mapper.coercionConfigFor(LogicalType.Integer)
+                    .setCoercion(CoercionInputShape.String, CoercionAction.Fail)
+                    .setCoercion(CoercionInputShape.Float, CoercionAction.Fail);
+        });
     }
 
     @ExceptionHandler(RequestFailure.class)
