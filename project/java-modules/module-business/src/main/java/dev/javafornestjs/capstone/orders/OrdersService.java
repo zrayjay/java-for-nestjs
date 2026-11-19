@@ -91,6 +91,10 @@ public class OrdersService {
         var scope = require(actor, action.permission);
         var before = find(id, actor, scope);
         boolean owner = isOwner(actor, before);
+        var beforeStatus = Status.valueOf(before.status());
+        if (action == Action.CANCEL && beforeStatus == Status.DRAFT && !owner) {
+            throw new RequestFailure(NOT_FOUND, "Order not found");
+        }
         if (action == Action.APPROVE && actor.userId() == before.ownerId()) {
             throw new RequestFailure(SELF_APPROVAL_FORBIDDEN, "A different user must approve this order");
         }
@@ -100,7 +104,6 @@ public class OrdersService {
         if (before.version() != version) {
             throw conflict();
         }
-        var beforeStatus = Status.valueOf(before.status());
         if (!allowedState(action, beforeStatus, owner)) {
             throw new RequestFailure(INVALID_TRANSITION, "Order does not allow this action");
         }

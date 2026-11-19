@@ -8,8 +8,11 @@ import dev.javafornestjs.capstone.core.RequestFailure;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,6 +24,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 @RestControllerAdvice
 public class RequestErrors {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RequestErrors.class);
     private final ObjectMapper json;
 
     RequestErrors(ObjectMapper json) {
@@ -63,6 +67,15 @@ public class RequestErrors {
     ResponseEntity<ErrorBody> malformedInput(HttpServletRequest request) {
         return ResponseEntity.badRequest()
                 .body(new ErrorBody("VALIDATION_ERROR", "Invalid request", RequestIds.read(request)));
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    ResponseEntity<ErrorBody> persistenceFailure(DataAccessException failure, HttpServletRequest request) {
+        String requestId = RequestIds.read(request);
+        LOGGER.error("Database operation failed requestId={} type={}",
+                requestId, failure.getClass().getSimpleName());
+        return ResponseEntity.internalServerError()
+                .body(new ErrorBody("INTERNAL_ERROR", "Request could not be completed", requestId));
     }
 
     public void authenticationRequired(HttpServletRequest request, HttpServletResponse response) throws IOException {

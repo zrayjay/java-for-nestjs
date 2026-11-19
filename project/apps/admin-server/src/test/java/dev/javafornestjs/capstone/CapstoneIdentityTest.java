@@ -400,7 +400,7 @@ class CapstoneIdentityTest {
                 Map.of("customerName", "Updated customer", "totalAmountCents", 777, "version", 1));
         assertThat(edited.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(edited.getBody().path("totalAmountCents").asInt()).isEqualTo(777);
-        assertError(action(route, "cancel", reviewerToken, 2), HttpStatus.CONFLICT, "INVALID_TRANSITION");
+        assertError(action(route, "cancel", reviewerToken, 1), HttpStatus.NOT_FOUND, "NOT_FOUND");
         var submitted = action(route, "submit", clerkToken, 2);
         assertThat(submitted.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(submitted.getBody().path("status").asText()).isEqualTo("SUBMITTED");
@@ -438,6 +438,22 @@ class CapstoneIdentityTest {
         var cancelled = action(draftRoute, "cancel", clerkToken, 1);
         assertThat(cancelled.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(cancelled.getBody().path("status").asText()).isEqualTo("CANCELLED");
+
+        var limited = newUser(admin);
+        var limitedRole = createRole(admin, "Department read and own cancel").path("id").asText();
+        replaceGrants(admin, limitedRole, List.of(Map.of("permission", "orders:read", "scope", "DEPARTMENT"),
+                Map.of("permission", "orders:cancel", "scope", "OWN")));
+        assignRoles(admin, limited, limitedRole);
+        var limitedToken = access(login(limited.path("username").asText(), USER_PASSWORD));
+        String pending = "/orders/" + createOrder(clerkToken).path("id").asText();
+        assertThat(action("/api/v1" + pending, "submit", clerkToken, 1).getStatusCode()).isEqualTo(HttpStatus.OK);
+        var visible = get(pending, limitedToken);
+        assertThat(visible.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(visible.getBody().path("allowedActions").isEmpty()).isTrue();
+        assertError(action("/api/v1" + pending, "cancel", limitedToken, 2), HttpStatus.NOT_FOUND, "NOT_FOUND");
+        var reviewerCancellation = action("/api/v1" + pending, "cancel", reviewerToken, 2);
+        assertThat(reviewerCancellation.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(reviewerCancellation.getBody().path("status").asText()).isEqualTo("CANCELLED");
     }
 
     @Test
@@ -457,7 +473,9 @@ class CapstoneIdentityTest {
                 """, id, clerk.path("id").asLong(), clock.millis());
         try {
             var beforeHistory = get(relative + "/history", token).getBody();
-            assertThat(action(route, "submit", token, 1).getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+            var rejected = action(route, "submit", token, 1);
+            assertError(rejected, HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR");
+            assertThat(rejected.getBody().toString()).doesNotContain("sales_order_history", "Duplicate entry");
             var after = get(relative, token).getBody();
             assertThat(after.path("status").asText()).isEqualTo("DRAFT");
             assertThat(after.path("version").asInt()).isEqualTo(1);
