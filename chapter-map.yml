@@ -1580,7 +1580,7 @@ chapters:
     part: '09'
     title: 生产交付与验收
     path: docs/09-enterprise-project/45-production-acceptance.md
-    status: draft
+    status: in_review
     prerequisites:
       - '37'
       - '41'
@@ -1602,5 +1602,16 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P6-04-A.md
+      - docs/progress/P6-04-C.md
       - project/deploy/compose/RECOVERY.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P6-04-C.md
+        reviewer: delivery_standards
+        date: 2026-11-20
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P6-04-C.md
+        reviewer: delivery_spec
+        date: 2026-11-20
+        independent: true
+        conclusion: approved

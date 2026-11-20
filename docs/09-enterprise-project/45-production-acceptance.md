@@ -2,7 +2,7 @@
 title: '45 · 生产交付与验收'
 description: 构建同源交付物，验证空环境就绪、数据库恢复和告警闭环。
 chapter_id: '45'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java 21 / Spring Boot 3.5.16 / MySQL 8.4.7 / Redis 7.4.6 / Node 22.20.0 / Prometheus 3.13.5
 ---
 
@@ -169,3 +169,4 @@ flowchart LR
 - 从空库构建同源镜像并通过部署烟雾和业务测试。
 - 恢复另一数据库，验证账号、订单、历史与审计。观察告警从触发到解除。
 - 构建与恢复记录见 [P6-04-A](../progress/P6-04-A.md) 和[备份与监控手册](../../project/deploy/compose/RECOVERY.md)。
+- 独立规范和规格复核均已通过。见[复核记录](../reviews/P6-04-C.md)。

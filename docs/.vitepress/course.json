@@ -453,7 +453,7 @@
         "topics": "Docker Compose、CI、监控、备份、故障演练",
         "reference": "Node 项目生产部署",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/09-enterprise-project/45-production-acceptance.md"
       }
     ]
