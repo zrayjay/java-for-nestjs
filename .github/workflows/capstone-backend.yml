@@ -170,6 +170,7 @@ jobs:
           sleep 7
           node verify-alert.mjs api-errors-sample
           "${compose[@]}" up -d --no-build --wait --wait-timeout 160 mysql
+          curl --fail --silent --show-error --max-time 3 --retry 12 --retry-all-errors --retry-delay 2 http://127.0.0.1:18092/readyz
           node verify-alert.mjs api-errors-firing
       - name: Collect deployment diagnostics
         if: failure()
