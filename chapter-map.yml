@@ -1511,7 +1511,7 @@ chapters:
     part: '09'
     title: Spring Boot 业务实现
     path: docs/09-enterprise-project/43-business-implementation.md
-    status: draft
+    status: in_review
     prerequisites:
       - '42'
     tags:
@@ -1529,7 +1529,17 @@ chapters:
     noCodeReason: null
     verification:
       - docs/progress/P6-02-F.md
-    reviews: []
+    reviews:
+      - path: docs/reviews/P6-02-F.md
+        reviewer: delivery_standards
+        date: 2026-11-20
+        independent: true
+        conclusion: approved
+      - path: docs/reviews/P6-02-F.md
+        reviewer: delivery_spec
+        date: 2026-11-20
+        independent: true
+        conclusion: approved
   - id: '44'
     part: '09'
     title: Vue3 前后端联调

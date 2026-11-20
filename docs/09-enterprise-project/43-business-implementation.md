@@ -2,7 +2,7 @@
 title: '43 · Spring Boot 业务实现'
 description: 从可撤销会话和动作级授权到订单事务、审计与菜单缓存。
 chapter_id: '43'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java 21 / Spring Boot 3.5.16 / MySQL 8.4.7 / Redis 7.4.6 / Node 22.20.0 / NestJS 11.2.9
 ---
 
