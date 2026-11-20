@@ -1580,7 +1580,7 @@ chapters:
     part: '09'
     title: 生产交付与验收
     path: docs/09-enterprise-project/45-production-acceptance.md
-    status: planned
+    status: draft
     prerequisites:
       - '37'
       - '41'
@@ -1590,8 +1590,17 @@ chapters:
     topics: Docker Compose、CI、监控、备份、故障演练
     reference: Node 项目生产部署
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - project/deploy/compose/Capstone.Dockerfile
+      - project/deploy/compose/capstone.yaml
+      - project/deploy/compose/database-backup.mjs
+      - project/deploy/compose/capstone-observability.yaml
+    tests:
+      - project/deploy/compose/verify-capstone.mjs
+      - project/deploy/compose/verify-recovery.mjs
+      - project/deploy/compose/verify-alert.mjs
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P6-04-A.md
+      - project/deploy/compose/RECOVERY.md
     reviews: []

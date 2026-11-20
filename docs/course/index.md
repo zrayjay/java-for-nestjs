@@ -102,7 +102,7 @@ description: 从NestJS迁移到Java与Spring Boot的45章学习地图。
 | 42 | [需求与架构设计](../../docs/09-enterprise-project/42-requirements-and-architecture.md) | 模块边界、数据库设计、ADR、API 契约 | NestJS 项目拆分 | 待独立审查 |
 | 43 | [Spring Boot 业务实现](../../docs/09-enterprise-project/43-business-implementation.md) | 用户、认证、RBAC、订单/代理商、审计、测试 | NestJS 对照实现 | 待独立审查 |
 | 44 | [Vue3 前后端联调](../../docs/09-enterprise-project/44-frontend-integration.md) | OpenAPI、生成 TS Client、错误码、权限菜单 | 既有 Vue3 管理端 | 待独立审查 |
-| 45 | 生产交付与验收 | Docker Compose、CI、监控、备份、故障演练 | Node 项目生产部署 | 待编写 |
+| 45 | [生产交付与验收](../../docs/09-enterprise-project/45-production-acceptance.md) | Docker Compose、CI、监控、备份、故障演练 | Node 项目生产部署 | 编写中 |
 
 ## 从已有成果开始
 

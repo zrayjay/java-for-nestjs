@@ -4,6 +4,15 @@
 
 [毕业项目 Compose 手册](deploy/compose/CAPSTONE.md)包含同源前后端的构建、空库启动、健康检查和停止步骤。
 
+## 从空环境完成交付演练
+
+在新检出的仓库中准备 Docker 和 Compose、JDK 21、Node 22.20.0 和 pnpm 10.34.9。Windows使用 PowerShell 示例，Linux/macOS 将 `./mvnw.cmd` 换为 `./mvnw`，使用 shell 的 `export` 设置终端环境变量。
+
+1. 按[构建与测试后端](#构建与测试后端)启动一次性测试依赖并运行 Maven `clean verify`。按[管理端与 OpenAPI](#管理端与-openapi)安装锁定依赖，运行管理端 `build` 与 `test`。
+2. 按[Compose 手册](deploy/compose/CAPSTONE.md)准备独立首启配置、构建镜像并等待空库就绪。运行部署探针，打开同源页面登录。录单员和复核员操作步骤见[验证角色与菜单](#验证角色与菜单)，跨账号的浏览器复现见[浏览器验收](#浏览器验收)。
+3. 按[备份、恢复与监控手册](deploy/compose/RECOVERY.md)创建测试订单、导出备份、还原到另一个空项目并对比数据。用仅供演练的监控项目验证结构化日志和告警触发与解除。
+4. 停止演练容器并保留有用的记录。局部启动失败时查阅[交付手册](deploy/compose/CAPSTONE.md)的日志和密钥恢复步骤。运行限制和选型见[第45章](../docs/09-enterprise-project/45-production-acceptance.md)。
+
 | 后续路径 | 职责 |
 |---|---|
 | `apps/admin-web/` | Vue3 / TypeScript 管理端与 OpenAPI 生成客户端 |
