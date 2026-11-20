@@ -5,9 +5,12 @@
 ```powershell
 Copy-Item project/deploy/compose/.env.capstone.example project/deploy/compose/.env.capstone
 # 编辑 .env.capstone 中的凭据和端口后执行
+$env:CAPSTONE_REVISION = git rev-parse HEAD
 docker compose --env-file project/deploy/compose/.env.capstone -f project/deploy/compose/capstone.yaml build app
 docker compose --env-file project/deploy/compose/.env.capstone -f project/deploy/compose/capstone.yaml up -d --no-build --wait --wait-timeout 160
 docker compose --env-file project/deploy/compose/.env.capstone -f project/deploy/compose/capstone.yaml ps -a
+$container = docker compose --env-file project/deploy/compose/.env.capstone -f project/deploy/compose/capstone.yaml ps -q app
+docker inspect $container --format '{{.Image}} {{index .Config.Labels "org.opencontainers.image.revision"}}'
 ```
 
 默认打开 `http://127.0.0.1:18092`，用空库首启时设置的管理员账号登录。浏览器、API和健康检查共用该端口。MySQL与Redis只接受Compose内网连接。项目使用当前快照生成SDK，构建生成的Vue产物随同一个JAR交付。应用等待MySQL、Redis和签名密钥就绪，Flyway迁移完成后才提供健康响应。

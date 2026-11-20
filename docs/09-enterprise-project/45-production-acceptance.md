@@ -34,7 +34,7 @@ NestJS 也可在同一 OCI 镜像中装入编译产物和静态资源，并用 r
 
 #### 5. 两端代码对照
 
-[多阶段构建](../../project/deploy/compose/Capstone.Dockerfile)先由 Node 和 pnpm 构建 Vue，将 Vite 的 `dist` 复制进 Spring 的静态资源，再由 Maven 制成 JAR。与在 Node 中把 `dist` 交给静态中间件类似，浏览器访问同一主机的 `/api/v1`。[Compose](../../project/deploy/compose/capstone.yaml)等待 MySQL、Redis 和密钥生成完成，随后用包含 `readinessState,db` 的探测门禁应用。
+[多阶段构建](../../project/deploy/compose/Capstone.Dockerfile)先由 Node 和 pnpm 构建 Vue，将 Vite 的 `dist` 复制进 Spring 的静态资源，再由 Maven 制成 JAR。[Compose](../../project/deploy/compose/capstone.yaml)等待 MySQL、Redis 和密钥生成完成，随后用包含 `readinessState,db` 的探测门禁应用。对照 [Node 生命周期示例](../../examples/container-node-reference/server.mjs)中的就绪和停止状态。它用模拟工作展示生命周期，数据库检查由本项目的 readiness 组实际执行。
 
 #### 6. 原理与流程图
 
@@ -133,7 +133,7 @@ NestJS 可使用请求拦截器和 Prometheus exporter 记录路由、状态与�
 
 #### 5. 两端代码对照
 
-[请求过滤器](../../project/java-modules/common-web/src/main/java/dev/javafornestjs/capstone/web/RequestIds.java)生成响应中的请求 ID，记录路由模板、状态和耗时，对应 Node 中间件在请求结束时写日志。[监控配置](../../project/deploy/compose/capstone-observability.yaml)让 Prometheus 从应用的独立内部端口抓取指标，[规则](../../project/deploy/compose/monitoring/rules.yaml)声明抓取不可用和 API 5xx 告警。
+[请求过滤器](../../project/java-modules/common-web/src/main/java/dev/javafornestjs/capstone/web/RequestIds.java)生成响应中的请求 ID，记录路由模板、状态和耗时。对照 [NestJS 教学日志与指标](../../examples/nestjs-security-reference/src/observability.ts)在请求完成时写结构化记录并做有限聚合。毕业项目由 Micrometer 导出指标，[监控配置](../../project/deploy/compose/capstone-observability.yaml)从应用独立内部端口抓取，[规则](../../project/deploy/compose/monitoring/rules.yaml)声明抓取不可用和 API 5xx 告警。
 
 #### 6. 原理与流程图
 
@@ -161,6 +161,8 @@ flowchart LR
 #### 10. 实操练习与验收
 
 在隔离 Compose 项目启用监控并运行[告警探针](../../project/deploy/compose/verify-alert.mjs)。停应用前检查抓取为 1，停应用后等待告警 firing，再启动并确认抓取为 1 且告警消失。用一个认证拒绝请求的响应 ID 找到相关日志事件。记录时间和命令。
+
+接着按[监控手册](../../project/deploy/compose/RECOVERY.md#指标请求日志与告警演练)停止演练库，验证登录接口返回带请求 ID 的500。重启数据库，检查应用就绪，并核对窗口内的 API 5xx 告警。
 
 ## 章末验收与审查记录
 
