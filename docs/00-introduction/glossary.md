@@ -106,3 +106,12 @@ Spring与数据访问扩展：
 | image / container / volume | 运行模板、实际进程与独立持久数据 | 重建容器保留可写层；命名卷等于备份 | [第40章](../08-cloud-native/40-containers-and-orchestration.md) |
 | liveness / readiness | 进程可工作与当前适合接流量，依赖范围需显式定义 | DB掉线必须重启API；health200证明业务正确 | [第40章](../08-cloud-native/40-containers-and-orchestration.md) |
 | graceful / SIGTERM | 停止接纳、有限等待在途、清理退出 | 空闲stop证明事务排空；退出143必定成功 | [第40章](../08-cloud-native/40-containers-and-orchestration.md) |
+
+## 毕业项目
+
+| 术语 | 本教程用法 | 常见误解 | 正文 |
+|---|---|---|---|
+| OpenAPI 快照 / 生成 SDK | 从运行服务核对契约快照，由快照生成 TypeScript 调用 | 客户端编译通过就证明运行时业务授权通过 | [第44章](../09-enterprise-project/44-frontend-integration.md) |
+| `allowedActions` / 订单版本 | 按当前记录给出允许动作，写入携带读取到的版本 | 显示按钮能授予权限，旧版本仍可覆盖新写入 | [第44章](../09-enterprise-project/44-frontend-integration.md) |
+| 一致性逻辑快照 | 使用 MySQL 一致读导出，校验后恢复到隔离空库并比对数据 | 备份文件存在就证明可恢复 | [第45章](../09-enterprise-project/45-production-acceptance.md) |
+| RPO / RTO | 分别约束业务可接受的数据丢失和恢复时间 | 本机一次恢复的时长可直接承诺为生产目标 | [第45章](../09-enterprise-project/45-production-acceptance.md) |

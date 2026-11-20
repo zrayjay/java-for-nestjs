@@ -133,7 +133,7 @@ const canCreate = permissions.includes('task:write:own')
 
 #### 10. 实操练习与验收
 
-reader的/me没有写权限，直接POST仍403且数据库没有新增任务；直接调用管理员角色接口也403。保留member/admin合法对照，避免“所有请求都拒绝”的实现也通过测试。真正页面与按钮联调在P6补充，不能提前标完。
+reader 的 `/me` 没有写权限，直接 POST 仍返回403且数据库没有新增任务，直接调用管理员角色接口也返回403。保留 member/admin 的合法对照。练习验证服务端授权与能力元数据，真实页面与按钮联调见[第44章](../09-enterprise-project/44-frontend-integration.md)。
 
 基础题：区分按钮元数据与实际管理页面交付。迁移题：绕过UI直接请求两端写接口并比较拒绝。思考题：为什么隐藏按钮不构成服务端安全控制？
 
@@ -213,4 +213,4 @@ Java命令定位本点关键场景，Node命令执行完整16场景以包含对�
 
 ## 章末验收与审查记录
 
-本章in_review，独立[两轴审查](../reviews/P4-01-auth.md)已归档。已实现RBAC与部门范围、能力元数据、实时撤权、直接HTTP拒绝及SQL审计回滚。真实执行按[进度](../progress/P4-01.md)逐提交记录，未声称租户、前端管理页面或G4已完成。官方参考：[Spring授权架构](https://docs.spring.io/spring-security/reference/6.5/servlet/authorization/architecture.html)、[请求授权](https://docs.spring.io/spring-security/reference/6.5/servlet/authorization/authorize-http-requests.html)、[Nest Authorization](https://docs.nestjs.com/security/authorization)、[OWASP授权指南](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html)。
+本章为 `in_review`，独立[两轴审查](../reviews/P4-01-auth.md)已归档。已实现RBAC与部门范围、能力元数据、实时撤权、直接HTTP拒绝及SQL审计回滚。教学任务 API 的试验边界为部门与资源所有权，阶段证据见 [P4-01](../progress/P4-01.md) 和 [G4](../progress/G4.md)。毕业项目的管理页面及按钮权限另见 [P6-03-C](../progress/P6-03-C.md)。官方参考见 [Spring 授权架构](https://docs.spring.io/spring-security/reference/6.5/servlet/authorization/architecture.html)、[请求授权](https://docs.spring.io/spring-security/reference/6.5/servlet/authorization/authorize-http-requests.html)、[Nest Authorization](https://docs.nestjs.com/security/authorization)、[OWASP 授权指南](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html)。

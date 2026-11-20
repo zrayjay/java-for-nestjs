@@ -1516,7 +1516,7 @@ chapters:
       - '42'
     tags:
       - enterprise-project
-    topics: 用户、认证、RBAC、订单/代理商、审计、测试
+    topics: 用户、认证、RBAC、订单审批、审计、测试
     reference: NestJS 对照实现
     pilot: false
     examples:
@@ -1553,7 +1553,7 @@ chapters:
     tags:
       - enterprise-project
     topics: OpenAPI、生成 TS Client、错误码、权限菜单
-    reference: 既有 Vue3 管理端
+    reference: Vue3 管理端与 OpenAPI 生成客户端
     pilot: false
     examples:
       - project/apps/admin-web/openapi.json

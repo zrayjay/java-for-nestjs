@@ -432,7 +432,7 @@
       {
         "number": 43,
         "title": "Spring Boot 业务实现",
-        "topics": "用户、认证、RBAC、订单/代理商、审计、测试",
+        "topics": "用户、认证、RBAC、订单审批、审计、测试",
         "reference": "NestJS 对照实现",
         "pilot": false,
         "status": "in_review",
@@ -442,7 +442,7 @@
         "number": 44,
         "title": "Vue3 前后端联调",
         "topics": "OpenAPI、生成 TS Client、错误码、权限菜单",
-        "reference": "既有 Vue3 管理端",
+        "reference": "Vue3 管理端与 OpenAPI 生成客户端",
         "pilot": false,
         "status": "in_review",
         "path": "docs/09-enterprise-project/44-frontend-integration.md"
