@@ -2,6 +2,8 @@ package dev.javafornestjs.capstone;
 
 import dev.javafornestjs.capstone.security.SessionIdentity;
 import dev.javafornestjs.capstone.system.AccountsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.net.URI;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import static dev.javafornestjs.capstone.ResourceIds.parseId;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -54,6 +57,7 @@ class UsersController {
 
     @PostMapping("/users")
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(operationId = "createUser")
     ResponseEntity<AccountsService.User> create(@AuthenticationPrincipal Jwt jwt, @RequestBody CreateUser request) {
         var user = accounts.create(SessionIdentity.from(jwt), request.username(), request.displayName(),
                 parseId(request.departmentId()), request.password());
@@ -83,12 +87,15 @@ class UsersController {
         return ResponseEntity.noContent().build();
     }
 
-    record CreateUser(String username, String displayName, String departmentId, String password) {
+    record CreateUser(@Schema(requiredMode = REQUIRED) String username,
+            @Schema(requiredMode = REQUIRED) String displayName,
+            @Schema(requiredMode = REQUIRED) String departmentId,
+            @Schema(requiredMode = REQUIRED) String password) {
     }
 
     record UpdateUser(String displayName, String departmentId, String status) {
     }
 
-    record PasswordChange(String password) {
+    record PasswordChange(@Schema(requiredMode = REQUIRED) String password) {
     }
 }

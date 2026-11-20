@@ -6,6 +6,7 @@ import dev.javafornestjs.capstone.security.SessionIdentity;
 import dev.javafornestjs.capstone.system.AuthorizationService;
 import dev.javafornestjs.capstone.system.MenuService;
 import dev.javafornestjs.capstone.system.MenuService.Field;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.net.URI;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static dev.javafornestjs.capstone.ResourceIds.parseId;
 import static dev.javafornestjs.capstone.core.RequestFailure.Code.VALIDATION_ERROR;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -117,22 +119,24 @@ class AuthorizationController {
         return ResponseEntity.noContent().build();
     }
 
-    record CreateRole(String code, String name) {
+    record CreateRole(@Schema(requiredMode = REQUIRED) String code,
+            @Schema(requiredMode = REQUIRED) String name) {
     }
 
-    record RenameRole(String name) {
+    record RenameRole(@Schema(requiredMode = REQUIRED) String name) {
     }
 
-    record ReplaceGrants(List<AuthorizationService.Grant> grants) {
+    record ReplaceGrants(@Schema(requiredMode = REQUIRED) List<AuthorizationService.Grant> grants) {
     }
 
-    record ReplaceRoles(List<String> roleIds) {
+    record ReplaceRoles(@Schema(requiredMode = REQUIRED) List<String> roleIds) {
     }
 
-    record AdministratorToggle(Boolean enabled) {
+    record AdministratorToggle(@Schema(requiredMode = REQUIRED) Boolean enabled) {
     }
 
-    record ChangeMenu(String parentId, String label, String routeKey, String permission, Integer sortOrder) {
+    record ChangeMenu(String parentId, @Schema(requiredMode = REQUIRED) String label, String routeKey,
+            String permission, @Schema(requiredMode = REQUIRED) Integer sortOrder) {
         MenuService.MenuChange toChange() {
             return new MenuService.MenuChange(parentId == null ? null : parseId(parentId), label, routeKey,
                     permission, sortOrder);

@@ -482,7 +482,7 @@
         "tags": ["orders-controller"]
       },
       "post": {
-        "operationId": "create_1",
+        "operationId": "createOrder",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1012,7 +1012,7 @@
         "tags": ["users-controller"]
       },
       "post": {
-        "operationId": "create",
+        "operationId": "createUser",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1311,7 +1311,8 @@
           "username": {
             "type": "string"
           }
-        }
+        },
+        "required": ["password", "username"]
       },
       "dev.javafornestjs.capstone.AuthController.Refresh": {
         "type": "object",
@@ -1319,7 +1320,8 @@
           "refreshToken": {
             "type": "string"
           }
-        }
+        },
+        "required": ["refreshToken"]
       },
       "dev.javafornestjs.capstone.AuthorizationController.AdministratorToggle": {
         "type": "object",
@@ -1327,7 +1329,8 @@
           "enabled": {
             "type": "boolean"
           }
-        }
+        },
+        "required": ["enabled"]
       },
       "dev.javafornestjs.capstone.AuthorizationController.ChangeMenu": {
         "type": "object",
@@ -1348,7 +1351,8 @@
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": ["label", "sortOrder"]
       },
       "dev.javafornestjs.capstone.AuthorizationController.CreateRole": {
         "type": "object",
@@ -1359,7 +1363,8 @@
           "name": {
             "type": "string"
           }
-        }
+        },
+        "required": ["code", "name"]
       },
       "dev.javafornestjs.capstone.AuthorizationController.PatchMenu": {
         "type": "object",
@@ -1393,7 +1398,8 @@
           "name": {
             "type": "string"
           }
-        }
+        },
+        "required": ["name"]
       },
       "dev.javafornestjs.capstone.AuthorizationController.ReplaceGrants": {
         "type": "object",
@@ -1404,7 +1410,8 @@
               "$ref": "#/components/schemas/dev.javafornestjs.capstone.system.AuthorizationService.Grant"
             }
           }
-        }
+        },
+        "required": ["grants"]
       },
       "dev.javafornestjs.capstone.AuthorizationController.ReplaceRoles": {
         "type": "object",
@@ -1415,7 +1422,8 @@
               "type": "string"
             }
           }
-        }
+        },
+        "required": ["roleIds"]
       },
       "dev.javafornestjs.capstone.OrdersController.CreateOrder": {
         "type": "object",
@@ -1427,7 +1435,8 @@
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": ["customerName", "totalAmountCents"]
       },
       "dev.javafornestjs.capstone.OrdersController.EditOrder": {
         "type": "object",
@@ -1443,7 +1452,8 @@
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": ["customerName", "totalAmountCents", "version"]
       },
       "dev.javafornestjs.capstone.OrdersController.Version": {
         "type": "object",
@@ -1452,7 +1462,8 @@
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": ["version"]
       },
       "dev.javafornestjs.capstone.UsersController.CreateUser": {
         "type": "object",
@@ -1469,7 +1480,8 @@
           "username": {
             "type": "string"
           }
-        }
+        },
+        "required": ["departmentId", "displayName", "password", "username"]
       },
       "dev.javafornestjs.capstone.UsersController.PasswordChange": {
         "type": "object",
@@ -1477,7 +1489,8 @@
           "password": {
             "type": "string"
           }
-        }
+        },
+        "required": ["password"]
       },
       "dev.javafornestjs.capstone.UsersController.UpdateUser": {
         "type": "object",

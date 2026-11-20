@@ -3,6 +3,8 @@ package dev.javafornestjs.capstone;
 import dev.javafornestjs.capstone.orders.OrdersService;
 import dev.javafornestjs.capstone.orders.OrdersService.Action;
 import dev.javafornestjs.capstone.security.SessionIdentity;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.net.URI;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import static dev.javafornestjs.capstone.ResourceIds.parseId;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -48,6 +51,7 @@ class OrdersController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(operationId = "createOrder")
     ResponseEntity<OrdersService.Order> create(@AuthenticationPrincipal Jwt jwt, @RequestBody CreateOrder request) {
         var order = orders.create(SessionIdentity.from(jwt), request.customerName(), request.totalAmountCents());
         return ResponseEntity.created(URI.create("/api/v1/orders/" + order.id())).body(order);
@@ -74,12 +78,15 @@ class OrdersController {
         return orders.transition(SessionIdentity.from(jwt), parseId(id), data.version(), Action.CANCEL);
     }
 
-    record CreateOrder(String customerName, Integer totalAmountCents) {
+    record CreateOrder(@Schema(requiredMode = REQUIRED) String customerName,
+            @Schema(requiredMode = REQUIRED) Integer totalAmountCents) {
     }
 
-    record EditOrder(String customerName, Integer totalAmountCents, Integer version) {
+    record EditOrder(@Schema(requiredMode = REQUIRED) String customerName,
+            @Schema(requiredMode = REQUIRED) Integer totalAmountCents,
+            @Schema(requiredMode = REQUIRED) Integer version) {
     }
 
-    record Version(Integer version) {
+    record Version(@Schema(requiredMode = REQUIRED) Integer version) {
     }
 }

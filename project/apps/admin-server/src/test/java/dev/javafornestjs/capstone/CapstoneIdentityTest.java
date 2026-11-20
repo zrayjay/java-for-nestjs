@@ -148,8 +148,17 @@ class CapstoneIdentityTest {
         JsonNode spec = response.getBody();
         assertThat(spec.path("paths").path("/api/v1/orders").path("post").path("responses").has("201")).isTrue();
         assertThat(spec.path("paths").path("/api/v1/auth/logout").path("post").path("responses").has("204")).isTrue();
-        assertThat(spec.path("paths").path("/api/v1/auth/login").path("post").path("security").isEmpty()).isTrue();
-        assertThat(spec.path("components").path("schemas").has("ApiError")).isTrue();
+        var loginSecurity = spec.path("paths").path("/api/v1/auth/login").path("post").path("security");
+        assertThat(loginSecurity.isArray()).isTrue();
+        assertThat(loginSecurity.isEmpty()).isTrue();
+        var schemas = spec.path("components").path("schemas");
+        assertThat(schemas.has("ApiError")).isTrue();
+        assertThat(schemas.path("dev.javafornestjs.capstone.AuthController.Login").path("required"))
+                .extracting(JsonNode::asText).containsExactlyInAnyOrder("username", "password");
+        assertThat(schemas.path("dev.javafornestjs.capstone.OrdersController.Version").path("required"))
+                .extracting(JsonNode::asText).containsExactly("version");
+        assertThat(schemas.path("dev.javafornestjs.capstone.AuthorizationController.PatchMenu").has("required"))
+                .isFalse();
         Path snapshot = Path.of("..", "admin-web", "openapi.json");
         if (Boolean.getBoolean("capstone.updateOpenApi")) {
             Files.createDirectories(snapshot.getParent());
