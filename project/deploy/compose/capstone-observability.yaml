@@ -1,0 +1,43 @@
+services:
+  app:
+    environment:
+      MANAGEMENT_SERVER_PORT: 9091
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ADDADDITIONALPATHS: 'true'
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: logstash
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'curl',
+          '--fail',
+          '--silent',
+          '--max-time',
+          '2',
+          'http://127.0.0.1:8091/readyz',
+        ]
+
+  prometheus:
+    image: quay.io/prometheus/prometheus:v3.13.5
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=72h
+    ports:
+      - '127.0.0.1:${CAPSTONE_PROMETHEUS_PORT:-19092}:9090'
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yaml
+      - source: prometheus_rules
+        target: /etc/prometheus/rules.yaml
+    volumes:
+      - capstone_metrics:/prometheus
+
+configs:
+  prometheus_config:
+    file: ./monitoring/prometheus.yaml
+  prometheus_rules:
+    file: ./monitoring/rules.yaml
+
+volumes:
+  capstone_metrics:

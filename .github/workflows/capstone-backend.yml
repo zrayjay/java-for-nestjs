@@ -10,6 +10,11 @@ on:
       - 'project/deploy/compose/Capstone.Dockerfile'
       - 'project/deploy/compose/capstone.yaml'
       - 'project/deploy/compose/verify-capstone.mjs'
+      - 'project/deploy/compose/capstone-observability.yaml'
+      - 'project/deploy/compose/database-backup.mjs'
+      - 'project/deploy/compose/monitoring/**'
+      - 'project/deploy/compose/verify-alert.mjs'
+      - 'project/deploy/compose/verify-recovery.mjs'
       - 'examples/security-lab/src/main/java/dev/javafornestjs/security/KeyTool.java'
       - '.dockerignore'
       - 'pnpm-lock.yaml'
@@ -29,6 +34,11 @@ on:
       - 'project/deploy/compose/Capstone.Dockerfile'
       - 'project/deploy/compose/capstone.yaml'
       - 'project/deploy/compose/verify-capstone.mjs'
+      - 'project/deploy/compose/capstone-observability.yaml'
+      - 'project/deploy/compose/database-backup.mjs'
+      - 'project/deploy/compose/monitoring/**'
+      - 'project/deploy/compose/verify-alert.mjs'
+      - 'project/deploy/compose/verify-recovery.mjs'
       - 'examples/security-lab/src/main/java/dev/javafornestjs/security/KeyTool.java'
       - '.dockerignore'
       - 'pnpm-lock.yaml'
@@ -118,6 +128,7 @@ jobs:
       CAPSTONE_MYSQL_ROOT_PASSWORD: ci-capstone-root-password
       CAPSTONE_ADMIN_USERNAME: capstone-ci
       CAPSTONE_ADMIN_PASSWORD: ci-capstone-administrator-password
+      CAPSTONE_RECOVERY_PASSWORD: ci-capstone-recovery-fixture-password
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -129,9 +140,35 @@ jobs:
         run: docker compose -f project/deploy/compose/capstone.yaml up -d --no-build --wait --wait-timeout 160
       - name: Verify the same-origin web and API deployment
         run: node project/deploy/compose/verify-capstone.mjs
+      - name: Restore orders and audit data into a fresh database
+        run: |
+          cd project/deploy/compose
+          node verify-recovery.mjs seed "$RUNNER_TEMP/capstone-fixture.json"
+          node database-backup.mjs backup java-for-nestjs-capstone .env.capstone.example "$RUNNER_TEMP/capstone-backup"
+          export CAPSTONE_HTTP_PORT=18093
+          docker compose -p capstone-ci-restore -f capstone.yaml up -d --wait --wait-timeout 160 mysql
+          node database-backup.mjs restore capstone-ci-restore .env.capstone.example "$RUNNER_TEMP/capstone-backup"
+          docker compose -p capstone-ci-restore -f capstone.yaml up -d --no-build --wait --wait-timeout 160
+          CAPSTONE_BASE_URL=http://127.0.0.1:18093 node verify-recovery.mjs compare "$RUNNER_TEMP/capstone-fixture.json"
+      - name: Trigger and resolve a monitoring alert
+        run: |
+          cd project/deploy/compose
+          compose=(docker compose -f capstone.yaml -f capstone-observability.yaml)
+          "${compose[@]}" up -d --no-build --wait --wait-timeout 160
+          node verify-alert.mjs healthy
+          "${compose[@]}" stop app
+          node verify-alert.mjs firing
+          "${compose[@]}" up -d --no-build --wait --wait-timeout 160 app
+          node verify-alert.mjs recovered
       - name: Collect deployment diagnostics
         if: failure()
-        run: docker compose -f project/deploy/compose/capstone.yaml logs --no-color --tail 160
+        run: |
+          cd project/deploy/compose
+          docker compose -f capstone.yaml -f capstone-observability.yaml logs --no-color --tail 160
+          docker compose -p capstone-ci-restore -f capstone.yaml logs --no-color --tail 160
       - name: Remove the ephemeral CI deployment
         if: always()
-        run: docker compose -f project/deploy/compose/capstone.yaml down --volumes
+        run: |
+          cd project/deploy/compose
+          docker compose -p capstone-ci-restore -f capstone.yaml down --volumes
+          docker compose -f capstone.yaml -f capstone-observability.yaml down --volumes

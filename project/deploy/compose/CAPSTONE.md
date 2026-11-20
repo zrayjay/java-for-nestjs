@@ -32,3 +32,5 @@ docker compose --env-file project/deploy/compose/.env.capstone -f project/deploy
 普通停止和重建沿用MySQL数据和签名密钥卷。数据库和首启账号的环境变量只在初始化时生效。Redis只存可重建菜单缓存。应用容器以非root运行，对密钥卷只读，并将临时目录挂成tmpfs。默认端口绑定回环地址，数据库通道面向本机演示内网。用于外部访问时另行配置TLS、密钥管理、数据保留和监控。
 
 若首次生成密钥途中中断，`keys` 会报密钥对不完整并阻止应用启动。已有环境需从受保护的备份恢复同一对PEM。仅在确认是一次性空环境时，另建一个Compose项目名称和全新卷重新演练。
+
+备份恢复、结构化日志、Prometheus 和告警验证见[备份与监控手册](RECOVERY.md)。
