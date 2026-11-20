@@ -4,3 +4,4 @@ packages:
   - examples/nestjs-data-reference
   - examples/nestjs-security-reference
   - examples/nestjs-message-reference
+  - project/apps/admin-web

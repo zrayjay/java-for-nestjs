@@ -84,4 +84,25 @@ Invoke-RestMethod "$api/api/v1/me" -Headers @{ Authorization = "Bearer $($sessio
 
 平台管理员可用`GET /api/v1/audit-events?resourceType=ORDER&resourceId={id}`查找关联的写入事件。响应头`X-Request-Id`与事件的`requestId`对应。Redis短时不可用时，菜单从MySQL回源，请求继续按实时用户权限过滤。
 
+## 管理端与 OpenAPI
+
+在后端启动后，仓库根目录执行：
+
+```powershell
+pnpm install --frozen-lockfile
+pnpm --filter @java-for-nestjs/admin-web dev
+```
+
+打开`http://127.0.0.1:5174`。开发服务将`/api`代理至`http://127.0.0.1:8091`，可用`CAPSTONE_BACKEND_URL`覆盖。生产构建用同源`/api`。运行`pnpm --filter @java-for-nestjs/admin-web build`生成客户端、检查类型并构建Vue。
+
+[OpenAPI快照](apps/admin-web/openapi.json)来自实际Spring运行物。后端集成测试从`/v3/api-docs`获取契约并与快照比较。变更API后，在测试服务就绪时执行以下命令更新快照及格式：
+
+```powershell
+./mvnw.cmd --batch-mode --no-transfer-progress -f project/pom.xml '-Dcapstone.updateOpenApi=true' '-Dtest=CapstoneIdentityTest#generatedOpenApiMatchesTheCommittedClientContract' '-Dsurefire.failIfNoSpecifiedTests=false' verify
+pnpm exec prettier --write project/apps/admin-web/openapi.json
+pnpm --filter @java-for-nestjs/admin-web build
+```
+
+服务运行时如需查看契约，可设置`CAPSTONE_OPENAPI_ENABLED=true`。默认关闭契约端点。生成的客户端位于`project/apps/admin-web/src/api/generated`，每次构建由锁定的生成器重建。
+
 见 [实施计划](../JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md)、[任务清单](../TASKBOARD.md) 与 [贡献指南](../CONTRIBUTING.md)。

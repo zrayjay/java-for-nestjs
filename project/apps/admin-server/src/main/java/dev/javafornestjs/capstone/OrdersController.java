@@ -5,6 +5,7 @@ import dev.javafornestjs.capstone.orders.OrdersService.Action;
 import dev.javafornestjs.capstone.security.SessionIdentity;
 import java.net.URI;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import static dev.javafornestjs.capstone.ResourceIds.parseId;
@@ -45,6 +47,7 @@ class OrdersController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     ResponseEntity<OrdersService.Order> create(@AuthenticationPrincipal Jwt jwt, @RequestBody CreateOrder request) {
         var order = orders.create(SessionIdentity.from(jwt), request.customerName(), request.totalAmountCents());
         return ResponseEntity.created(URI.create("/api/v1/orders/" + order.id())).body(order);

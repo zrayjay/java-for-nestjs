@@ -5,12 +5,14 @@ import dev.javafornestjs.capstone.security.SessionIdentity;
 import dev.javafornestjs.capstone.system.SessionService;
 import dev.javafornestjs.capstone.system.SessionService.TokenPair;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -43,6 +45,7 @@ class AuthController {
     }
 
     @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     ResponseEntity<Void> logout(@AuthenticationPrincipal Jwt caller, @RequestBody Refresh request) {
         sessions.logout(SessionIdentity.from(caller), request.refreshToken());
         return ResponseEntity.noContent().build();

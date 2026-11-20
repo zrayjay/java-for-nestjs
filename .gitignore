@@ -25,3 +25,4 @@ examples/gradle-reference/build/
 .DS_Store
 Thumbs.db
 *.log
+project/apps/admin-web/src/api/generated/

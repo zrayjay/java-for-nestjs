@@ -1,6 +1,7 @@
 package dev.javafornestjs.capstone;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.javafornestjs.capstone.security.OrderAccessLookup;
 import dev.javafornestjs.capstone.security.OrderPermission;
 import dev.javafornestjs.capstone.security.OrderScope;
@@ -67,6 +68,9 @@ class CapstoneIdentityTest {
     private JdbcTemplate jdbc;
 
     @Autowired
+    private ObjectMapper json;
+
+    @Autowired
     private StringRedisTemplate redis;
 
     @Autowired
@@ -98,6 +102,7 @@ class CapstoneIdentityTest {
         properties.add("capstone.menu-cache.enabled", () -> true);
         properties.add("spring.data.redis.host", () -> "127.0.0.1");
         properties.add("spring.data.redis.port", () -> redisPort);
+        properties.add("springdoc.api-docs.enabled", () -> true);
     }
 
     @BeforeEach
@@ -134,6 +139,25 @@ class CapstoneIdentityTest {
                 .contains("system:admin", "orders:read");
         assertThat(jdbc.queryForObject("SELECT password_hash FROM sys_user WHERE username = ?", String.class, ADMIN))
                 .startsWith("$2a$").doesNotContain(ADMIN_PASSWORD);
+    }
+
+    @Test
+    void generatedOpenApiMatchesTheCommittedClientContract() throws IOException {
+        var response = request(HttpMethod.GET, "/v3/api-docs", null, null);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        JsonNode spec = response.getBody();
+        assertThat(spec.path("paths").path("/api/v1/orders").path("post").path("responses").has("201")).isTrue();
+        assertThat(spec.path("paths").path("/api/v1/auth/logout").path("post").path("responses").has("204")).isTrue();
+        assertThat(spec.path("paths").path("/api/v1/auth/login").path("post").path("security").isEmpty()).isTrue();
+        assertThat(spec.path("components").path("schemas").has("ApiError")).isTrue();
+        Path snapshot = Path.of("..", "admin-web", "openapi.json");
+        if (Boolean.getBoolean("capstone.updateOpenApi")) {
+            Files.createDirectories(snapshot.getParent());
+            Files.writeString(snapshot, spec.toPrettyString() + "\n");
+        } else {
+            assertThat(spec).as("Spring-generated OpenAPI and the client input snapshot")
+                    .isEqualTo(json.readTree(snapshot.toFile()));
+        }
     }
 
     @Test

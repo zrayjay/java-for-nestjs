@@ -8,6 +8,7 @@ import dev.javafornestjs.capstone.system.MenuService;
 import dev.javafornestjs.capstone.system.MenuService.Field;
 import java.net.URI;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import static dev.javafornestjs.capstone.ResourceIds.parseId;
@@ -43,6 +45,7 @@ class AuthorizationController {
     }
 
     @PostMapping("/roles")
+    @ResponseStatus(HttpStatus.CREATED)
     ResponseEntity<AuthorizationService.Role> createRole(@AuthenticationPrincipal Jwt jwt,
             @RequestBody CreateRole request) {
         var role = roles.create(SessionIdentity.from(jwt), request.code(), request.name());
@@ -56,6 +59,7 @@ class AuthorizationController {
     }
 
     @PutMapping("/roles/{id}/grants")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     ResponseEntity<Void> replaceGrants(@AuthenticationPrincipal Jwt jwt, @PathVariable String id,
             @RequestBody ReplaceGrants request) {
         roles.replaceGrants(SessionIdentity.from(jwt), parseId(id), request.grants());
@@ -63,6 +67,7 @@ class AuthorizationController {
     }
 
     @PutMapping("/users/{id}/roles")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     ResponseEntity<Void> replaceRoles(@AuthenticationPrincipal Jwt jwt, @PathVariable String id,
             @RequestBody ReplaceRoles request) {
         var roleIds = request.roleIds();
@@ -72,6 +77,7 @@ class AuthorizationController {
     }
 
     @PutMapping("/users/{id}/platform-admin")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     ResponseEntity<Void> platformAdministrator(@AuthenticationPrincipal Jwt jwt, @PathVariable String id,
             @RequestBody AdministratorToggle request) {
         if (request.enabled() == null) {
@@ -92,6 +98,7 @@ class AuthorizationController {
     }
 
     @PostMapping("/menus")
+    @ResponseStatus(HttpStatus.CREATED)
     ResponseEntity<MenuService.Menu> createMenu(@AuthenticationPrincipal Jwt jwt, @RequestBody ChangeMenu request) {
         var menu = menus.create(SessionIdentity.from(jwt), request.toChange());
         return ResponseEntity.created(URI.create("/api/v1/menus/" + menu.id())).body(menu);
@@ -104,6 +111,7 @@ class AuthorizationController {
     }
 
     @DeleteMapping("/menus/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     ResponseEntity<Void> deleteMenu(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         menus.delete(SessionIdentity.from(jwt), parseId(id));
         return ResponseEntity.noContent().build();

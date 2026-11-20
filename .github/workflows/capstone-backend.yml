@@ -5,7 +5,10 @@ on:
     paths:
       - 'project/pom.xml'
       - 'project/apps/admin-server/**'
+      - 'project/apps/admin-web/**'
       - 'project/java-modules/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
       - 'config/checkstyle.xml'
       - 'pom.xml'
       - '.mvn/**'
@@ -15,7 +18,10 @@ on:
     paths:
       - 'project/pom.xml'
       - 'project/apps/admin-server/**'
+      - 'project/apps/admin-web/**'
       - 'project/java-modules/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
       - 'config/checkstyle.xml'
       - 'pom.xml'
       - '.mvn/**'
@@ -79,3 +85,13 @@ jobs:
           name: capstone-backend-java-${{ matrix.java }}
           path: project/apps/admin-server/target/surefire-reports/
           retention-days: 7
+  admin-web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
+      - run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/admin-web build

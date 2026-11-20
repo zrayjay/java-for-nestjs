@@ -4,6 +4,7 @@ import dev.javafornestjs.capstone.security.SessionIdentity;
 import dev.javafornestjs.capstone.system.AccountsService;
 import java.net.URI;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import static dev.javafornestjs.capstone.ResourceIds.parseId;
@@ -51,6 +53,7 @@ class UsersController {
     }
 
     @PostMapping("/users")
+    @ResponseStatus(HttpStatus.CREATED)
     ResponseEntity<AccountsService.User> create(@AuthenticationPrincipal Jwt jwt, @RequestBody CreateUser request) {
         var user = accounts.create(SessionIdentity.from(jwt), request.username(), request.displayName(),
                 parseId(request.departmentId()), request.password());
@@ -66,12 +69,14 @@ class UsersController {
     }
 
     @DeleteMapping("/users/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     ResponseEntity<Void> disable(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         accounts.disable(SessionIdentity.from(jwt), parseId(id));
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/users/{id}/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     ResponseEntity<Void> replacePassword(@AuthenticationPrincipal Jwt jwt, @PathVariable String id,
             @RequestBody PasswordChange request) {
         accounts.changePassword(SessionIdentity.from(jwt), parseId(id), request.password());

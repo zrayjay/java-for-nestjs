@@ -29,6 +29,15 @@ server:
   address: ${CAPSTONE_BIND_ADDRESS:127.0.0.1}
   port: ${CAPSTONE_PORT:8091}
 
+springdoc:
+  api-docs:
+    enabled: ${CAPSTONE_OPENAPI_ENABLED:false}
+  paths-to-match: /api/v1/**
+  default-produces-media-type: application/json
+  use-fqn: true
+  writer-with-order-by-keys: true
+  override-with-generic-response: false
+
 management:
   health:
     redis:

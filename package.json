@@ -52,7 +52,9 @@
     ],
     "overrides": {
       "vite": "6.4.4",
-      "lodash-es": "4.18.1"
+      "lodash-es": "4.18.1",
+      "@hey-api/json-schema-ref-parser>js-yaml": "4.3.2",
+      "@prisma/config>effect": "3.22.1"
     }
   }
 }

@@ -1,0 +1,23 @@
+{
+  "name": "@java-for-nestjs/admin-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "openapi-ts",
+    "dev": "pnpm generate && vite",
+    "typecheck": "pnpm generate && vue-tsc --noEmit",
+    "build": "pnpm generate && vue-tsc --noEmit && vite build"
+  },
+  "dependencies": {
+    "vue": "3.5.45"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.99.0",
+    "@types/node": "22.19.3",
+    "@vitejs/plugin-vue": "5.2.4",
+    "typescript": "5.9.3",
+    "vite": "6.4.4",
+    "vue-tsc": "3.1.8"
+  }
+}
