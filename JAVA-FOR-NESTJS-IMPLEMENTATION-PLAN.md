@@ -455,13 +455,15 @@ java-for-nestjs-developers/
 
 ### P6：企业级 Monorepo 毕业项目（章节 42~45）
 
-- [ ] P6-01 编写 ADR：为什么选模块化单体、Maven 多模块、MyBatis-Plus。
-- [ ] P6-02 Java 服务实现用户、角色、菜单、按钮权限、订单/代理商示例。
-- [ ] P6-03 Vue3 管理端接入 OpenAPI 生成的 TS Client；完成联调。
-- [ ] P6-04 构建 CI 全链路、Docker Compose 部署、备份恢复与监控。
-- [ ] P6-05 按验收矩阵完成安全、事务、性能与故障测试。
+- [x] P6-01 编写 ADR：为什么选模块化单体、Maven 多模块、MyBatis-Plus。
+- [x] P6-02 Java 服务实现用户、角色、菜单、按钮权限与订单流程。
+- [x] P6-03 Vue3 管理端接入 OpenAPI 生成的 TS Client；完成联调。
+- [x] P6-04 构建 CI 全链路、Docker Compose 部署、备份恢复与监控。
+- [x] P6-05 按验收矩阵完成安全、事务、性能与故障测试。
 
 **验收**：从空机器按 README 可启动、执行测试、登录、完成业务流程、构建产物并验证故障恢复；每一步可复现。
+
+技术准入、适用范围与独立复核见 [G6 执行记录](docs/progress/G6.md)。
 
 ### P7：全书审校与发布
 
