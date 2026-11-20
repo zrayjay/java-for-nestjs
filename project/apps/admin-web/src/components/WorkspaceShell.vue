@@ -6,6 +6,7 @@ import AuditView from './admin/AuditView.vue'
 import MenusView from './admin/MenusView.vue'
 import RolesView from './admin/RolesView.vue'
 import UsersView from './admin/UsersView.vue'
+import OrdersView from './orders/OrdersView.vue'
 import RequestNotice from './RequestNotice.vue'
 
 const { menus, profile, pending, signOut, sync } = useSession()
@@ -16,8 +17,9 @@ const pages = {
   roles: RolesView,
   menus: MenusView,
   audit: AuditView,
+  orders: OrdersView,
 }
-type PageKey = keyof typeof pages | 'orders'
+type PageKey = keyof typeof pages
 type MenuLink = { key: PageKey; label: string; depth: number }
 
 function links(nodes: CurrentMenusResponse, depth = 0): MenuLink[] {
@@ -27,8 +29,7 @@ function links(nodes: CurrentMenusResponse, depth = 0): MenuLink[] {
       key === 'orders'
         ? profile.value?.permissions.includes('orders:read')
         : profile.value?.permissions.includes('system:admin')
-    const known =
-      key === 'orders' || (key !== null && Object.hasOwn(pages, key))
+    const known = key !== null && Object.hasOwn(pages, key)
     const own =
       key && known && permitted
         ? [{ key: key as PageKey, label: node.label, depth }]
@@ -92,15 +93,11 @@ onUnmounted(() => {
     <main class="workspace-main">
       <RequestNotice :failure="failure" />
       <component
-        v-if="selected && selected.key !== 'orders'"
+        v-if="selected"
         :is="pages[selected.key]"
         :key="selected.key"
         @changed="syncNavigation"
       />
-      <section v-else-if="selected">
-        <h1>订单</h1>
-        <p>订单操作将在下一阶段接入。</p>
-      </section>
       <section v-else>
         <h1>工作台</h1>
         <p>当前账号暂无可用菜单。</p>

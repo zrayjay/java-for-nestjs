@@ -107,4 +107,29 @@ pnpm --filter @java-for-nestjs/admin-web build
 
 服务运行时如需查看契约，可设置`CAPSTONE_OPENAPI_ENABLED=true`。默认关闭契约端点。生成的客户端位于`project/apps/admin-web/src/api/generated`，每次构建由锁定的生成器重建。
 
+### 浏览器验收
+
+在一次性开发库中准备两个部门。首启迁移创建 `operations`，另外插入一条部门作为隔离用例：
+
+```sql
+INSERT INTO sys_department(code, name) VALUES ('e2e-outside', 'Browser E2E outside department');
+```
+
+[浏览器脚本](apps/admin-web/e2e/orders.ego.mjs)使用 Ego Browser，将此前端的本地 URL 和测试管理员凭据传给 `verifyOrders`。它会在开发库创建测试账号和订单。以下为运行模块的内容，可按 Ego Browser 的本地脚本方式执行：
+
+```js
+import { verifyOrders } from './project/apps/admin-web/e2e/orders.ego.mjs'
+
+const task = await taskSpace('Capstone order verification')
+console.log(await verifyOrders(task.page('p1'), {
+  origin: 'http://127.0.0.1:5174',
+  admin: { username: 'test-admin', password: 'test-only-admin-password' },
+  password: 'test-only-order-browser-password',
+  outsideDepartment: 'e2e-outside',
+}))
+await task.finish({ keep: [] })
+```
+
+示例假定一次性开发库的首启管理员已按示例配置，运行模块的导入路径相对于其所在目录。用 `pnpm --filter @java-for-nestjs/admin-web test` 单独执行会话回归测试。
+
 见 [实施计划](../JAVA-FOR-NESTJS-IMPLEMENTATION-PLAN.md)、[任务清单](../TASKBOARD.md) 与 [贡献指南](../CONTRIBUTING.md)。

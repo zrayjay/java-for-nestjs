@@ -1544,7 +1544,7 @@ chapters:
     part: '09'
     title: Vue3 前后端联调
     path: docs/09-enterprise-project/44-frontend-integration.md
-    status: planned
+    status: draft
     prerequisites:
       - '19'
       - '20'
@@ -1555,10 +1555,16 @@ chapters:
     topics: OpenAPI、生成 TS Client、错误码、权限菜单
     reference: 既有 Vue3 管理端
     pilot: false
-    examples: []
-    tests: []
+    examples:
+      - project/apps/admin-web/openapi.json
+      - project/apps/admin-web/src/session.ts
+      - project/apps/admin-web/src/components/orders/OrderPanel.vue
+    tests:
+      - project/apps/admin-web/src/session.test.ts
+      - project/apps/admin-web/e2e/orders.ego.mjs
     noCodeReason: null
-    verification: []
+    verification:
+      - docs/progress/P6-03-C.md
     reviews: []
   - id: '45'
     part: '09'
