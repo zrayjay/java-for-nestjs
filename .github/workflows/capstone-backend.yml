@@ -165,6 +165,12 @@ jobs:
           node verify-alert.mjs firing
           "${compose[@]}" up -d --no-build --wait --wait-timeout 160 app
           node verify-alert.mjs recovered
+          "${compose[@]}" stop mysql
+          node verify-alert.mjs api-errors-sample
+          sleep 7
+          node verify-alert.mjs api-errors-sample
+          "${compose[@]}" up -d --no-build --wait --wait-timeout 160 mysql
+          node verify-alert.mjs api-errors-firing
       - name: Collect deployment diagnostics
         if: failure()
         run: |

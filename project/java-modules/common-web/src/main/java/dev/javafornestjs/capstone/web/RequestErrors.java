@@ -17,6 +17,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.CannotCreateTransactionException;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -69,8 +71,8 @@ public class RequestErrors {
                 .body(new ErrorBody("VALIDATION_ERROR", "Invalid request", RequestIds.read(request)));
     }
 
-    @ExceptionHandler(DataAccessException.class)
-    ResponseEntity<ErrorBody> persistenceFailure(DataAccessException failure, HttpServletRequest request) {
+    @ExceptionHandler({DataAccessException.class, CannotCreateTransactionException.class, TransactionSystemException.class})
+    ResponseEntity<ErrorBody> persistenceFailure(RuntimeException failure, HttpServletRequest request) {
         String requestId = RequestIds.read(request);
         LOGGER.error("Database operation failed requestId={} type={}",
                 requestId, failure.getClass().getSimpleName());

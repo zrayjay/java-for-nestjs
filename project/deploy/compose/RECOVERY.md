@@ -78,3 +78,5 @@ node project/deploy/compose/verify-alert.mjs recovered
 ```
 
 修改 Prometheus 回环端口后，设置 `CAPSTONE_PROMETHEUS_URL` 供验证脚本读取。若抓取告警未恢复，先检查应用容器和 `/readyz`，再在 Prometheus Targets 页查看内部端口的抓取错误。5xx 告警先按时间范围检查结构化请求日志，再用请求 ID 联查审计和数据库相关日志。
+
+另在同一隔离环境保持应用运行，停止 MySQL 并执行两次 `node project/deploy/compose/verify-alert.mjs api-errors-sample`，两组间隔至少两个抓取周期的采样间隔（演练配置可等待 7 秒，保证两批请求完成间有一次抓取）。每组核对十条带请求 ID 的 500。重启 MySQL，确认 `/readyz` 恢复，再运行 `node project/deploy/compose/verify-alert.mjs api-errors-firing` 观测五分钟窗口内的告警。
