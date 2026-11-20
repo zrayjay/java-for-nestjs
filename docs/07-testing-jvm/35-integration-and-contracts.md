@@ -232,4 +232,4 @@ pnpm http:verify
 
 ## 章末验收与审查记录
 
-本章in_review，88e29ef新增MockMvc场景CI及本阶段Testcontainers重跑按[P4-02](../progress/P4-02.md)记录。[独立双轴审查](../reviews/P4-02-integration.md)、Foundation43818392057和Compatibility43818595517均通过。参考：[Spring MVC Test](https://docs.spring.io/spring-framework/reference/testing/mockmvc.html)、[Testcontainers](https://java.testcontainers.org/)、[动态属性](https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/ctx-management/dynamic-property-sources.html)、[Nest测试](https://docs.nestjs.com/fundamentals/testing)。
+本章in_review，88e29ef新增MockMvc场景CI及本阶段Testcontainers重跑按[P4-02](../progress/P4-02.md)记录。[独立双轴审查](../reviews/P4-02-integration.md)、Foundation43818392057和Compatibility43818595517均通过。参考：[Spring MVC Test](https://docs.spring.io/spring-framework/reference/6.2/testing/mockmvc.html)、[Testcontainers](https://java.testcontainers.org/)、[动态属性](https://docs.spring.io/spring-framework/reference/6.2/testing/testcontext-framework/ctx-management/dynamic-property-sources.html)、[Nest测试](https://docs.nestjs.com/fundamentals/testing)。

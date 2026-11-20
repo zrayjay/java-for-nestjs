@@ -179,4 +179,4 @@ PUT本例表示完整替换两个可写字段，不是“缺哪个就保留哪�
 
 本机新增Java模块14项、Nest全量27项与扩展打包共同HTTP契约通过；两轴增量独立审查及Windows/Linux×Temurin21/25修订CI通过。当前in_review，待用户验收，详见[审查归档](../reviews/P3-01.md)与[实施证据](../progress/P3-01.md)。本章不据此宣称SQL、生产认证或读者效果完成。
 
-官方参考：[Spring MVC](https://docs.spring.io/spring-framework/reference/web/webmvc.html)、[MVC注解控制器](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller.html)、[Nest Controllers](https://docs.nestjs.com/controllers)、[HTTP语义](https://www.rfc-editor.org/rfc/rfc9110)。
+官方参考：[Spring MVC](https://docs.spring.io/spring-framework/reference/6.2/web/webmvc.html)、[MVC注解控制器](https://docs.spring.io/spring-framework/reference/6.2/web/webmvc/mvc-controller.html)、[Nest Controllers](https://docs.nestjs.com/controllers)、[HTTP语义](https://www.rfc-editor.org/rfc/rfc9110)。

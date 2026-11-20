@@ -165,4 +165,4 @@ Nest请求处理异常 → ExceptionFilter → 受控JSON
 
 本机新增Java模块14项、Nest全量27项与扩展打包共同HTTP契约通过；两轴增量独立审查及Windows/Linux×Temurin21/25修订CI通过。当前in_review，待用户验收，详见[审查归档](../reviews/P3-01.md)与[实施证据](../progress/P3-01.md)。本章不据此宣称SQL、生产认证或读者效果完成。
 
-官方参考：[Spring AOP代理](https://docs.spring.io/spring-framework/reference/core/aop/proxying.html)、[MVC异常处理](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-exceptionhandler.html)、[Nest异常过滤器](https://docs.nestjs.com/exception-filters)。
+官方参考：[Spring AOP代理](https://docs.spring.io/spring-framework/reference/6.2/core/aop/proxying.html)、[MVC异常处理](https://docs.spring.io/spring-framework/reference/6.2/web/webmvc/mvc-controller/ann-exceptionhandler.html)、[Nest异常过滤器](https://docs.nestjs.com/exception-filters)。

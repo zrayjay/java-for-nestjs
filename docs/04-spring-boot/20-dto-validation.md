@@ -174,4 +174,4 @@ Nest Pipe有先后执行顺序，方法上的宽松规则不能“撤销”之�
 
 本机新增Java模块14项、Nest全量27项与扩展打包共同HTTP契约通过；两轴增量独立审查及Windows/Linux×Temurin21/25修订CI通过。当前in_review，待用户验收，详见[审查归档](../reviews/P3-01.md)与[实施证据](../progress/P3-01.md)。本章不据此宣称SQL、生产认证或读者效果完成。
 
-官方参考：[Jakarta Validation规范](https://jakarta.ee/specifications/bean-validation/3.0/jakarta-bean-validation-spec-3.0.html)、[Spring MVC验证](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-validation.html)、[Nest Validation](https://docs.nestjs.com/techniques/validation)、[class-validator分组](https://github.com/typestack/class-validator#validation-groups)。
+官方参考：[Jakarta Validation规范](https://jakarta.ee/specifications/bean-validation/3.0/jakarta-bean-validation-spec-3.0.html)、[Spring MVC验证](https://docs.spring.io/spring-framework/reference/6.2/web/webmvc/mvc-controller/ann-validation.html)、[Nest Validation](https://docs.nestjs.com/techniques/validation)、[class-validator分组](https://github.com/typestack/class-validator#validation-groups)。

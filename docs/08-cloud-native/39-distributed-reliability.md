@@ -331,6 +331,6 @@ node --test --test-name-pattern='local circuit blocks' examples/nestjs-message-r
 - [MySQL8.4锁定读取与SKIP LOCKED](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html)
 - [Java Future API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/Future.html)
 - [Promise.race](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race)
-- [RabbitMQ可靠性与故障恢复](https://www.rabbitmq.com/docs/reliability)
+- [RabbitMQ可靠性与故障恢复](https://www.rabbitmq.com/docs/4.2/reliability)
 - [熔断模式](https://martinfowler.com/bliki/CircuitBreaker.html)
 - [ADR0010](../adr/0010-messaging-and-outbox-runtime.md)

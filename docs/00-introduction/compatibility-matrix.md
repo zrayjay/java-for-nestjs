@@ -1,6 +1,6 @@
 # 技术兼容矩阵
 
-核验日期：2026-11-09。基线决策：[ADR-0001](../adr/0001-technology-baseline.md)。本表区分官方声明、锁定版本与实测证据，不声称使用最新版本或具备生产安全保证。
+本表记录自 2026-11-09 起的分阶段核验。基线决策见 [ADR-0001](../adr/0001-technology-baseline.md)。官方声明、锁定版本与实测证据分别列出。
 
 ## Java主线
 
@@ -31,11 +31,17 @@
 | VitePress | 1.6.4稳定线，ESM配置 | P0-03已在Windows11/Node22.20.0完成根路径与子路径构建 |
 | Node | 22.20.0 | 本机文档类型检查、构建及浏览器验证通过；不同于Java环境结果 |
 | pnpm | 10.34.9，packageManager与锁文件固定 | 通过npx运行已锁定CLI，绕过本机损坏的全局12.5.1启动器，不修改全局安装 |
-| Vue / TypeScript / vue-tsc | 3.5.45 / 5.9.3 / 3.1.8 | 组成文档主题，类型检查与SSR构建通过；不代表P6管理端基线已确定 |
+| Vue / TypeScript / vue-tsc | 3.5.45 / 5.9.3 / 3.1.8 | 文档主题与毕业项目管理端都使用这组版本。站点类型检查与 SSR、管理端类型检查及客户端构建分别验证 |
 | Mermaid | 11.12.2，客户端按需加载 | 流程图、时序图、浅/深主题切换及子路径均已浏览器验证 |
 | Vite / lodash-es | overrides固定6.4.4 / 4.18.1 | P0-06修复high审计项；超出VitePress声明的Vite5范围，见[ADR-0002](../adr/0002-documentation-build-security.md)及[回归记录](../progress/P0-06.md) |
 
 VitePress1文档的Node下限与VitePress2文档不同，应查阅[稳定版安装指南](https://vuejs.github.io/vitepress/v1/guide/getting-started)，不要混用next/alpha的要求。
+
+## 毕业项目交付
+
+2026-11-20。管理端使用 Vue 3.5.45、Vite 6.4.4 和 Hey API 0.99.0，OpenAPI 快照版本为 3.1.0。Springdoc 2.10.0 从运行中的 Spring Boot 3.5.16 输出契约。CI 在 Java 21 和 25 校验运行时契约与快照，在 Node 22.20.0 生成 SDK、检查类型并构建 Vue。
+
+同源镜像部署使用 Temurin 21.0.13、MySQL 8.4.7 和 Redis 7.4.6。监控覆盖 Prometheus 3.13.5 和由 Spring Boot 管理的 Micrometer 注册器。真实演练验证空库启动、实际浏览器订单操作、备份恢复、两类监控告警和结构化请求关联。见 [Capstone CI](https://github.com/zrayjay/java-for-nestjs/actions/runs/44700169120)、[G6 执行记录](../progress/G6.md)和 [Prometheus LTS](https://prometheus.io/docs/introduction/release-cycle/)。
 
 ## 官方兼容声明
 

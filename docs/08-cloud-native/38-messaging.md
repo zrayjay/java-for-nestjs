@@ -267,8 +267,8 @@ node --test --test-name-pattern='three precommit|transient recovery' examples/ne
 
 先标出SQL commit、发布confirm、消费ACK三个独立边界，再枚举边界间崩溃。Kafka消费位置与Rabbit delivery tag不是相同身份。练习的通过条件是断言而非手动修改日志。
 
-- [RabbitMQ publisher confirms与consumer acknowledgements](https://www.rabbitmq.com/docs/confirms)
-- [RabbitMQ dead letter exchanges及安全边界](https://www.rabbitmq.com/docs/dlx)
+- [RabbitMQ publisher confirms与consumer acknowledgements](https://www.rabbitmq.com/docs/4.2/confirms)
+- [RabbitMQ dead letter exchanges及安全边界](https://www.rabbitmq.com/docs/4.2/dlx)
 - [RabbitMQ v4.2.2发布](https://github.com/rabbitmq/rabbitmq-server/releases/tag/v4.2.2)
 - [Java client API](https://www.rabbitmq.com/client-libraries/java-api-guide)
 - [amqplib channel API](https://amqp-node.github.io/amqplib/channel_api.html)
