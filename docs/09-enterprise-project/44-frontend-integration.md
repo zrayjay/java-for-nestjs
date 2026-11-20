@@ -2,7 +2,7 @@
 title: '44 · Vue3 前后端联调'
 description: 从运行时契约生成 SDK，接通会话、权限菜单和订单工作台。
 chapter_id: '44'
-teaching_status: draft
+teaching_status: in_review
 baseline: Java 21 / Spring Boot 3.5.16 / Node 22.20.0 / pnpm 10.34.9 / Vite 6.4.4
 ---
 
@@ -172,3 +172,4 @@ flowchart TD
 - 契约比较、生成客户端、类型检查与前端构建应全部通过。
 - 会话测试应核对共享刷新、失败清理和退出。浏览器应复现跨角色审批、冲突及跨部门访问拒绝。
 - 运行证据见[P6-03-C](../progress/P6-03-C.md)。
+- 独立规范与规格复核均已通过。见[复核记录](../reviews/P6-03-C.md)。

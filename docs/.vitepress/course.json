@@ -444,7 +444,7 @@
         "topics": "OpenAPI、生成 TS Client、错误码、权限菜单",
         "reference": "既有 Vue3 管理端",
         "pilot": false,
-        "status": "draft",
+        "status": "in_review",
         "path": "docs/09-enterprise-project/44-frontend-integration.md"
       },
       {
