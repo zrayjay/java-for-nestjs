@@ -117,11 +117,7 @@ test('knowledge point IDs must match the chapter and be unique', () => {
     /稳定ID/,
   )
   assert.throws(
-    () =>
-      chapterStructure(
-        body.replace('{#ch01-kp01}', '{#ch02-kp01}'),
-        c,
-      ),
+    () => chapterStructure(body.replace('{#ch01-kp01}', '{#ch02-kp01}'), c),
     /稳定ID/,
   )
   const point = body.slice(
