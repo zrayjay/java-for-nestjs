@@ -97,3 +97,4 @@ jobs:
           node-version: 22.20.0
       - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
       - run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/admin-web build
+      - run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/admin-web test

@@ -224,6 +224,9 @@ importers:
       vite:
         specifier: 6.4.4
         version: 6.4.4(@types/node@22.19.3)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: 5.1.0
+        version: 5.1.0(@opentelemetry/api@1.9.0)(@types/node@22.19.3)(vite@6.4.4(@types/node@22.19.3)(jiti@2.7.0)(yaml@2.9.1))
       vue-tsc:
         specifier: 3.1.8
         version: 3.1.8(typescript@5.9.3)

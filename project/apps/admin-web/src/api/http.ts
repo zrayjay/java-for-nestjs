@@ -16,7 +16,7 @@ export class ApiError extends Error {
   }
 }
 
-type Result<T> = { data?: T; error?: unknown; response?: Response }
+export type Result<T> = { data?: T; error?: unknown; response?: Response }
 type Operation<T> = () => Promise<Result<T>>
 
 const messages: Readonly<Record<number, string>> = {
@@ -54,6 +54,10 @@ export async function request<T>(
     messages[response.status] ?? '请求未完成，请重试。',
     requestId,
   )
+}
+
+export function errorMessage(failure: unknown) {
+  return failure instanceof ApiError ? failure.message : '请求未完成，请重试。'
 }
 
 export async function expectData<T>(operation: Operation<T>): Promise<T> {

@@ -95,6 +95,8 @@ pnpm --filter @java-for-nestjs/admin-web dev
 
 打开`http://127.0.0.1:5174`。开发服务将`/api`代理至`http://127.0.0.1:8091`，可用`CAPSTONE_BACKEND_URL`覆盖。生产构建用同源`/api`。运行`pnpm --filter @java-for-nestjs/admin-web build`生成客户端、检查类型并构建Vue。
 
+管理员误删菜单管理入口时，可带管理员访问令牌向 `POST /api/v1/menus` 提交 `{"label":"菜单","routeKey":"menus","permission":"system:admin","sortOrder":40}` 恢复入口。若记录仍存在，可用 `PATCH /api/v1/menus/{id}` 恢复对应的路由和权限，再刷新管理端。
+
 [OpenAPI快照](apps/admin-web/openapi.json)来自实际Spring运行物。后端集成测试从`/v3/api-docs`获取契约并与快照比较。变更API后，在测试服务就绪时执行以下命令更新快照及格式：
 
 ```powershell

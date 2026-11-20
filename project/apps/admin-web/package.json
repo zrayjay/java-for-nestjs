@@ -6,6 +6,7 @@
   "scripts": {
     "generate": "openapi-ts",
     "dev": "pnpm generate && vite",
+    "test": "pnpm generate && vitest run",
     "typecheck": "pnpm generate && vue-tsc --noEmit",
     "build": "pnpm generate && vue-tsc --noEmit && vite build"
   },
@@ -18,6 +19,7 @@
     "@vitejs/plugin-vue": "5.2.4",
     "typescript": "5.9.3",
     "vite": "6.4.4",
+    "vitest": "5.1.0",
     "vue-tsc": "3.1.8"
   }
 }

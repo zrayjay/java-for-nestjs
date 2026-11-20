@@ -92,3 +92,66 @@ button:disabled {
   display: block;
   overflow-wrap: anywhere;
 }
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin: 0 0 1.4rem;
+}
+.page-header h1 {
+  margin: 0;
+}
+.panel {
+  padding: clamp(1rem, 2.8vw, 1.8rem);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: #fffdf5;
+}
+.panel h2 {
+  margin-top: 0;
+}
+.form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+  align-items: end;
+}
+.actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.stack {
+  display: grid;
+  gap: 1rem;
+}
+.table-scroll {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+th,
+td {
+  text-align: start;
+  padding: 0.8rem 0.7rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+th {
+  font-size: 0.85rem;
+  color: #48615b;
+}
+.muted {
+  color: #516a62;
+}
+.danger {
+  color: var(--danger);
+  background: transparent;
+  border-color: var(--danger);
+}
