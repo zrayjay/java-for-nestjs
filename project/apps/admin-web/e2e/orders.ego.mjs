@@ -144,7 +144,37 @@ export async function verifyOrders(page, fixture) {
       document.querySelector('#order-panel-title').textContent.split('#')[1],
   )
   await button('编辑草稿', 'Open the draft editor')
+  await page.evaluate((id) => {
+    const fetchOrder = globalThis.fetch
+    globalThis.fetch = async function (input, options) {
+      const request =
+        input instanceof Request ? input : new Request(input, options)
+      if (
+        request.method !== 'PATCH' ||
+        new URL(request.url).pathname !== '/api/v1/orders/' + id
+      )
+        return fetchOrder(input, options)
+      globalThis.fetch = fetchOrder
+      await new Promise((resolve) => {
+        globalThis.releaseOrderWrite = resolve
+      })
+      return fetchOrder(input, options)
+    }
+  }, id)
   await draft(users.customer + ' 更新', '181.05', 'Save the edited draft')
+  await page.waitForFunction(
+    () => typeof globalThis.releaseOrderWrite === 'function',
+  )
+  const selectionLocked = await page.evaluate((id) => {
+    const locked =
+      document.querySelector('.page-header button')?.disabled &&
+      document.querySelector('button[aria-label="查看订单 ' + id + '"]')
+        ?.disabled
+    globalThis.releaseOrderWrite()
+    delete globalThis.releaseOrderWrite
+    return locked
+  }, id)
+  assert.equal(selectionLocked, true)
   await ready()
 
   // A second session edits between the first session's read and write.
@@ -224,7 +254,7 @@ export async function verifyOrders(page, fixture) {
   await login(users.clerk)
   await button('新建订单', 'Create a second order')
   await draft(
-    users.customer + ' 取消演练',
+    '\u0085' + '📦'.repeat(100),
     '0.01',
     'Save draft for cancellation',
   )

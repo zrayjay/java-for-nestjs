@@ -25,7 +25,11 @@ import {
 } from './presentation'
 
 const props = defineProps<{ orderId: string | null }>()
-const emit = defineEmits<{ dismiss: []; saved: [id: string] }>()
+const emit = defineEmits<{
+  dismiss: []
+  saved: [id: string]
+  busy: [value: boolean]
+}>()
 const { data, profile } = useSession()
 const order = shallowRef<DetailResponse>()
 const records = shallowRef<HistoryResponse>([])
@@ -61,6 +65,7 @@ async function readHistory(id: string) {
 async function perform(operation: () => Promise<void>) {
   if (busy.value) return
   busy.value = true
+  emit('busy', true)
   failure.value = undefined
   try {
     await operation()
@@ -68,6 +73,7 @@ async function perform(operation: () => Promise<void>) {
     failure.value = error
   } finally {
     busy.value = false
+    emit('busy', false)
   }
 }
 
@@ -96,7 +102,10 @@ function save() {
   const current = order.value
   if (props.orderId === null ? !canCreate.value : !current || !canEdit.value)
     return
-  const customer = customerName.value.trim()
+  const customer = customerName.value.replace(
+    /^\p{White_Space}+|\p{White_Space}+$/gu,
+    '',
+  )
   const [units, fraction = ''] = amount.value.split('.')
   const cents = Number(units) * 100 + Number(fraction.padEnd(2, '0'))
   void perform(async () => {

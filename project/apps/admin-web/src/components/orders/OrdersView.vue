@@ -11,6 +11,7 @@ import { formatAmount, statuses } from './presentation'
 
 const { data, profile } = useSession()
 const selected = shallowRef<{ id: string | null }>()
+const panelBusy = shallowRef(false)
 const filter = shallowRef('')
 let appliedStatus = ''
 const { page, items, total, busy, failure, size, load } = usePaged<
@@ -43,6 +44,7 @@ async function updateList(id: string) {
         v-if="profile?.permissions.includes('orders:create')"
         type="button"
         class="primary"
+        :disabled="panelBusy"
         @click="selected = { id: null }"
       >
         新建订单
@@ -52,6 +54,7 @@ async function updateList(id: string) {
       v-if="selected"
       :key="selected.id ?? 'new'"
       :order-id="selected.id"
+      @busy="panelBusy = $event"
       @dismiss="selected = undefined"
       @saved="updateList"
     />
@@ -94,6 +97,7 @@ async function updateList(id: string) {
                 <button
                   class="secondary"
                   type="button"
+                  :disabled="panelBusy"
                   :aria-label="`查看订单 ${order.id}`"
                   @click="selected = { id: order.id }"
                 >

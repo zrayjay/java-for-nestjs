@@ -134,7 +134,7 @@ sequenceDiagram
 
 #### 4. Node.js / TypeScript / NestJS 技术对照
 
-对照[NestJS同题参考](../../examples/nestjs-reference/src/api/order-reference.ts)的所有权、部门判断和版本条件更新。前端使用Vue响应式列表与详情消费结果。审批和取消走各自的命令接口。
+对照[NestJS同题参考](../../examples/nestjs-reference/src/api/order-reference.ts)的所有权、部门判断和版本检查。前端使用Vue响应式列表与详情消费结果。审批和取消走各自的命令接口。Java更新将版本加入SQL条件，以检测并发写入。
 
 #### 5. 两端代码对照
 
