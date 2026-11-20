@@ -16,15 +16,21 @@ node project/deploy/compose/database-backup.mjs backup java-for-nestjs-capstone 
 恢复使用另一 Compose 项目和新数据库卷。先只启动目标 MySQL，应用保持停止，确认前一步成功后才启动应用。此处复用源镜像与数据库配置，目标 HTTP 端口另设以避免冲突。
 
 ```powershell
-$env:CAPSTONE_HTTP_PORT = '18093'
-docker compose -p capstone-restore --env-file $envFile -f $composeFile up -d --wait --wait-timeout 160 mysql
-if ($LASTEXITCODE -ne 0) { throw 'MySQL startup failed' }
-node project/deploy/compose/database-backup.mjs restore capstone-restore $envFile $backup
-if ($LASTEXITCODE -ne 0) { throw 'Restore failed' }
-docker compose -p capstone-restore --env-file $envFile -f $composeFile up -d --no-build --wait --wait-timeout 160
+$previousPort = $env:CAPSTONE_HTTP_PORT
+try {
+    $env:CAPSTONE_HTTP_PORT = '18093'
+    docker compose -p capstone-restore --env-file $envFile -f $composeFile up -d --wait --wait-timeout 160 mysql
+    if ($LASTEXITCODE -ne 0) { throw 'MySQL startup failed' }
+    node project/deploy/compose/database-backup.mjs restore capstone-restore $envFile $backup
+    if ($LASTEXITCODE -ne 0) { throw 'Restore failed' }
+    docker compose -p capstone-restore --env-file $envFile -f $composeFile up -d --no-build --wait --wait-timeout 160
+    if ($LASTEXITCODE -ne 0) { throw 'Restored deployment startup failed' }
+} finally {
+    $env:CAPSTONE_HTTP_PORT = $previousPort
+}
 ```
 
-恢复先校验文件，再检查应用是否停止以及目标库是否为空。导入失败的实例可能已有部分表，保留失败现场排查，在另一空库重新演练。应用从恢复库读取 Flyway 记录，使用目标钥匙卷签发新凭据。恢复清除会话族和刷新凭据记录，防止已撤销会话随旧快照复活。账号、角色、订单、历史和审计随数据库恢复，用户需重新登录。Redis缓存由应用重建。签名密钥的独立保存与恢复见[交付手册](CAPSTONE.md)。
+脚本在私有临时目录中校验并导入同一份 SQL，检查应用停止且目标库为空。MySQL 原始错误可能含有备份内容，控制台只给出简要错误。导入失败的实例可能已有部分表，保留失败现场排查，在另一空库重新演练。应用从恢复库读取 Flyway 记录，本次演练使用目标卷生成的新密钥。已有密钥需由运维在受保护的位置独立保管。恢复清除会话族和刷新凭据记录，防止已撤销会话随旧快照复活。账号、角色、订单、历史和审计随数据库恢复，用户需重新登录。Redis缓存由应用重建。
 
 要自动比对，先给当前终端设置一次性管理员凭据和 `CAPSTONE_RECOVERY_PASSWORD`（供测试录单员使用）。在源实例备份**之前**执行：
 
@@ -36,8 +42,14 @@ node project/deploy/compose/verify-recovery.mjs seed target/capstone-recovery-fi
 在恢复实例测得 readiness UP 后执行：
 
 ```powershell
-$env:CAPSTONE_BASE_URL = 'http://127.0.0.1:18093'
-node project/deploy/compose/verify-recovery.mjs compare target/capstone-recovery-fixture.json
+$previousUrl = $env:CAPSTONE_BASE_URL
+try {
+    $env:CAPSTONE_BASE_URL = 'http://127.0.0.1:18093'
+    node project/deploy/compose/verify-recovery.mjs compare target/capstone-recovery-fixture.json
+    if ($LASTEXITCODE -ne 0) { throw 'Restored data did not match' }
+} finally {
+    $env:CAPSTONE_BASE_URL = $previousUrl
+}
 ```
 
 脚本验证原有账号能登录，订单金额、版本、状态、历史和带请求 ID 的审计记录逐项一致。校验成功后再决定切换客户端流量。

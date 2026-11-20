@@ -1,7 +1,15 @@
 import { execFile, spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { createReadStream, createWriteStream } from 'node:fs'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  rmdir,
+  unlink,
+  writeFile,
+} from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
@@ -57,15 +65,22 @@ function mysql(tool, stream) {
     child.once('error', reject)
     child.once('close', (code) => {
       if (code === 0) resolve()
-      else reject(new Error('MySQL ' + tool + ' exited unsuccessfully'))
+      else
+        reject(
+          new Error(
+            tool === 'restore'
+              ? 'MySQL restore failed. Verify that the target schema is empty and the restore lock is free.'
+              : 'MySQL dump exited unsuccessfully',
+          ),
+        )
     })
   })
   return { child, done }
 }
 
-async function digest() {
+async function digest(path) {
   const hash = createHash('sha256')
-  for await (const chunk of createReadStream(snapshot)) hash.update(chunk)
+  for await (const chunk of createReadStream(path)) hash.update(chunk)
   return hash.digest('hex')
 }
 
@@ -79,13 +94,13 @@ async function backup() {
     ),
     done,
   ])
-  await writeFile(checksum, (await digest()) + '\n', {
+  await writeFile(checksum, (await digest(snapshot)) + '\n', {
     flag: 'wx',
     mode: 0o600,
   })
 }
 
-async function* restoreInput() {
+async function* restoreInput(staged) {
   // Keep the advisory lock and empty-schema check in the import connection.
   // PREPARE rejects the guard statement in the non-empty or locked case.
   yield `
@@ -96,7 +111,7 @@ PREPARE capstone_restore_guard FROM @capstone_restore_guard;
 EXECUTE capstone_restore_guard;
 DEALLOCATE PREPARE capstone_restore_guard;
 `
-  yield* createReadStream(snapshot)
+  yield* createReadStream(staged)
   yield `
 START TRANSACTION;
 DELETE FROM sys_refresh_session;
@@ -107,22 +122,40 @@ COMMIT;
 
 async function restore() {
   const expected = (await readFile(checksum, 'utf8')).trim()
-  if (!/^[a-f0-9]{64}$/.test(expected) || (await digest()) !== expected)
-    throw new Error('Backup checksum mismatch')
-  const status = await run('docker', [
-    ...compose,
-    'ps',
-    '--status',
-    'running',
-    '--services',
-    'app',
-  ])
-  if (status.stdout.trim()) throw new Error('Stop the app before restoring')
-  const { child, done } = mysql('restore', ['pipe', 'inherit', 'inherit'])
-  await Promise.all([
-    pipeline(Readable.from(restoreInput()), child.stdin),
-    done,
-  ])
+  if (!/^[a-f0-9]{64}$/.test(expected))
+    throw new Error('Invalid backup checksum file')
+  const scratch = await mkdtemp(join(tmpdir(), 'capstone-restore-'))
+  const staged = join(scratch, 'capstone.sql')
+  try {
+    await pipeline(
+      createReadStream(snapshot),
+      createWriteStream(staged, { flags: 'wx', mode: 0o600 }),
+    )
+    if ((await digest(staged)) !== expected)
+      throw new Error('Backup checksum mismatch')
+    const status = await run('docker', [
+      ...compose,
+      'ps',
+      '--status',
+      'running',
+      '--services',
+      'app',
+    ])
+    if (status.stdout.trim()) throw new Error('Stop the app before restoring')
+    // MySQL errors can quote values from the archive.
+    const { child, done } = mysql('restore', ['pipe', 'ignore', 'ignore'])
+    const results = await Promise.allSettled([
+      done,
+      pipeline(Readable.from(restoreInput(staged)), child.stdin),
+    ])
+    for (const result of results)
+      if (result.status === 'rejected') throw result.reason
+  } finally {
+    await unlink(staged).catch((error) => {
+      if (error.code !== 'ENOENT') throw error
+    })
+    await rmdir(scratch)
+  }
 }
 
 try {
