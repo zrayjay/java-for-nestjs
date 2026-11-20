@@ -14,7 +14,7 @@ baseline: Boot3.5.16 / Micrometer1.15.12 / OTel Java1.49.0 / OTel JS2.12.0 / Pin
 
 ## 知识点
 
-### ch37-kp01 · 健康检查、指标与有限标签
+### 健康检查、指标与有限标签 {#ch37-kp01}
 
 #### 1. 一句话定义
 
@@ -80,7 +80,7 @@ node --test --test-name-pattern='metrics require administrative' examples/nestjs
 
 同时核对权限负例与实际请求计数，不只检查端点200。结构化日志与标签中均不应出现Access/Refresh或输入正文。
 
-### ch37-kp02 · Trace、span与W3C上下文传播
+### Trace、span与W3C上下文传播 {#ch37-kp02}
 
 #### 1. 一句话定义
 
@@ -166,7 +166,7 @@ node --test --test-name-pattern='W3C parent|real aborted connection' examples/ne
 
 检查真实父子关系、无效上下文、匿名拒绝和结束次数。Node中止测试真实销毁HTTP连接，必须导出一次ERROR/aborted span；不能只手动调用finalizer后宣布断连已验证。
 
-### ch37-kp03 · 结构化日志、最终编码与跨层排查
+### 结构化日志、最终编码与跨层排查 {#ch37-kp03}
 
 #### 1. 一句话定义
 

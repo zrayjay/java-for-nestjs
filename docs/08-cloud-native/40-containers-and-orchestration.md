@@ -14,7 +14,7 @@ baseline: Temurin21.0.13+9 noble / MySQL8.4.7 / Node22.20.0 / Docker Compose V2
 
 ## 知识点
 
-### ch40-kp01 · 镜像、运行进程与持久卷
+### 镜像、运行进程与持久卷 {#ch40-kp01}
 
 #### 1. 一句话定义
 
@@ -90,7 +90,7 @@ docker compose -f project/deploy/compose/teaching.yaml ps
 
 检查API为healthy、keys为成功退出、MySQL为healthy；再按说明真实登录/创建。完整自动验收还检查Config.User=10001:10001、重启保留数据库与签名会话，不只看容器状态running。
 
-### ch40-kp02 · 依赖就绪与健康探针
+### 依赖就绪与健康探针 {#ch40-kp02}
 
 #### 1. 一句话定义
 
@@ -158,7 +158,7 @@ node scripts/verify-compose-teaching.mjs
 
 要求真实停MySQL后ready503/live200，恢复后ready200，并完成后续业务与排空阶段。不能把构建失败或静态YAML检查当该演练通过；实际版本/日志见[P5-03](../progress/P5-03.md)。
 
-### ch40-kp03 · SIGTERM、在途事务与优雅停止
+### SIGTERM、在途事务与优雅停止 {#ch40-kp03}
 
 #### 1. 一句话定义
 
@@ -248,7 +248,7 @@ node scripts/verify-compose-teaching.mjs
 
 Node等待实际admitted通知后TERM，draining后补齐正文，HTTP200并退出0。Java必须真实SQL等待后TERM，释放锁后HTTP200、任务更新及单条task.updated审计、退出非137、重启读取成功。两项验证各自边界，不能把Node字节模型当SQL事务证据。
 
-### ch40-kp04 · K8s 编排：副本、探针摘除与滚动更新
+### K8s 编排：副本、探针摘除与滚动更新 {#ch40-kp04}
 
 #### 1. 一句话定义
 

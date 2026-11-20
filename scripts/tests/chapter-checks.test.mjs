@@ -36,7 +36,7 @@ async function fixture(t) {
   return dir
 }
 function chapterBody(c, overrides = {}) {
-  return `---\nchapter_id: '${c.id}'\nteaching_status: ${c.status}\nbaseline: Java21 / Spring Boot3.5.16\n${overrides.meta || ''}---\n# Synthetic fixture\n\n## 知识点\n\n### ch01-kp01 · 合成知识点\n\n${sections.map((s) => `#### ${s}\n\n用于验证结构的合成正文，不是课程内容。\n`).join('\n')}\n## 章末验收与审查记录\n\n合成证据。\n`
+  return `---\nchapter_id: '${c.id}'\nteaching_status: ${c.status}\nbaseline: Java21 / Spring Boot3.5.16\n${overrides.meta || ''}---\n# Synthetic fixture\n\n## 知识点\n\n### 合成知识点 {#ch01-kp01}\n\n${sections.map((s) => `#### ${s}\n\n用于验证结构的合成正文，不是课程内容。\n`).join('\n')}\n## 章末验收与审查记录\n\n合成证据。\n`
 }
 
 test('45 planned chapters do not require fabricated body files', async (t) => {
@@ -99,7 +99,7 @@ test('ten-part structure parses headings, ignores fenced fake headings', () => {
   assert.throws(
     () =>
       chapterStructure(
-        chapterBody(c).replace('### ch01-kp01 · 合成知识点', '## point-01'),
+        chapterBody(c).replace('### 合成知识点 {#ch01-kp01}', '## point-01'),
         c,
       ),
     /知识点/,
@@ -109,15 +109,23 @@ test('knowledge point IDs must match the chapter and be unique', () => {
   const c = { id: '01', status: 'draft' }
   const body = chapterBody(c)
   assert.throws(
-    () => chapterStructure(body.replace('ch01-kp01', 'ch02-kp01'), c),
+    () => chapterStructure(body.replaceAll('ch01-kp01', 'ch02-kp01'), c),
     /稳定ID/,
   )
   assert.throws(
-    () => chapterStructure(body.replace('ch01-kp01 · ', ''), c),
+    () => chapterStructure(body.replace(' {#ch01-kp01}', ''), c),
+    /稳定ID/,
+  )
+  assert.throws(
+    () =>
+      chapterStructure(
+        body.replace('{#ch01-kp01}', '{#ch02-kp01}'),
+        c,
+      ),
     /稳定ID/,
   )
   const point = body.slice(
-    body.indexOf('### ch01-kp01'),
+    body.indexOf('### 合成知识点'),
     body.indexOf('## 章末验收与审查记录'),
   )
   assert.throws(

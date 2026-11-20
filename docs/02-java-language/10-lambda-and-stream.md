@@ -13,7 +13,7 @@ baseline: Java21 / TS5.9.3 / Node22.20.0
 
 ## 知识点
 
-### ch10-kp01 · 函数式接口与捕获变量
+### 函数式接口与捕获变量 {#ch10-kp01}
 
 #### 1. 一句话定义
 
@@ -64,7 +64,7 @@ TS测试让闭包捕获let value，之后改为2，调用读取2。Java[Compilat
 
 </details>
 
-### ch10-kp02 · Stream惰性、终止与复用
+### Stream惰性、终止与复用 {#ch10-kp02}
 
 #### 1. 一句话定义
 
@@ -124,7 +124,7 @@ count等终止操作可能利用源特征省略某些中间计算；不要用pee
 
 </details>
 
-### ch10-kp03 · Optional与缺失建模
+### Optional与缺失建模 {#ch10-kp03}
 
 #### 1. 一句话定义
 

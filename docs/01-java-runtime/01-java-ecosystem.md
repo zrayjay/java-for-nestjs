@@ -14,7 +14,7 @@ baseline: Java21 / Boot3.5.16 / Node22.20.0 / Nest11.2.9
 
 ## 知识点
 
-### ch01-kp01 · JDK、运行环境与JVM
+### JDK、运行环境与JVM {#ch01-kp01}
 
 #### 1. 一句话定义
 
@@ -79,7 +79,7 @@ CI使用完整JDK编译诊断，部署可选择与依赖兼容的运行映像。
 
 </details>
 
-### ch01-kp02 · Java SE、规范与实现
+### Java SE、规范与实现 {#ch01-kp02}
 
 #### 1. 一句话定义
 
@@ -134,7 +134,7 @@ LTS主要涉及发行商维护承诺，不能仅凭“LTS”断言某版本对�
 
 </details>
 
-### ch01-kp03 · Spring、Spring Boot与构建工具
+### Spring、Spring Boot与构建工具 {#ch01-kp03}
 
 #### 1. 一句话定义
 

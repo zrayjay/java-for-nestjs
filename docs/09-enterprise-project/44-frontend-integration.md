@@ -14,7 +14,7 @@ baseline: Java 21 / Spring Boot 3.5.16 / Node 22.20.0 / pnpm 10.34.9 / Vite 6.4.
 
 ## 知识点
 
-### ch44-kp01 · 从运行时 OpenAPI 生成客户端
+### 从运行时 OpenAPI 生成客户端 {#ch44-kp01}
 
 #### 1. 一句话定义
 
@@ -63,7 +63,7 @@ flowchart LR
 
 执行`pnpm --filter @java-for-nestjs/admin-web build`。在[快照](../../project/apps/admin-web/openapi.json)找到创建订单、详情和提交审批三个操作。确认创建不传部门或所有者，编辑和提交传输当前版本。按[手册](../../project/README.md#管理端与-openapi)运行快照比较测试。
 
-### ch44-kp02 · 会话轮换与权限导航
+### 会话轮换与权限导航 {#ch44-kp02}
 
 #### 1. 一句话定义
 
@@ -118,7 +118,7 @@ sequenceDiagram
 
 执行`pnpm --filter @java-for-nestjs/admin-web test`核对并发401、轮换失败和撤销。以录单员进入工作台，确认仅显示订单入口。使用该账号令牌直接请求`GET /api/v1/users`，预期403。在浏览器空置页面超过5分钟，执行一次查询并观察旧访问请求返回401、一次刷新及重试成功。
 
-### ch44-kp03 · 把订单约束接到按钮和错误提示
+### 把订单约束接到按钮和错误提示 {#ch44-kp03}
 
 #### 1. 一句话定义
 

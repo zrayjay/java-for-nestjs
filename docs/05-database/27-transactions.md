@@ -18,7 +18,7 @@ baseline: Java21 / Temurin21与25 / Boot3.5.16 / Prisma7.10.1 / MySQL8.4.7 / Nod
 
 ## 知识点
 
-### ch27-kp01 · 事务边界与ACID保证的范围
+### 事务边界与ACID保证的范围 {#ch27-kp01}
 
 #### 1. 一句话定义
 
@@ -109,7 +109,7 @@ flowchart LR
 
 </details>
 
-### ch27-kp02 · 异常回滚规则与代理自调用
+### 异常回滚规则与代理自调用 {#ch27-kp02}
 
 #### 1. 一句话定义
 
@@ -199,7 +199,7 @@ sequenceDiagram
 
 </details>
 
-### ch27-kp03 · 传播、rollback-only与独立事务
+### 传播、rollback-only与独立事务 {#ch27-kp03}
 
 #### 1. 一句话定义
 
@@ -270,7 +270,7 @@ REQUIRES_NEW不是整个外层事务的savepoint，也不是把inner操作包进
 
 </details>
 
-### ch27-kp04 · 隔离级别与受控的两次读取
+### 隔离级别与受控的两次读取 {#ch27-kp04}
 
 #### 1. 一句话定义
 

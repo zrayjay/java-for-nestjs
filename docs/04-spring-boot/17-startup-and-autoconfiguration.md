@@ -14,7 +14,7 @@ baseline: Java21 / Spring Boot3.5.16 / Nest11.2.9 / Node22.20.0
 
 ## 知识点
 
-### ch17-kp01 · 从main到可接受请求
+### 从main到可接受请求 {#ch17-kp01}
 
 #### 1. 一句话定义
 
@@ -68,7 +68,7 @@ HTTP服务使用Web启动，批处理与CLI可用非Web上下文复用DI。启�
 
 按HTTP实验README构建并运行`pnpm http:verify`。预期两个独立进程都通过契约。运行BootModelTest观察非Web上下文仍产生ready并可显式关闭。故意把Java端口设成被占用端口，要求能指出服务未成功监听，而不是根据main存在判断成功；该手动占用练习不计入已有自动测试证据。
 
-### ch17-kp02 · Starter、自动配置与条件退让
+### Starter、自动配置与条件退让 {#ch17-kp02}
 
 #### 1. 一句话定义
 

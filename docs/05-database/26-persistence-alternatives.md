@@ -14,7 +14,7 @@ baseline: Java21 / Spring Boot3.5.16 / Hibernate6.6.53.Final / jOOQ3.19.35 / Pri
 
 ## 知识点
 
-### ch26-kp01 · JPA规范、Hibernate实现与持久化上下文
+### JPA规范、Hibernate实现与持久化上下文 {#ch26-kp01}
 
 #### 1. 一句话定义
 
@@ -62,7 +62,7 @@ Entity不是请求DTO，也不应任意暴露懒加载关联。一级上下文�
 
 运行JPA真实数据库用例，要求persist获得主键且find返回相同对象。解释这个同一性为什么只在当前上下文成立。把Hibernate validate关掉不能作为Schema不匹配的修复方案，必须先明确迁移与映射的责任。
 
-### ch26-kp02 · 脏检查、detach与merge
+### 脏检查、detach与merge {#ch26-kp02}
 
 #### 1. 一句话定义
 
@@ -110,7 +110,7 @@ merge不是“任何旧对象都可以无条件覆盖最新状态”的安全策
 
 四个断言必须成立：托管修改写回；分离修改不写回；merge返回不同实例且受管；合并提交后数据库更新。与Prisma显式update对照，说明为何不能只替换方法名来迁移ORM工作单元。
 
-### ch26-kp03 · jOOQ生成Schema类型与SQL表达
+### jOOQ生成Schema类型与SQL表达 {#ch26-kp03}
 
 #### 1. 一句话定义
 

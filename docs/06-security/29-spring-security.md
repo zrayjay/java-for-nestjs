@@ -14,7 +14,7 @@ baseline: Java21 / Boot3.5.16 / Spring Security6.5.11 / Nest11.2.9 / jose6.2.17
 
 ## 知识点
 
-### ch29-kp01 · 安全链先于业务入口
+### 安全链先于业务入口 {#ch29-kp01}
 
 #### 1. 一句话定义
 
@@ -79,7 +79,7 @@ node --test examples/nestjs-security-reference/dist/security.test.js
 
 Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
 
-### ch29-kp02 · Authentication、Principal与上下文
+### Authentication、Principal与上下文 {#ch29-kp02}
 
 #### 1. 一句话定义
 
@@ -144,7 +144,7 @@ node --test examples/nestjs-security-reference/dist/security.test.js
 
 Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
 
-### ch29-kp03 · 认证、权限与资源范围的不同拒绝
+### 认证、权限与资源范围的不同拒绝 {#ch29-kp03}
 
 #### 1. 一句话定义
 

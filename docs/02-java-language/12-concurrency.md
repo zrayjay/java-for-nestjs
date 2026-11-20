@@ -13,7 +13,7 @@ baseline: Java21 / JDK21与25 / Node22.20.0
 
 ## 知识点
 
-### ch12-kp01 · Thread、虚拟线程与Promise
+### Thread、虚拟线程与Promise {#ch12-kp01}
 
 #### 1. 一句话定义
 
@@ -80,7 +80,7 @@ sequenceDiagram
 
 </details>
 
-### ch12-kp02 · Executor所有权与Future失败
+### Executor所有权与Future失败 {#ch12-kp02}
 
 #### 1. 一句话定义
 
@@ -132,7 +132,7 @@ Future失败不表示其副作用自动回滚；关闭executor也不是任务事
 
 </details>
 
-### ch12-kp03 · 超时、取消与共享状态
+### 超时、取消与共享状态 {#ch12-kp03}
 
 #### 1. 一句话定义
 

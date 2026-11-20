@@ -14,7 +14,7 @@ baseline: Java 21 / Spring Boot 3.5.16 / MySQL 8.4.7 / Redis 7.4.6 / Node 22.20.
 
 ## 知识点
 
-### ch45-kp01 · 同源交付与就绪门禁
+### 同源交付与就绪门禁 {#ch45-kp01}
 
 #### 1. 一句话定义
 
@@ -64,7 +64,7 @@ flowchart LR
 
 按[交付手册](../../project/deploy/compose/CAPSTONE.md)使用新的 Compose 项目构建、启动并等待就绪。运行[部署探针](../../project/deploy/compose/verify-capstone.mjs)，要求健康、HTML、JS、CSS、匿名 401、登录、菜单和退出通过。记录 OCI 镜像修订标签和实际运行的镜像 ID。
 
-### ch45-kp02 · 逻辑快照与隔离恢复
+### 逻辑快照与隔离恢复 {#ch45-kp02}
 
 #### 1. 一句话定义
 
@@ -113,7 +113,7 @@ flowchart LR
 
 按[恢复手册](../../project/deploy/compose/RECOVERY.md)用一次性账号创建一张已提交订单，导出备份并恢复到新项目。验收要求原账号登录成功，订单金额、状态、版本及两条历史一致，审计可按请求 ID 核对。记录导入时长与恢复步骤，尝试损坏校验或非空目标负例。
 
-### ch45-kp03 · 指标、关联日志与告警闭环
+### 指标、关联日志与告警闭环 {#ch45-kp03}
 
 #### 1. 一句话定义
 

@@ -14,7 +14,7 @@ baseline: Java21 / Boot3.5.16 / MinIO SDK8.6.0 / S3 SDK3.1166.0 / pngjs7.0.0
 
 ## 知识点
 
-### ch33-kp01 · 受限文件输入与解码预算
+### 受限文件输入与解码预算 {#ch33-kp01}
 
 #### 1. 一句话定义
 
@@ -88,7 +88,7 @@ pnpm security:build
 
 Node对应场景在完整`files.spec.js`中，需要章首README的一次性对象服务。验证合法像素、恶意名字/MIME/签名/尺寸、重复头、交错、小尺寸压缩膨胀及tEXt去除；不得以“抛了任意异常”代替预期拒绝原因。
 
-### ch33-kp02 · 私有对象存储与资源归属
+### 私有对象存储与资源归属 {#ch33-kp02}
 
 #### 1. 一句话定义
 
@@ -148,7 +148,7 @@ node --test examples/nestjs-security-reference/dist/files.spec.js
 
 验证实际SDK往返、合法owner下载、另一用户/匿名拒绝、匿名对象HTTP403及公有策略构造拒绝。这里没有证明Multipart请求经过认证链，需在后续整合重新验证。
 
-### ch33-kp03 · 扫描状态、审计脱敏与补偿
+### 扫描状态、审计脱敏与补偿 {#ch33-kp03}
 
 #### 1. 一句话定义
 
@@ -219,7 +219,7 @@ node --test examples/nestjs-security-reference/dist/files.spec.js
 
 检查感染/扫描异常未留下新对象、审计失败成功删除；当前测试尚未覆盖真实扫描引擎、删除失败后的自动恢复或进程崩溃。
 
-### ch33-kp04 · OpenAPI描述与真实运行契约
+### OpenAPI描述与真实运行契约 {#ch33-kp04}
 
 #### 1. 一句话定义
 

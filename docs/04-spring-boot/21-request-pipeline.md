@@ -14,7 +14,7 @@ baseline: Java21 / Spring Boot3.5.16 / Nest11.2.9 / Node22.20.0
 
 ## 知识点
 
-### ch21-kp01 · Servlet与Filter的外层边界
+### Servlet与Filter的外层边界 {#ch21-kp01}
 
 #### 1. 一句话定义
 
@@ -61,7 +61,7 @@ OncePerRequestFilter的名字不能被理解为任意异步/错误dispatch都绝
 
 运行WebApiTest的链路测试，观察合法GET的第一项filter.before与最后一项filter.after。向tasks发送空对象，确认未进入Controller仍有外层结束记录。不能据这个同步测试声称流式响应或异步dispatch已验证。
 
-### ch21-kp02 · MVC Interceptor与参数校验的位置
+### MVC Interceptor与参数校验的位置 {#ch21-kp02}
 
 #### 1. 一句话定义
 
@@ -110,7 +110,7 @@ Handler相关审计、方法元数据检查可放MVC Interceptor。返回对象�
 
 合法GET /tasks在Java应得到8项事件，在Nest得到6项事件，具体列表由测试断言。Java非法输入测试要求没有controller但包含interceptor.after。增加Nest非法输入轨迹负例时同样应从真实响应读取请求ID；不复用另一个请求的轨迹。
 
-### ch21-kp03 · Security Filter Chain与权限边界
+### Security Filter Chain与权限边界 {#ch21-kp03}
 
 #### 1. 一句话定义
 

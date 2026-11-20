@@ -13,7 +13,7 @@ baseline: Java21 / TS5.9.3 strict / Node22.20.0
 
 ## 知识点
 
-### ch06-kp01 · 基本类型与数值范围
+### 基本类型与数值范围 {#ch06-kp01}
 
 #### 1. 一句话定义
 
@@ -64,7 +64,7 @@ TS[language-lab.test.ts](../../examples/nestjs-reference/src/language/language-l
 
 </details>
 
-### ch06-kp02 · 装箱、拆箱与空值
+### 装箱、拆箱与空值 {#ch06-kp02}
 
 #### 1. 一句话定义
 
@@ -115,7 +115,7 @@ Integer引用==比较身份，不应因小整数缓存偶然相同推导通用�
 
 </details>
 
-### ch06-kp03 · var推断与静态类型
+### var推断与静态类型 {#ch06-kp03}
 
 #### 1. 一句话定义
 

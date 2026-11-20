@@ -14,7 +14,7 @@ baseline: Java21 / Boot3.5.16 / Security6.5.11选定Nimbus9.37.4 / Nest11.2.9 / 
 
 ## 知识点
 
-### ch30-kp01 · 验签、接收方和时间合同
+### 验签、接收方和时间合同 {#ch30-kp01}
 
 #### 1. 一句话定义
 
@@ -79,7 +79,7 @@ node --test examples/nestjs-security-reference/dist/security.test.js
 
 Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
 
-### ch30-kp02 · Refresh轮换、重放与凭据版本
+### Refresh轮换、重放与凭据版本 {#ch30-kp02}
 
 #### 1. 一句话定义
 
@@ -146,7 +146,7 @@ node --test examples/nestjs-security-reference/dist/security.test.js
 
 Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
 
-### ch30-kp03 · 会话状态、浏览器存储与CSRF取舍
+### 会话状态、浏览器存储与CSRF取舍 {#ch30-kp03}
 
 #### 1. 一句话定义
 

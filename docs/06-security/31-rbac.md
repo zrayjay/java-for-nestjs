@@ -14,7 +14,7 @@ baseline: Java21 / Boot3.5.16 / MySQL8.4.7 / Nest11.2.9 / Prisma7.10.1
 
 ## 知识点
 
-### ch31-kp01 · 用户、角色与权限图
+### 用户、角色与权限图 {#ch31-kp01}
 
 #### 1. 一句话定义
 
@@ -80,7 +80,7 @@ node --test examples/nestjs-security-reference/dist/security.test.js
 
 Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
 
-### ch31-kp02 · 按钮、接口与能力元数据
+### 按钮、接口与能力元数据 {#ch31-kp02}
 
 #### 1. 一句话定义
 
@@ -146,7 +146,7 @@ node --test examples/nestjs-security-reference/dist/security.test.js
 
 Java命令定位本点关键场景，Node命令执行完整16场景以包含对应正反例；核对测试断言与上面的验收预期。测试通过不能代替思考题解释。
 
-### ch31-kp03 · 部门读、本人写与条件SQL
+### 部门读、本人写与条件SQL {#ch31-kp03}
 
 #### 1. 一句话定义
 

@@ -14,7 +14,7 @@ baseline: Java21 / Spring Boot3.5.16 / Nest11.2.9 / Node22.20.0
 
 ## 知识点
 
-### ch23-kp01 · 类型化配置与启动失败
+### 类型化配置与启动失败 {#ch23-kp01}
 
 #### 1. 一句话定义
 
@@ -61,7 +61,7 @@ Java绑定失败通过真实上下文验证；Nest当前自动测试直接验证
 
 运行BootModelTest的非法配置用例及Nest配置测试。Java要求真实NotBlank绑定错误，Nest要求空白配置抛出指定错误。手动以空白环境启动Nest观察容器失败可作为新增练习，不提前计作现有自动证据。
 
-### ch23-kp02 · Profile与属性源覆盖
+### Profile与属性源覆盖 {#ch23-kp02}
 
 #### 1. 一句话定义
 
@@ -108,7 +108,7 @@ Profile适合成组启用开发工具、测试替身和环境相关配置。业�
 
 WebApiTest中/lab-info必须返回test-profile。手动启动生产JAR加`--lab.label=cli`后应看到cli；这是可追加的独立练习，不把未执行命令记录为通过。解释为什么Nest测试同名字符串不是Boot Profile兼容性证明。
 
-### ch23-kp03 · 初始化、关闭与Actuator
+### 初始化、关闭与Actuator {#ch23-kp03}
 
 #### 1. 一句话定义
 

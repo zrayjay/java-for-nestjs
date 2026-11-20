@@ -13,7 +13,7 @@ baseline: Java21 / TS5.9.3 / Node22.20.0
 
 ## 知识点
 
-### ch09-kp01 · List与集合快照
+### List与集合快照 {#ch09-kp01}
 
 #### 1. 一句话定义
 
@@ -64,7 +64,7 @@ UnsupportedOperationException先查返回容器契约，别盲目改成可变集
 
 </details>
 
-### ch09-kp02 · Set、Map与相等性契约
+### Set、Map与相等性契约 {#ch09-kp02}
 
 #### 1. 一句话定义
 
@@ -123,7 +123,7 @@ Map查不到先检查比较规则、hashCode及键是否变过；不要仅打印
 
 </details>
 
-### ch09-kp03 · HashMap选型、顺序与并发边界
+### HashMap选型、顺序与并发边界 {#ch09-kp03}
 
 #### 1. 一句话定义
 

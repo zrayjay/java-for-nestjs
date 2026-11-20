@@ -95,11 +95,11 @@ export function chapterStructure(source, chapter) {
   for (let i = 0; i < points.length; i++) {
     if (points[i].level !== 3) continue
     const pointId = points[i].title.match(
-      new RegExp(`^(ch${chapter.id}-kp[0-9]{2}) · .+`),
+      new RegExp(`^.{1,}? \\{#(ch${chapter.id}-kp[0-9]{2})\\}$`),
     )?.[1]
     assert(
       pointId,
-      `${chapter.id}: 知识点缺少稳定ID（ch${chapter.id}-kpNN · 标题）`,
+      `${chapter.id}: 知识点缺少稳定ID（### 标题 {#ch${chapter.id}-kpNN}）`,
     )
     assert(!pointIds.has(pointId), `${chapter.id}: 知识点ID重复 ${pointId}`)
     pointIds.add(pointId)

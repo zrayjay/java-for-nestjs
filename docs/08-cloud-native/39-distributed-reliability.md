@@ -16,7 +16,7 @@ baseline: Java21/25 / MySQL8.4.7 / RabbitMQ4.2.2 / amqplib0.10.9
 
 ## 知识点
 
-### ch39-kp01 · 事务Outbox与最终一致性
+### 事务Outbox与最终一致性 {#ch39-kp01}
 
 #### 1. 一句话定义
 
@@ -101,7 +101,7 @@ node --test --test-name-pattern='rollback together|committed business|real confi
 
 回滚时业务/pending均0；实际mandatory return后业务1/pending1；恢复后pending0/效果1。confirm后注入mark前异常，第一次APPLIED、恢复重发DUPLICATE、账本和效果仍1。没有模拟代理日志代替实际协议。
 
-### ch39-kp02 · 数据库时钟租约与标记保护
+### 数据库时钟租约与标记保护 {#ch39-kp02}
 
 #### 1. 一句话定义
 
@@ -180,7 +180,7 @@ node --test --test-name-pattern='leases exclude concurrent' examples/nestjs-mess
 
 有效期内第二次claim为空；过期接替后旧token标记false、新token标记true；两次真实发送导致APPLIED/DUPLICATE且效果1。并发两次claim恰好一个成功，不能只看不同token值。
 
-### ch39-kp03 · 超时是观察期限
+### 超时是观察期限 {#ch39-kp03}
 
 #### 1. 一句话定义
 
@@ -247,7 +247,7 @@ node --test examples/nestjs-message-reference/dist/deadline.test.js
 
 必须同时看到本地超时被断言、效果先0后1和原操作完成，完整命令退出0；这不替代真实消息恢复实验。
 
-### ch39-kp04 · 实例熔断与恢复探测
+### 实例熔断与恢复探测 {#ch39-kp04}
 
 #### 1. 一句话定义
 

@@ -13,7 +13,7 @@ baseline: Maven3.9.11 / Java21 / Boot3.5.16
 
 ## 知识点
 
-### ch14-kp01 · 生命周期阶段与插件goal
+### 生命周期阶段与插件goal {#ch14-kp01}
 
 #### 1. 一句话定义
 
@@ -72,7 +72,7 @@ goal没执行，查绑定phase、模块选择、profile及skip参数；执行了
 
 </details>
 
-### ch14-kp02 · 继承、聚合与有效POM
+### 继承、聚合与有效POM {#ch14-kp02}
 
 #### 1. 一句话定义
 
@@ -123,7 +123,7 @@ TS根workspace配置选择Nest项目，tsconfig另行定义编译规则。Java j
 
 </details>
 
-### ch14-kp03 · BOM、管理条目与冲突选择
+### BOM、管理条目与冲突选择 {#ch14-kp03}
 
 #### 1. 一句话定义
 

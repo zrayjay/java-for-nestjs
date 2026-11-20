@@ -14,7 +14,7 @@ baseline: Java21 / JUnit5.12.2 / Mockito5.17.0 / AssertJ3.27.7 / Vitest5.1.0
 
 ## 知识点
 
-### ch34-kp01 · 测试生命周期与每例隔离
+### 测试生命周期与每例隔离 {#ch34-kp01}
 
 #### 1. 一句话定义
 
@@ -82,7 +82,7 @@ pnpm --filter @java-for-nestjs/nestjs-security-reference exec vitest run src/fil
 
 不启动外部服务，Java4项、Vitest2项应成功；再次以新进程运行同一命令仍成功，不能靠上一轮fixture。跨平台重复CI结果以章末进度为准。
 
-### ch34-kp02 · 替换外部协作者并验证关键交互
+### 替换外部协作者并验证关键交互 {#ch34-kp02}
 
 #### 1. 一句话定义
 
@@ -147,7 +147,7 @@ node --test --test-name-pattern='foreign owner' examples/nestjs-security-referen
 
 必须同时断言预期拒绝与读取次数0；抛了任意异常或网络恰好坏掉不算通过。
 
-### ch34-kp03 · 精确异常断言与双重失败
+### 精确异常断言与双重失败 {#ch34-kp03}
 
 #### 1. 一句话定义
 

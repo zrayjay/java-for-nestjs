@@ -14,7 +14,7 @@ baseline: Java21 / Boot3.5.16 / Redis7.4.6 / ioredis5.8.2
 
 ## 知识点
 
-### ch32-kp01 · TTL、空值缓存与键的范围
+### TTL、空值缓存与键的范围 {#ch32-kp01}
 
 #### 1. 一句话定义
 
@@ -76,7 +76,7 @@ node --test --test-name-pattern='positive and null' examples/nestjs-security-ref
 
 两端检查加载次数、不同scope隔离、实际PTTL及真实过期后重载；不要只看Redis中曾经出现一个键。
 
-### ch32-kp02 · 热键击穿、并发合并与错峰
+### 热键击穿、并发合并与错峰 {#ch32-kp02}
 
 #### 1. 一句话定义
 
@@ -135,7 +135,7 @@ node --test --test-name-pattern='concurrent local misses' examples/nestjs-securi
 
 确认20个结果一致且loads=1，失败后下一次恢复；这是本实例证据，不是分布式协调证明。
 
-### ch32-kp03 · 写后失效、旧回填与一致性边界
+### 写后失效、旧回填与一致性边界 {#ch32-kp03}
 
 #### 1. 一句话定义
 

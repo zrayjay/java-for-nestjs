@@ -14,7 +14,7 @@ baseline: Java21 / Node22.20.0 / TS5.9.3
 
 ## 知识点
 
-### ch04-kp01 · javac与java各自负责什么
+### javac与java各自负责什么 {#ch04-kp01}
 
 #### 1. 一句话定义
 
@@ -78,7 +78,7 @@ CI从干净源码产生可追溯产物，部署运行已验证的同一产物。
 
 </details>
 
-### ch04-kp02 · JAR与入口清单
+### JAR与入口清单 {#ch04-kp02}
 
 #### 1. 一句话定义
 
@@ -132,7 +132,7 @@ JAR不是容器，不包含操作系统或必然包含JVM；普通库JAR、shade
 
 </details>
 
-### ch04-kp03 · Classpath、包名与Module Path
+### Classpath、包名与Module Path {#ch04-kp03}
 
 #### 1. 一句话定义
 

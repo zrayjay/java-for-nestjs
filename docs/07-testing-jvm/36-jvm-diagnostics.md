@@ -14,7 +14,7 @@ baseline: Java21/25 / Node22.20.0 / JFR与JDK原生工具
 
 ## 知识点
 
-### ch36-kp01 · JFR与CPU采样归属
+### JFR与CPU采样归属 {#ch36-kp01}
 
 #### 1. 一句话定义
 
@@ -76,7 +76,7 @@ node scripts/measure-node-diagnostics.mjs target/node-cpu-run1
 
 本机增强轮次Java ExecutionSample1058，Node3696总样本中3330归属cpuWork栈；这些是具体观察，不是应硬编码的下次计数。脚本要求实际事件/归属大于0，无法采集时必须失败。
 
-### ch36-kp02 · GC、堆转储与保留假设
+### GC、堆转储与保留假设 {#ch36-kp02}
 
 #### 1. 一句话定义
 
@@ -151,7 +151,7 @@ node scripts/measure-node-diagnostics.mjs target/node-heap-run1
 
 核对真实文件、直方图、非空分配样本及GC事件。MAT根链分析是未自动执行的扩展验收，完成后应另记工具/路径/结果；基础通过不依赖虚构扩展结果。
 
-### ch36-kp03 · 线程状态与锁竞争
+### 线程状态与锁竞争 {#ch36-kp03}
 
 #### 1. 一句话定义
 
@@ -223,7 +223,7 @@ sequenceDiagram
 
 确认自动BLOCKED断言与JFR竞争事件，再人工在threads.txt配对锁地址/持有栈。若只见线程名字而无状态与锁证据，不能算通过。
 
-### ch36-kp04 · 受控负载、延迟分位与证据边界
+### 受控负载、延迟分位与证据边界 {#ch36-kp04}
 
 #### 1. 一句话定义
 

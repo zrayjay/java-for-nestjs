@@ -14,7 +14,7 @@ baseline: Java21 / Boot3.5.16 / Testcontainers1.21.4 / Nest11.2.9
 
 ## 知识点
 
-### ch35-kp01 · MockMvc与真实HTTP的不同边界
+### MockMvc与真实HTTP的不同边界 {#ch35-kp01}
 
 #### 1. 一句话定义
 
@@ -94,7 +94,7 @@ pnpm examples:test
 
 新增MockMvc正例及3种负例通过、无效请求不新增行；真实HTTPCRUD和错误响应仍要通过。若使用已记录Windows套接字修正，说明进程参数，不将其当所有机器的通用修复。
 
-### ch35-kp02 · Testcontainers、动态连接与数据隔离
+### Testcontainers、动态连接与数据隔离 {#ch35-kp02}
 
 #### 1. 一句话定义
 
@@ -164,7 +164,7 @@ Redis同样取getHost/getMappedPort，不硬编码宿主机端口。Flyway迁移
 
 4项、0失败/错误/跳过，并真实启动MySQL/Redis与Flyway。Boot4另有对照POM，只证明小探针，不表示课程主线切换。当前阶段已触发新CI，结果单列进度。
 
-### ch35-kp03 · 同题契约与打包进程验证
+### 同题契约与打包进程验证 {#ch35-kp03}
 
 #### 1. 一句话定义
 

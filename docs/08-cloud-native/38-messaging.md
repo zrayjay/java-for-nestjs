@@ -14,7 +14,7 @@ baseline: RabbitMQ4.2.2 / AMQP client5.25.0 / amqplib0.10.9 / MySQL8.4.7
 
 ## 知识点
 
-### ch38-kp01 · 发布确认与消费者确认
+### 发布确认与消费者确认 {#ch38-kp01}
 
 #### 1. 一句话定义
 
@@ -100,7 +100,7 @@ node --test --test-name-pattern='publisher ACK' examples/nestjs-message-referenc
 
 应同时断言未路由发布的confirm/return和正常消费的真实SQL效果，不仅看日志。
 
-### ch38-kp02 · 提交后ACK与事务幂等
+### 提交后ACK与事务幂等 {#ch38-kp02}
 
 #### 1. 一句话定义
 
@@ -183,7 +183,7 @@ node --test --test-name-pattern='commit then close|concurrent duplicate' example
 
 验收必须含真实channel关闭后的redelivered=true、DUPLICATE、效果1/账本1，并发两条消息结果为一个APPLIED和一个DUPLICATE。
 
-### ch38-kp03 · 有界重试与原生死信
+### 有界重试与原生死信 {#ch38-kp03}
 
 #### 1. 一句话定义
 

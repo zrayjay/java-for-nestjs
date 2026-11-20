@@ -14,7 +14,7 @@ baseline: Java21 / Spring Boot3.5.16 / MySQL8.4.7 / Prisma7.10.1
 
 ## 知识点
 
-### ch24-kp01 · JDBC Driver与DataSource
+### JDBC Driver与DataSource {#ch24-kp01}
 
 #### 1. 一句话定义
 
@@ -68,7 +68,7 @@ No suitable driver先查依赖和URL协议；拒绝连接查服务/端口；Acce
 
 运行DatabaseUrlTest，要求生产库、远程地址、dbname覆盖和无效端口在连接前失败。然后在专用MySQL按README执行完整verify。能通过URL守卫不等于SQL测试已跑；需要真实HTTP写入后从MySQL读回的独立断言。
 
-### ch24-kp02 · Hikari连接池与背压
+### Hikari连接池与背压 {#ch24-kp02}
 
 #### 1. 一句话定义
 
@@ -116,7 +116,7 @@ max2是故障演示参数，不是生产推荐值。增大池不一定提高吞�
 
 运行耗尽测试，要求借出2条时active=2，第三借用按配置失败，释放后active=0并可再执行SELECT1。测试不对某个机器的毫秒耗时下性能结论，也不使用sleep猜测数据库并发状态。
 
-### ch24-kp03 · 逻辑连接归还与资源所有权
+### 逻辑连接归还与资源所有权 {#ch24-kp03}
 
 #### 1. 一句话定义
 

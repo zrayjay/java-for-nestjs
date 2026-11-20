@@ -13,7 +13,7 @@ baseline: Java21 / TS5.9.3 / Node22.20.0
 
 ## 知识点
 
-### ch07-kp01 · 封装与名义接口
+### 封装与名义接口 {#ch07-kp01}
 
 #### 1. 一句话定义
 
@@ -64,7 +64,7 @@ TS[NameOf](../../examples/nestjs-reference/src/language/language-lab.ts)接受�
 
 </details>
 
-### ch07-kp02 · 继承、抽象类与多态
+### 继承、抽象类与多态 {#ch07-kp02}
 
 #### 1. 一句话定义
 
@@ -122,7 +122,7 @@ flowchart LR
 
 </details>
 
-### ch07-kp03 · record的值语义与浅不可变
+### record的值语义与浅不可变 {#ch07-kp03}
 
 #### 1. 一句话定义
 
@@ -173,7 +173,7 @@ record内部集合变了，先查构造时是否复制、元素是否仍可变�
 
 </details>
 
-### ch07-kp04 · sealed封闭层次与穷尽分支
+### sealed封闭层次与穷尽分支 {#ch07-kp04}
 
 #### 1. 一句话定义
 

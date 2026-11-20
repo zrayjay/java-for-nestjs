@@ -18,7 +18,7 @@ baseline: Java21 / JDK21与25 / TypeScript5.9.3 / Node22.20.0
 
 ## 知识点
 
-### ch08-kp01 · 擦除不等于所有元数据消失
+### 擦除不等于所有元数据消失 {#ch08-kp01}
 
 #### 1. 一句话定义
 
@@ -88,7 +88,7 @@ public static <T> T identity(T value) {
 
 </details>
 
-### ch08-kp02 · 上界、交集与基本类型限制
+### 上界、交集与基本类型限制 {#ch08-kp02}
 
 #### 1. 一句话定义
 
@@ -166,7 +166,7 @@ Java测试验证整数2/4得到4；TS验证两个带value对象返回value4的�
 
 </details>
 
-### ch08-kp03 · 不变性、通配符与PECS
+### 不变性、通配符与PECS {#ch08-kp03}
 
 #### 1. 一句话定义
 
@@ -248,7 +248,7 @@ flowchart LR
 
 </details>
 
-### ch08-kp04 · raw type、堆污染与运行时输入
+### raw type、堆污染与运行时输入 {#ch08-kp04}
 
 #### 1. 一句话定义
 

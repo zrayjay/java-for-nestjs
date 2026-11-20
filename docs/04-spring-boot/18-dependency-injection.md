@@ -18,7 +18,7 @@ baseline: Java21 / Spring Boot3.5.16管理的Spring / Nest11.2.9 / Node22.20.0
 
 ## 知识点
 
-### ch18-kp01 · 容器、定义与模块可见性
+### 容器、定义与模块可见性 {#ch18-kp01}
 
 #### 1. 一句话定义
 
@@ -104,7 +104,7 @@ flowchart LR
 
 </details>
 
-### ch18-kp02 · 构造器依赖与运行时令牌
+### 构造器依赖与运行时令牌 {#ch18-kp02}
 
 #### 1. 一句话定义
 
@@ -178,7 +178,7 @@ Java配置通过@Bean方法参数取得依赖，再显式传给构造器；没�
 
 </details>
 
-### ch18-kp03 · singleton、prototype与Nest作用域
+### singleton、prototype与Nest作用域 {#ch18-kp03}
 
 #### 1. 一句话定义
 
@@ -248,7 +248,7 @@ flowchart LR
 
 </details>
 
-### ch18-kp04 · 生命周期、后处理与代理
+### 生命周期、后处理与代理 {#ch18-kp04}
 
 #### 1. 一句话定义
 

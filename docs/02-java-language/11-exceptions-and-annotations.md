@@ -13,7 +13,7 @@ baseline: Java21 / TS5.9.3 legacy decorators / Node22.20.0
 
 ## 知识点
 
-### ch11-kp01 · checked、unchecked与因果链
+### checked、unchecked与因果链 {#ch11-kp01}
 
 #### 1. 一句话定义
 
@@ -64,7 +64,7 @@ catch Exception不等于恢复成功；捕获InterruptedException后应按上下
 
 </details>
 
-### ch11-kp02 · try-with-resources与suppressed异常
+### try-with-resources与suppressed异常 {#ch11-kp02}
 
 #### 1. 一句话定义
 
@@ -123,7 +123,7 @@ cause回答“由什么引起”，suppressed可回答“处理原异常时还�
 
 </details>
 
-### ch11-kp03 · 注解、保留策略与反射读取
+### 注解、保留策略与反射读取 {#ch11-kp03}
 
 #### 1. 一句话定义
 

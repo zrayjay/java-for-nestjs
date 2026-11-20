@@ -14,7 +14,7 @@ baseline: Java21 / Spring Boot3.5.16 / MyBatis-Plus3.5.18 / Prisma7.10.1
 
 ## 知识点
 
-### ch25-kp01 · Mapper、映射与XML SQL
+### Mapper、映射与XML SQL {#ch25-kp01}
 
 #### 1. 一句话定义
 
@@ -61,7 +61,7 @@ Invalid bound statement检查XML路径、namespace、id与资源打包。字段�
 
 执行真实HTTP创建任务，从JDBC直接读title，再HTTP替换/删除并确认数据库实际变化。移走XML会导致运行失败而非编译失败，说明为什么Maven compile不足以验收Mapper。故障练习后恢复资源再verify。
 
-### ch25-kp02 · Wrapper与分页不是SQL理解的替代品
+### Wrapper与分页不是SQL理解的替代品 {#ch25-kp02}
 
 #### 1. 一句话定义
 
@@ -108,7 +108,7 @@ Lambda字段引用不是任意SQL类型安全证明；apply/last等原始SQL扩�
 
 3行数据第二页仅Gamma、total为3、攻击字符串结果为空且表仍3行。说明这些断言分别验证分页语义与参数绑定。不要把它们当做全表百万行性能验收。
 
-### ch25-kp03 · 用实际SQL计数识别N+1
+### 用实际SQL计数识别N+1 {#ch25-kp03}
 
 #### 1. 一句话定义
 

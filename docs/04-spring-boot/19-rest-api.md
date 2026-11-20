@@ -14,7 +14,7 @@ baseline: Java21 / Spring Boot3.5.16 / Nest11.2.9 / Node22.20.0
 
 ## 知识点
 
-### ch19-kp01 · 路由与Controller边界
+### 路由与Controller边界 {#ch19-kp01}
 
 #### 1. 一句话定义
 
@@ -72,7 +72,7 @@ RestController是Controller加ResponseBody语义，不能因为返回String就�
 
 运行共同契约验证，检查POST后GET、列表、替换和删除都实际经过HTTP。给Service添加一个只用于学习的断点，确认路由命中而非修改客户端“模拟返回”。能指出Controller、Service、Repository分别改变哪类规则；完成后恢复任何调试改动。
 
-### ch19-kp02 · 路径、查询与请求体的显式契约
+### 路径、查询与请求体的显式契约 {#ch19-kp02}
 
 #### 1. 一句话定义
 
@@ -128,7 +128,7 @@ JSON字节 → JSON解析 → DTO转换 → 字段/嵌套校验 → 服务调用
 
 确认`/tasks/0`、`/tasks/01`、`/tasks/2147483648`以及`limit=101`、`limit=1e1`返回400。确认默认limit请求可成功。把一个数字字段写成字符串，两端都应拒绝；修正客户端而不是删掉服务端规则。
 
-### ch19-kp03 · 状态码、Location与错误表示
+### 状态码、Location与错误表示 {#ch19-kp03}
 
 #### 1. 一句话定义
 

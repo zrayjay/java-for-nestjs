@@ -14,7 +14,7 @@ baseline: Java21 / Spring Boot3.5.16 / Nest11.2.9 / Node22.20.0
 
 ## 知识点
 
-### ch22-kp01 · JDK代理与CGLIB子类代理
+### JDK代理与CGLIB子类代理 {#ch22-kp01}
 
 #### 1. 一句话定义
 
@@ -60,7 +60,7 @@ final类不能被CGLIB继承，本实验有真实失败断言；final方法也�
 
 运行ProxyModelTest，两种代理外部execute都应记录advice后work，final类子类代理必须失败。解释为什么JDK代理不是Worker实例，而CGLIB代理是。测试中的具体异常类型是框架配置错误，不是业务异常映射。
 
-### ch22-kp02 · 目标自调用绕过Advice
+### 目标自调用绕过Advice {#ch22-kp02}
 
 #### 1. 一句话定义
 
@@ -113,7 +113,7 @@ advice:execute, work, advice:self, work
 
 测试中若把预期改成两次advice:execute，必须失败。解释为何self本身有Advice而内部execute没有。进一步按第27章运行真实SQL事务矩阵，再讨论事务结论，不能据本章列表事件声称数据库回滚已验证。
 
-### ch22-kp03 · Advice、ControllerAdvice与ExceptionFilter
+### Advice、ControllerAdvice与ExceptionFilter {#ch22-kp03}
 
 #### 1. 一句话定义
 
