@@ -49,6 +49,7 @@
 | P6-03-C | 服务恢复后读取 | Codex，本会话离线实施 | codex/p6-03-c-order-workspace | 实现in_review，面板未同步 | [订单联调](docs/progress/P6-03-C.md)、[独立复核](docs/reviews/P6-03-C.md) | 审批、版本冲突、跨部门拒绝与自然过期续期通过 |
 | P6-04-A | 服务恢复后读取 | Codex，本会话离线实施 | codex/p6-04-a-compose | 实现in_review，面板未同步 | [Compose 交付](docs/progress/P6-04-A.md)、[CI](https://github.com/zrayjay/java-for-nestjs/actions/runs/44698343432) | 空库迁移、就绪探测、同源前后端及独立复核通过 |
 | P6-04-B | 服务恢复后读取 | Codex，本会话离线实施 | codex/p6-04-b-recovery | 实现in_review，面板未同步 | [恢复与监控](docs/progress/P6-04-B.md)、[CI](https://github.com/zrayjay/java-for-nestjs/actions/runs/44700169120) | 空库恢复、会话撤销、两类故障告警通过 |
+| P6-04-C | 服务恢复后读取 | Codex，本会话离线实施 | codex/p6-04-c-production-chapter | 实现in_review，面板未同步 | [交付手册与第45章](docs/progress/P6-04-C.md)、[独立复核](docs/reviews/P6-04-C.md) | 独立复跑健康、静态资源、认证及恢复数据探针通过 |
 | 文档预览站 | JAV-56 | Codex，本会话 | main | review | [部署CI通过](https://github.com/zrayjay/java-for-nestjs/actions/runs/42765271826)，提交3f495c0；[线上文档](https://zrayjay.github.io/java-for-nestjs/)首页/目录/图表/部署指南及6项JS/CSS资源HTTP200 | 不等同P7全书发布或Release |
 
 JAV-3至JAV-9已全部按用户指令合并main并标记done，任务分支已删除。2026-11-10用户另行授权公开当前仓库并部署建设中的文档站，以JAV-56跟踪，不提前完成P7-05。其余阶段仍待关卡开放。Java原生Windows Web探针缺口未关闭前，不将G0或完整Java跨平台基线标为通过；本次Windows非Web示例及Node文档站的通过结果单独记录。
