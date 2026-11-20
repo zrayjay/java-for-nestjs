@@ -11,7 +11,7 @@
 | Spring Security | 6.5.11 | Boot 3.5.16 BOM | 初始探针401/200；P4真实JWT/RBAC证据见下文 |
 | 内嵌 Tomcat / Jackson 2 | 10.1.59 / 2.21.7 | 根POM显式覆盖Boot管理版本以修复教学镜像扫描发现 | 同一补丁提交的[安全CI](https://github.com/zrayjay/java-for-nestjs/actions/runs/44028962800)、[Compose CI](https://github.com/zrayjay/java-for-nestjs/actions/runs/44028962878)和[K8s CI](https://github.com/zrayjay/java-for-nestjs/actions/runs/44028962812)通过，交付门禁见[P5-05](../progress/P5-05.md) |
 | Maven | 3.9.11 | 独立固定构建工具；Wrapper由P0-05统一交付 | clean verify含打包 |
-| Gradle对照 | 9.2.1 | 独立任务图/本地缓存小实验，见[ADR-0005](../adr/0005-gradle-comparison-runtime.md) | Windows/Microsoft21加已知临时套接字目录修正后任务/缓存通过；新矩阵步骤待CI |
+| Gradle对照 | 9.2.1 | 独立任务图/本地缓存小实验，见[ADR-0005](../adr/0005-gradle-comparison-runtime.md) | 本机 Windows/Microsoft 21 在套接字目录修正后通过。Windows/Linux 与 Temurin 21/25 四组合执行 Gradle 步骤通过。见 [Foundation 42851054782](https://github.com/zrayjay/java-for-nestjs/actions/runs/42851054782) |
 | MyBatis-Plus | 3.5.18 | mybatis-plus-spring-boot3-starter | MySQL查询、写入与回滚 |
 | springdoc OpenAPI | 2.10.0 | Boot3.5对应2.8~2.10系列 | 生成文档并包含实际路由 |
 | Flyway | 11.20.3 | 显式覆盖Boot默认11.7.2；core与mysql模块同版 | 空库迁移及MySQL8.4集成 |
@@ -55,7 +55,7 @@ P4文件参照（2026-11-16）：Java MinIO SDK8.6.0、显式okhttp-jvm5.1.0，N
 
 P4缓存参照（2026-11-12）：独立cache-lab使用Boot管理的Spring Data Redis，Node ioredis5.8.2，服务镜像redis:7.4.6。[Redis43181272467](https://github.com/zrayjay/java-for-nestjs/actions/runs/43181272467)在Temurin21/25各Java5项及Node5项真实服务通过，包含PTTL/服务器到期、空值、作用域键、本机合并、旧回填竞态及断开客户端。尚未接入实际任务HTTP/事务，未验证Redis服务宕机恢复或分布式协调；[独立审查](../reviews/P4-01-cache.md)已通过，后续TTL抖动补强证据见进度。
 
-P4认证参照（2026-11-12）：Boot3.5.16管理Spring Security6.5.11，其oauth2-jose制品声明选定Nimbus9.37.4（本机实际测试classpath核对），不声称Boot BOM直接管理每个传递依赖。Node jose6.2.17、bcryptjs3.0.3和显式reflect-metadata0.2.2。[Security43170418413](https://github.com/zrayjay/java-for-nestjs/actions/runs/43170418413)在Linux Temurin21/25各完整通过Java19项/Node19项，含V2凭据版本绑定与并发/缺声明负例；新增合法作用域写入对照以其后提交单独记录。Redis/上传与G4尚未据此通过。
+P4认证参照（2026-11-12）：Boot3.5.16管理Spring Security6.5.11，其oauth2-jose制品声明选定Nimbus9.37.4（本机实际测试classpath核对），不声称Boot BOM直接管理每个传递依赖。Node jose6.2.17、bcryptjs3.0.3和显式reflect-metadata0.2.2。[Security43170418413](https://github.com/zrayjay/java-for-nestjs/actions/runs/43170418413)在Linux Temurin21/25各完整通过Java19项/Node19项，含V2凭据版本绑定与并发/缺声明负例；新增合法作用域写入对照以其后提交单独记录。该次运行的范围为认证，Redis 与上传的独立验证后续归入 [G4](../progress/G4.md)。
 
 P3 HTTP参照（2026-11-11）：Nest common/core/platform-express固定11.2.9，Swagger11.4.8，class-validator0.15.1及class-transformer0.5.1，见[ADR-0006](../adr/0006-http-reference-runtime.md)。Windows/Microsoft JDK21的Spring Web新增13项测试通过；Nest真实环回HTTP测试通过；两个独立打包进程的共同HTTP契约通过。它们使用内存仓库，尚不代表数据库、JWT或RBAC验证。
 

@@ -332,12 +332,12 @@ sequenceDiagram
 
 | 知识点 | 运行证据 | 独立审查 |
 |---|---|---|
-| ch18-kp01 | 双端同题装配、Nest缺export及Spring跨容器身份 | 独立评分10，待CI与用户接受 |
-| ch18-kp02 | 构造注入成功、Spring缺依赖刷新失败 | 独立评分10，待CI与用户接受 |
-| ch18-kp03 | prototype/Holder/ObjectProvider及Nest ContextId身份测试 | 独立评分9，待CI与用户接受 |
-| ch18-kp04 | Spring生命周期/真实代理/自调用与Nest单例/request Hook测试 | 独立评分9，待CI与用户接受 |
+| ch18-kp01 | 双端同题装配、Nest缺export及Spring跨容器身份 | 独立评分10 |
+| ch18-kp02 | 构造注入成功、Spring缺依赖刷新失败 | 独立评分10 |
+| ch18-kp03 | prototype/Holder/ObjectProvider及Nest ContextId身份测试 | 独立评分9 |
+| ch18-kp04 | Spring生命周期/真实代理/自调用与Nest单例/request Hook测试 | 独立评分9 |
 
-版本、命令、实际结果及作者自检见[P1-03验证记录](../progress/P1-03.md)，独立评分见[审查记录](../reviews/P1-03.md)。当前in_review，不计完成，不把测试小容器通过扩写成完整Web/数据库兼容或G1验收。
+实验版本、命令和结果见 [P1-03](../progress/P1-03.md)，评分见[独立审查](../reviews/P1-03.md)。[Foundation CI](https://github.com/zrayjay/java-for-nestjs/actions/runs/42775487407)验证本章容器实验，[G1 技术验收](../progress/G1.md)已归档。完整 Web 和数据库兼容由后续实验验证。
 
 ## 参考资料与变更
 
