@@ -7,6 +7,10 @@ on:
       - 'project/apps/admin-server/**'
       - 'project/apps/admin-web/**'
       - 'project/java-modules/**'
+      - 'project/deploy/compose/Capstone.Dockerfile'
+      - 'project/deploy/compose/capstone.yaml'
+      - 'project/deploy/compose/verify-capstone.mjs'
+      - '.dockerignore'
       - 'pnpm-lock.yaml'
       - 'package.json'
       - 'pnpm-workspace.yaml'
@@ -21,6 +25,10 @@ on:
       - 'project/apps/admin-server/**'
       - 'project/apps/admin-web/**'
       - 'project/java-modules/**'
+      - 'project/deploy/compose/Capstone.Dockerfile'
+      - 'project/deploy/compose/capstone.yaml'
+      - 'project/deploy/compose/verify-capstone.mjs'
+      - '.dockerignore'
       - 'pnpm-lock.yaml'
       - 'package.json'
       - 'pnpm-workspace.yaml'
@@ -98,3 +106,30 @@ jobs:
       - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
       - run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/admin-web build
       - run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/admin-web test
+  deployment-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CAPSTONE_IMAGE_TAG: ci-${{ github.run_id }}-${{ github.run_attempt }}
+      CAPSTONE_REVISION: ${{ github.sha }}
+      CAPSTONE_DATABASE_PASSWORD: ci-capstone-database-password
+      CAPSTONE_MYSQL_ROOT_PASSWORD: ci-capstone-root-password
+      CAPSTONE_ADMIN_USERNAME: capstone-ci
+      CAPSTONE_ADMIN_PASSWORD: ci-capstone-administrator-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - name: Build the matching Vue and Spring artifacts
+        run: docker compose -f project/deploy/compose/capstone.yaml build app
+      - name: Start an empty deployment and wait for health
+        run: docker compose -f project/deploy/compose/capstone.yaml up -d --no-build --wait --wait-timeout 160
+      - name: Verify the same-origin web and API deployment
+        run: node project/deploy/compose/verify-capstone.mjs
+      - name: Collect deployment diagnostics
+        if: failure()
+        run: docker compose -f project/deploy/compose/capstone.yaml logs --no-color --tail 160
+      - name: Remove the ephemeral CI deployment
+        if: always()
+        run: docker compose -f project/deploy/compose/capstone.yaml down --volumes

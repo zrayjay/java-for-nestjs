@@ -1,0 +1,95 @@
+name: java-for-nestjs-capstone
+
+services:
+  mysql:
+    image: mysql:8.4.7
+    environment:
+      MYSQL_DATABASE: capstone
+      MYSQL_USER: capstone
+      MYSQL_PASSWORD: ${CAPSTONE_DATABASE_PASSWORD:?Set CAPSTONE_DATABASE_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${CAPSTONE_MYSQL_ROOT_PASSWORD:?Set CAPSTONE_MYSQL_ROOT_PASSWORD}
+    volumes:
+      - capstone_mysql:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'MYSQL_PWD="$${MYSQL_PASSWORD}" mysql --protocol=tcp -h127.0.0.1 -ucapstone capstone -e "SELECT 1" >/dev/null 2>&1',
+        ]
+      interval: 3s
+      timeout: 3s
+      start_period: 30s
+      retries: 30
+
+  redis:
+    image: redis:7.4.6-alpine
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  keys:
+    image: java-for-nestjs-capstone:${CAPSTONE_IMAGE_TAG:-local}
+    working_dir: /keys
+    entrypoint: ['sh', '-ec']
+    command:
+      - >-
+        if [ -s target/demo-keys/private.pem ] && [ -s target/demo-keys/public.pem ]; then
+          echo 'Capstone signing keys retained';
+        else
+          umask 077;
+          exec java -cp /app/key-tool dev.javafornestjs.security.KeyTool;
+        fi
+    volumes:
+      - capstone_keys:/keys
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    restart: 'no'
+
+  app:
+    image: java-for-nestjs-capstone:${CAPSTONE_IMAGE_TAG:-local}
+    build:
+      context: ../../..
+      dockerfile: project/deploy/compose/Capstone.Dockerfile
+      args:
+        CAPSTONE_REVISION: ${CAPSTONE_REVISION:-local}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      keys:
+        condition: service_completed_successfully
+    environment:
+      CAPSTONE_JDBC_URL: jdbc:mysql://mysql:3306/capstone?allowPublicKeyRetrieval=true&sslMode=DISABLED
+      CAPSTONE_DATABASE_USER: capstone
+      CAPSTONE_DATABASE_PASSWORD: ${CAPSTONE_DATABASE_PASSWORD:?Set CAPSTONE_DATABASE_PASSWORD}
+      CAPSTONE_REDIS_HOST: redis
+      CAPSTONE_MENU_CACHE_ENABLED: 'true'
+      CAPSTONE_SIGNING_KEY: file:/keys/target/demo-keys/private.pem
+      CAPSTONE_VERIFICATION_KEY: file:/keys/target/demo-keys/public.pem
+      CAPSTONE_ADMIN_USERNAME: ${CAPSTONE_ADMIN_USERNAME:?Set CAPSTONE_ADMIN_USERNAME}
+      CAPSTONE_ADMIN_PASSWORD: ${CAPSTONE_ADMIN_PASSWORD:?Set CAPSTONE_ADMIN_PASSWORD}
+      CAPSTONE_BIND_ADDRESS: 0.0.0.0
+      SERVER_SHUTDOWN: graceful
+      SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: 20s
+    ports:
+      - '127.0.0.1:${CAPSTONE_HTTP_PORT:-18092}:8091'
+    volumes:
+      - capstone_keys:/keys:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    stop_grace_period: 30s
+    healthcheck:
+      test: ['CMD', 'curl', '--fail', '--silent', '--max-time', '2', 'http://127.0.0.1:8091/actuator/health']
+      interval: 3s
+      timeout: 3s
+      start_period: 30s
+      retries: 30
+
+volumes:
+  capstone_mysql:
+  capstone_keys:

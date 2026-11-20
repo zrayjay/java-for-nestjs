@@ -2,6 +2,7 @@
 **/node_modules
 **/target
 **/dist
+project/apps/admin-web/src/api/generated
 **/.gradle
 **/build
 **/.env

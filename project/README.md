@@ -2,6 +2,8 @@
 
 此目录用于Vue3管理端与Spring Boot模块化单体。后端已提供身份、用户与角色管理、菜单和订单审批。[工作区Compose](../docs/00-introduction/workspace.md)提供本地MySQL/Redis，P5的任务API继续使用[独立教学部署](deploy/compose/TEACHING.md)。
 
+[毕业项目 Compose 手册](deploy/compose/CAPSTONE.md)包含同源前后端的构建、空库启动、健康检查和停止步骤。
+
 | 后续路径 | 职责 |
 |---|---|
 | `apps/admin-web/` | Vue3 / TypeScript 管理端与 OpenAPI 生成客户端 |
