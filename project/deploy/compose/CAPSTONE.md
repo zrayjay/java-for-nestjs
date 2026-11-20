@@ -12,6 +12,8 @@ docker compose --env-file project/deploy/compose/.env.capstone -f project/deploy
 
 默认打开 `http://127.0.0.1:18092`，用空库首启时设置的管理员账号登录。浏览器、API和健康检查共用该端口。MySQL与Redis只接受Compose内网连接。项目使用当前快照生成SDK，构建生成的Vue产物随同一个JAR交付。应用等待MySQL、Redis和签名密钥就绪，Flyway迁移完成后才提供健康响应。
 
+Compose等待 `/actuator/health/readiness` 确认为UP。该探测同时检查应用已完成启动回调与数据库可访问，Redis启动健康由独立容器检查。
+
 要验证空库首启，在同一终端将本地环境文件中的测试账号和密码设置为 `CAPSTONE_ADMIN_USERNAME`、`CAPSTONE_ADMIN_PASSWORD`，然后执行：
 
 ```powershell
@@ -28,3 +30,5 @@ docker compose --env-file project/deploy/compose/.env.capstone -f project/deploy
 ```
 
 普通停止和重建沿用MySQL数据和签名密钥卷。数据库和首启账号的环境变量只在初始化时生效。Redis只存可重建菜单缓存。应用容器以非root运行，对密钥卷只读，并将临时目录挂成tmpfs。默认端口绑定回环地址，数据库通道面向本机演示内网。用于外部访问时另行配置TLS、密钥管理、数据保留和监控。
+
+若首次生成密钥途中中断，`keys` 会报密钥对不完整并阻止应用启动。已有环境需从受保护的备份恢复同一对PEM。仅在确认是一次性空环境时，另建一个Compose项目名称和全新卷重新演练。

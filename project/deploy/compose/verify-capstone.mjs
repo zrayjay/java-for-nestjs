@@ -10,9 +10,11 @@ async function request(path, options) {
   return fetch(new URL(path, origin), { ...options, signal: AbortSignal.timeout(5000) })
 }
 
-const health = await request('/actuator/health')
-assert.equal(health.status, 200)
-assert.equal((await health.json()).status, 'UP')
+for (const path of ['/actuator/health', '/actuator/health/readiness']) {
+  const health = await request(path)
+  assert.equal(health.status, 200, path)
+  assert.equal((await health.json()).status, 'UP', path)
+}
 
 const page = await request('/')
 assert.equal(page.status, 200)
