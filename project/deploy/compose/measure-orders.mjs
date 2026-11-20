@@ -41,13 +41,12 @@ const headers = { Authorization: 'Bearer ' + accessToken }
 const path = '/orders?page=1&size=20'
 
 function percentile(sorted, fraction) {
-  return Math.round(sorted[Math.ceil(sorted.length * fraction) - 1] * 100) / 100
+  return sorted[Math.ceil(sorted.length * fraction) - 1] ?? null
 }
 
 async function measure(count) {
   const durations = []
   let errors = 0
-  let total
   let next = 0
   const start = performance.now()
   await Promise.all(
@@ -60,9 +59,8 @@ async function measure(count) {
           assert.equal(response.status, 200)
           assert.equal(page.page, 1)
           assert.equal(page.size, 20)
-          assert.ok(Array.isArray(page.items) && page.items.length > 0)
-          total ??= page.total
-          assert.equal(page.total, total)
+          assert.equal(page.total, 1)
+          assert.equal(page.items.length, 1)
           durations.push(performance.now() - begun)
         } catch {
           errors++
@@ -76,7 +74,6 @@ async function measure(count) {
     requests: count,
     success: durations.length,
     errors,
-    visibleOrders: total,
     p50Ms: percentile(durations, 0.5),
     p95Ms: percentile(durations, 0.95),
     p99Ms: percentile(durations, 0.99),
@@ -90,8 +87,15 @@ try {
   console.log({ workers, warmup, p95LimitMs })
   for (let round = 1; round <= rounds; round++) {
     const summary = await measure(requests)
-    console.log({ round, ...summary })
-    if (summary.errors || summary.p95Ms > p95LimitMs) process.exitCode = 1
+    console.log({
+      round,
+      ...summary,
+      p50Ms: summary.p50Ms === null ? null : Number(summary.p50Ms.toFixed(2)),
+      p95Ms: summary.p95Ms === null ? null : Number(summary.p95Ms.toFixed(2)),
+      p99Ms: summary.p99Ms === null ? null : Number(summary.p99Ms.toFixed(2)),
+    })
+    if (summary.errors || summary.p95Ms === null || summary.p95Ms > p95LimitMs)
+      process.exitCode = 1
   }
 } finally {
   const logout = await request('/auth/logout', json(headers, { refreshToken }))
