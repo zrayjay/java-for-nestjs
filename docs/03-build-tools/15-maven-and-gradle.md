@@ -38,6 +38,33 @@ Reactor收集选中的Maven项目并按依赖关系等规则排序，-pl选择�
 
 TS用`pnpm --filter @java-for-nestjs/nestjs-reference build`选择tsc脚本。Java从根运行`mvnw -pl examples/java-basics/greeting-cli -am clean verify`，实际顺序包含根/聚合POM、core、CLI，再用CLI JAR输出Hello, NestJS!。core源码在同一Reactor提供，不能将已在本地install过旧库的成功冒充本次上游源码已重建。
 
+TS端过滤调用见根`package.json`节选：
+
+```json
+    "examples:build": "pnpm --filter @java-for-nestjs/nestjs-reference build",
+    "examples:test": "pnpm --filter @java-for-nestjs/nestjs-reference test",
+```
+
+Java端命令见[构建实验](../../examples/java-basics/BUILD-LAB.md)记录：
+
+```powershell
+.\mvnw.cmd --batch-mode --no-transfer-progress -pl examples/java-basics/greeting-cli -am clean verify
+java -jar examples/java-basics/greeting-cli/target/greeting-cli-0.1.0-SNAPSHOT.jar NestJS
+```
+
+CLI对core的依赖声明见`examples/java-basics/greeting-cli/pom.xml`节选，正是`-am`把这条边拉入Reactor排序：
+
+```xml
+<!-- greeting-cli/pom.xml（节选） -->
+  <dependencies>
+    <dependency>
+      <groupId>dev.javafornestjs</groupId>
+      <artifactId>greeting-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+```
+
 #### 6. 原理与流程图
 
 ```mermaid
@@ -155,6 +182,46 @@ flowchart TD
 #### 5. 两端代码对照
 
 本仓库CI setup-java cache:maven复用下载，仍执行clean verify；TS frozen安装后仍build/test。构建实验本机-o只证明当前下载缓存完整。另用[verify-gradle-reference.ps1](../../scripts/verify-gradle-reference.ps1)实际验证：同输入第二次UP-TO-DATE，删除唯一生成文件后FROM-CACHE且内容恢复，改learner输入后输出改变。@CacheableTask/Input/OutputFile提供本例跟踪条件；并未提供配置缓存、远端缓存或相对速度基准。
+
+CI两侧命令见`.github/workflows/foundation.yml`节选，缓存命中后仍完整verify：
+
+```yaml
+      - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
+      - name: Java style, compile and tests with pinned Wrapper
+        shell: pwsh
+        run: |
+          if ($IsWindows) { .\mvnw.cmd --batch-mode --no-transfer-progress clean verify }
+          else { ./mvnw --batch-mode --no-transfer-progress clean verify }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+```
+
+Gradle端注解与任务声明摘自[build.gradle](../../examples/gradle-reference/build.gradle)节选：
+
+```groovy
+@CacheableTask
+abstract class GenerateGreeting extends DefaultTask {
+    @Input
+    abstract Property<String> getLearner()
+
+    @OutputFile
+    abstract RegularFileProperty getDestination()
+```
+
+```groovy
+tasks.register('verifyGreeting') {
+    dependsOn(greeting)
+```
+
+验证脚本的UP-TO-DATE与FROM-CACHE断言摘自`scripts/verify-gradle-reference.ps1`节选：
+
+```powershell
+$same = Invoke-LabGradle -GoalArguments @('generateGreeting', '-Plearner=NestJS')
+if ($same -notmatch ':generateGreeting UP-TO-DATE') { throw "Expected UP-TO-DATE: $same" }
+# Remove only this known generated file, never a cache directory or arbitrary computed tree.
+Remove-Item -LiteralPath $output
+$cached = Invoke-LabGradle -GoalArguments @('generateGreeting', '-Plearner=NestJS')
+if ($cached -notmatch ':generateGreeting FROM-CACHE') { throw "Expected FROM-CACHE: $cached" }
+```
 
 #### 6. 原理与流程图
 

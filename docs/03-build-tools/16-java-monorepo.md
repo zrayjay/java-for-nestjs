@@ -39,6 +39,57 @@ Monorepo是一种仓库组织方式，Maven模块是构建项目，部署单元�
 
 TS Nest项目是独立workspace，Java根聚合java-basics与Spring示例；greeting-core没有main，CLI与Spring各自消费其规则。文档站又由VitePress发布。根Mavenverify与pnpm脚本各自执行，examples:verify启动三种问候运行物验证共享外部契约，而不是把所有产物打成一个包。
 
+TS端workspace清单见`pnpm-workspace.yaml`完整文件：
+
+```yaml
+# pnpm-workspace.yaml
+packages:
+  - examples/nestjs-reference
+  - examples/prisma-reference
+  - examples/nestjs-data-reference
+  - examples/nestjs-security-reference
+  - examples/nestjs-message-reference
+  - project/apps/admin-web
+```
+
+Java端根聚合与共享契约脚本见`pom.xml`节选：
+
+```xml
+<!-- pom.xml（节选） -->
+  <modules>
+    <module>examples/java-basics</module>
+    <module>examples/spring-boot-examples</module>
+    <module>examples/spring-web-lab</module>
+  </modules>
+```
+
+```js
+// scripts/verify-greeting-contract.mjs（节选）
+const executables = [
+  {
+    name: 'Java CLI',
+    command: java,
+    prefix: [
+      '-jar',
+      'examples/java-basics/greeting-cli/target/greeting-cli-0.1.0-SNAPSHOT.jar',
+    ],
+  },
+  {
+    name: 'Spring context',
+    command: java,
+    prefix: [
+      '-jar',
+      'examples/spring-boot-examples/target/spring-boot-examples-0.1.0-SNAPSHOT.jar',
+    ],
+  },
+  {
+    name: 'Nest context',
+    command: process.execPath,
+    prefix: ['examples/nestjs-reference/dist/main.js'],
+  },
+]
+```
+
 #### 6. 原理与流程图
 
 ```mermaid
@@ -100,6 +151,54 @@ flowchart TD
 
 TS GreetingPolicy在Nest参照中由模块装配；Java GreetingPolicy是纯Java类，CLI与Spring适配层调用它。构建守卫检查core解析树无非test Spring依赖，jdeps实际JAR只有java.base；测试夹具注入嵌套运行Spring依赖时应拒绝。它验证本例可检查边界，不假称TS已拆出同构独立领域包。
 
+TS端策略与模块装配见`examples/nestjs-reference/src/greeting/`节选：
+
+```ts
+// greeting.policy.ts（节选）
+@Injectable()
+export class GreetingPolicy {
+  greet(name: string): string {
+```
+
+```ts
+// greeting.module.ts
+@Module({
+  providers: [GreetingPolicy, GreetingService],
+  exports: [GreetingService],
+})
+export class GreetingModule {}
+```
+
+Java端core是纯类无框架注解，见`examples/java-basics/greeting-core/src/main/java/dev/javafornestjs/greeting/GreetingPolicy.java`完整文件：
+
+```java
+package dev.javafornestjs.greeting;
+
+public final class GreetingPolicy {
+    public String greet(String name) {
+        if (name == null || !name.matches("[A-Za-z][A-Za-z0-9_-]{0,31}")) {
+            throw new IllegalArgumentException("Name must be 1-32 ASCII letters, digits, '_' or '-', starting with a letter.");
+        }
+        return "Hello, " + name + "!";
+    }
+}
+```
+
+Spring消费方依赖core，见`examples/spring-boot-examples/pom.xml`节选：
+
+```xml
+<!-- spring-boot-examples/pom.xml（节选） -->
+    <dependency>
+      <groupId>dev.javafornestjs</groupId>
+      <artifactId>greeting-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+```
+
 #### 6. 原理与流程图
 
 ```mermaid
@@ -157,6 +256,35 @@ core泄漏框架时找直接和传递引入点；把依赖改provided并不自�
 #### 5. 两端代码对照
 
 本仓库examples:verify对CLI、Spring应用上下文、Nest上下文执行同一组九项问候契约；Java rootverify覆盖所有当前Reactor模块。新增language-lab后本机44 Java、21 Node测试独立记录；事务项目另有真实数据库CI，不能由根verify冒充。具体跨平台结果见各progress，而非在本章预写全通过。
+
+TS端examples:verify脚本链见根`package.json`节选：
+
+```json
+    "examples:test": "pnpm --filter @java-for-nestjs/nestjs-reference test",
+    "examples:verify": "node scripts/verify-greeting-contract.mjs && node scripts/verify-runtime-lab.mjs && node scripts/verify-foundations.mjs && node scripts/verify-http-contract.mjs",
+```
+
+Java端根verify在CI的完整调用见`.github/workflows/foundation.yml`节选；事务实验的独立MySQL入口另见[transactions.yml](../../.github/workflows/transactions.yml)：
+
+```yaml
+      - run: npx --yes pnpm@10.34.9 examples:test
+      - run: npx --yes pnpm@10.34.9 examples:verify
+      - name: Resolved Maven model and core bytecode boundary
+        shell: pwsh
+        run: ./scripts/verify-build-model.ps1
+```
+
+事务CI自带MySQL服务，摘自`transactions.yml`节选：
+
+```yaml
+    services:
+      mysql:
+        image: mysql:8.4.7
+        env:
+          MYSQL_DATABASE: transaction_lab
+          MYSQL_USER: lab
+          MYSQL_PASSWORD: lab-only-password
+```
 
 #### 6. 原理与流程图
 

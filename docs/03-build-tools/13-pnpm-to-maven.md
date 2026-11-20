@@ -108,6 +108,48 @@ SNAPSHOT与发布版本的更新策略不同；本例内部SNAPSHOT由当前Reac
 
 TS package.json把typescript放devDependencies，并由pnpm构建脚本调用。Java core仅直接声明test范围JUnit。实际dependency:tree JSON解析出8项依赖节点，均为测试用途；守卫递归拒绝core非test Spring依赖，夹具验证深层泄漏也会失败。不以在有效POM里搜到Spring字样认定运行耦合。
 
+TS端实际片段见`examples/nestjs-reference/package.json`节选：
+
+```json
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test dist/**/*.test.js",
+    "start": "node dist/main.js"
+  },
+```
+
+```json
+  "devDependencies": {
+    "@nestjs/testing": "11.2.9",
+    "@types/node": "22.19.3",
+    "typescript": "5.9.3"
+  }
+```
+
+Java端core仅有的直接依赖块见`examples/java-basics/greeting-core/pom.xml`节选：
+
+```xml
+<!-- greeting-core/pom.xml（节选） -->
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+```
+
+守卫的递归拒绝断言摘自`scripts/lib/build-model.mjs`：
+
+```js
+      assert.equal(
+        child.groupId.startsWith('org.springframework') &&
+          child.scope !== 'test',
+        false,
+        `Core runtime framework dependency: ${child.groupId}:${child.artifactId}:${child.scope}`,
+      )
+```
+
 #### 6. 原理与流程图
 
 直接依赖→传递图→scope/排除/可选规则→特定阶段实际类路径。文字链路强调实际图；范围传播规则有细节，具体问题用真实dependency:tree核查。
@@ -158,6 +200,47 @@ Maven版本管理规定依赖/插件的选取规则，本地仓库缓存产物�
 #### 5. 两端代码对照
 
 TS CI执行pnpm固定版本install --frozen-lockfile。JavaWrapper固定3.9.11，根父POM固定Boot3.5.16；元数据实验固定dependency插件3.8.1、help插件3.5.1。本机使用既有TEMP仓库的-o缓存结果，CI不加-o；二者命令环境在记录中分开。实际模型与字节码由脚本核对，不凭缓存目录存在宣布通过。
+
+TS端CI安装步骤摘自`.github/workflows/foundation.yml`节选：
+
+```yaml
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+          cache-dependency-path: '**/pom.xml'
+      - run: npx --yes pnpm@10.34.9 install --frozen-lockfile
+```
+
+Java端Wrapper分发与校验固定见`.mvn/wrapper/maven-wrapper.properties`完整文件：
+
+```properties
+wrapperVersion=3.3.4
+distributionType=only-script
+distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.11/apache-maven-3.9.11-bin.zip
+distributionSha256Sum=0d7125e8c91097b36edb990ea5934e6c68b4440eef4ea96510a0f6815e7eeadb
+```
+
+根父POM固定Boot3.5.16见`pom.xml`节选：
+
+```xml
+<!-- pom.xml（节选） -->
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.16</version>
+    <relativePath/>
+  </parent>
+```
+
+元数据实验固定的插件坐标写在调用行，摘自`scripts/verify-build-model.ps1`节选：
+
+```powershell
+    & $wrapper @common 'org.apache.maven.plugins:maven-dependency-plugin:3.8.1:tree' '-DoutputFile=target/dependency-tree.json' '-DoutputType=json'
+    if ($LASTEXITCODE -ne 0) { throw 'Maven dependency tree failed' }
+    & $wrapper @common 'org.apache.maven.plugins:maven-help-plugin:3.5.1:effective-pom' '-Doutput=target/effective-pom.xml'
+```
 
 #### 6. 原理与流程图
 

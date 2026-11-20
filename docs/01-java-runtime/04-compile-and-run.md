@@ -39,6 +39,29 @@ javac检查源码并生成class；java启动运行环境、加载入口并执行
 
 TS先`examples:build`再用Node运行dist测试；Java验证脚本执行`javac --release 21 -g -d <输出目录> <MemoryLab源码>`，再`java -cp <输出目录> dev.javafornestjs.runtime.MemoryLab`。源码声明package，输出按package生成目录。固定输出为`Result[primitive=1, shared=2, sameReference=false, sameText=true]`。
 
+两端断言与被测源码节选：
+
+```ts
+// memory-lab.test.ts 节选
+test('value copying, shared mutation and local rebinding are distinct', () => {
+  assert.deepEqual(observeMemory(), {
+    primitive: 1,
+    shared: 2,
+    sameReference: false,
+    sameText: true,
+  })
+})
+```
+
+```java
+// MemoryLab.change() 节选
+private static void change(int primitive, Box box) {
+    primitive = 99;
+    box.value = 2;
+    box = new Box(99);
+}
+```
+
 `javap -verbose`必须显示major version65。脚本用明确断言验证，不从文件扩展名猜测目标版本。
 
 #### 6. 原理与流程图

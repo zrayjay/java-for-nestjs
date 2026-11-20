@@ -34,7 +34,39 @@ Prisma返回JS数据对象，不提供相同的JPA身份映射/自动脏检查�
 
 #### 5. 两端代码对照
 
-Java测试显式建立LocalContainerEntityManagerFactoryBean，扫描TaskEntity并设置hbm2ddl.auto=validate。persist提交后，同一manager.find(id)断言与原task是同一实例。PrismaTasks每次显式调用findUnique/updateMany；本例不声称两个查询结果有Java身份映射语义。
+Java测试显式建立LocalContainerEntityManagerFactoryBean，扫描TaskEntity并设置hbm2ddl.auto=validate。persist提交后，同一manager.find(id)断言与原task是同一实例。
+
+```java
+// 摘自 examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java
+        factoryBean.setJpaPropertyMap(Map.of("hibernate.hbm2ddl.auto", "validate"));
+        factoryBean.afterPropertiesSet();
+        try (var factory = factoryBean.getObject(); var manager = factory.createEntityManager()) {
+            manager.getTransaction().begin();
+            manager.persist(task);
+            manager.getTransaction().commit();
+            assertSame(task, manager.find(TaskEntity.class, task.getId()));
+```
+
+```java
+// 摘自 examples/data-access-lab/src/main/java/dev/javafornestjs/data/jpa/TaskEntity.java
+@Entity
+@Table(name = "data_tasks")
+public class TaskEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+```
+
+PrismaTasks每次显式调用findUnique/updateMany；本例不声称两个查询结果有Java身份映射语义。
+
+```ts
+// 摘自 examples/nestjs-data-reference/src/tasks.ts
+  async find(id: number): Promise<Task> {
+    const task = await this.client.dataTask.findUnique({ where: { id } })
+    if (!task) throw new NotFoundException()
+    return view(task)
+  }
+```
 
 #### 6. 原理与流程图
 
@@ -82,7 +114,40 @@ Prisma与MyBatis要求显式更新调用，修改普通对象title不会自动UP
 
 #### 5. 两端代码对照
 
-Java真实测试在事务内改托管实体title，提交后JdbcTemplate独立读回Dirty checked；detach后再改并提交，数据库仍旧值；merge返回对象与原对象不是同一实例，提交后数据库变成Detached change。Node PrismaTasks.replace显式await updateMany再读取结果，没有自动跟踪本地对象。
+Java真实测试在事务内改托管实体title，提交后JdbcTemplate独立读回Dirty checked；detach后再改并提交，数据库仍旧值；merge返回对象与原对象不是同一实例，提交后数据库变成Detached change。
+
+```java
+// 摘自 examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java
+            manager.getTransaction().begin();
+            task.setTitle("Dirty checked");
+            manager.getTransaction().commit();
+            assertEquals("Dirty checked", jdbc.queryForObject("SELECT title FROM data_tasks WHERE id=?", String.class, task.getId()));
+            manager.detach(task);
+            assertFalse(manager.contains(task));
+```
+
+```java
+// 同文件同一测试的merge分支
+            var merged = manager.merge(task);
+            assertNotSame(task, merged);
+            assertTrue(manager.contains(merged));
+            manager.getTransaction().commit();
+            assertEquals("Detached change", jdbc.queryForObject("SELECT title FROM data_tasks WHERE id=?", String.class, task.getId()));
+```
+
+Node PrismaTasks.replace显式await updateMany再读取结果，没有自动跟踪本地对象。
+
+```ts
+// 摘自 examples/nestjs-data-reference/src/tasks.ts
+  async replace(id: number, input: TaskWrite): Promise<Task> {
+    const result = await this.client.dataTask.updateMany({
+      where: { id },
+      data: { title: input.title, priority: input.details.priority },
+    })
+    if (result.count === 0) throw new NotFoundException()
+    return this.find(id)
+  }
+```
 
 #### 6. 原理与流程图
 
@@ -130,7 +195,47 @@ Prisma也从Schema生成查询类型，但API与执行模型不同；jOOQ更贴�
 
 #### 5. 两端代码对照
 
-GeneratedSchemaTest先用真实迁移后的MySQL元数据生成Tables.DATA_TASKS，实际javac编译查询`ID.eq(id)`并执行，读取Typed query。随后编译`ID.eq("not-an-int")`要求失败。Prisma数据测试则先generate再用dataTask.findMany；二者都先生成，但没有混淆JDBC元数据与Prisma schema来源。
+GeneratedSchemaTest先用真实迁移后的MySQL元数据生成Tables.DATA_TASKS，实际javac编译查询`ID.eq(id)`并执行，读取Typed query。随后编译`ID.eq("not-an-int")`要求失败。
+
+```java
+// 摘自 examples/data-access-lab/src/test/java/dev/javafornestjs/data/GeneratedSchemaTest.java
+        Files.writeString(client, """
+                import dev.javafornestjs.generated.Tables;
+                public class SchemaQuery {
+                    public static String title(org.jooq.DSLContext db, int id) {
+                        return db.select(Tables.DATA_TASKS.TITLE).from(Tables.DATA_TASKS)
+                            .where(Tables.DATA_TASKS.ID.eq(id)).fetchOne(Tables.DATA_TASKS.TITLE);
+                    }
+                }
+                """);
+```
+
+```java
+// 同文件同一测试的编译负例
+        Files.writeString(wrong, """
+                import dev.javafornestjs.generated.Tables;
+                class WrongQuery { Object wrong() { return Tables.DATA_TASKS.ID.eq("not-an-int"); } }
+                """);
+        var failures = new DiagnosticCollector<JavaFileObject>();
+        // ...
+        assertFalse(compiler.getTask(null, files, failures, options, null,
+                files.getJavaFileObjects(wrong.toFile())).call());
+```
+
+Prisma数据测试则先generate再用dataTask.findMany；二者都先生成，但没有混淆JDBC元数据与Prisma schema来源。
+
+```prisma
+// 摘自 examples/prisma-reference/prisma/schema.prisma
+model DataTask {
+  id       Int    @id @default(autoincrement())
+  title    String @db.VarChar(80)
+  priority Int    @db.TinyInt
+  ownerId  Int    @default(1) @map("owner_id")
+  owner    DataOwner @relation(fields: [ownerId], references: [id])
+  @@index([title, id], map: "ix_data_tasks_title")
+  @@map("data_tasks")
+}
+```
 
 #### 6. 原理与流程图
 

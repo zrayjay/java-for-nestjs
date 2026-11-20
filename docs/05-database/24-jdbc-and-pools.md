@@ -88,7 +88,38 @@ Java本例Hikari maximumPoolSize=2、minimumIdle=0、connectionTimeout=500ms。P
 
 #### 5. 两端代码对照
 
-Java DataAccessTest真实借出两个连接，第三次getConnection应抛SQLTransientConnectionException，然后归还前两个再借用执行SELECT1。Node配置固定connectionLimit2，当前没有把Java500ms耗尽测试照抄成已验证的Node超时机制；Node SQL测试关注真实Prisma查询和关闭。
+Java DataAccessTest真实借出两个连接，第三次getConnection应抛SQLTransientConnectionException，然后归还前两个再借用执行SELECT1。
+
+```java
+// 摘自 examples/data-access-lab/src/main/java/dev/javafornestjs/data/DataConfiguration.java
+        config.setMaximumPoolSize(2);
+        config.setMinimumIdle(0);
+        config.setConnectionTimeout(500);
+```
+
+```java
+// 摘自 examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java
+        try (var first = source.getConnection(); var second = source.getConnection()) {
+            assertEquals(2, source.getHikariPoolMXBean().getActiveConnections());
+            assertThrows(SQLTransientConnectionException.class, source::getConnection);
+            assertFalse(first.isClosed());
+            assertFalse(second.isClosed());
+        }
+```
+
+Node配置固定connectionLimit2，当前没有把Java500ms耗尽测试照抄成已验证的Node超时机制；Node SQL测试关注真实Prisma查询和关闭。
+
+```ts
+// 摘自 examples/prisma-reference/src/data-client.ts
+  return {
+    host: url.hostname,
+    port,
+    user: decodeURIComponent(url.username),
+    password: decodeURIComponent(url.password),
+    database: 'data_lab',
+    connectionLimit: 2,
+  }
+```
 
 #### 6. 原理与流程图
 
@@ -136,7 +167,45 @@ Java try-with-resources按作用域关闭ResultSet、Statement和Connection；Sp
 
 #### 5. 两端代码对照
 
-DataAccessTest嵌套try-with-resources运行SELECT1；DataConfiguration的Bean配置destroyMethod="close"。额外的独立池关闭测试正常关闭拥有池，再断言isClosed且不能继续借用。Node数据测试finally关闭app并disconnect，客户端初始化失败路径也应执行最终释放，不让错误测试悬挂。
+DataAccessTest嵌套try-with-resources运行SELECT1；DataConfiguration的Bean配置destroyMethod="close"。
+
+```java
+// 摘自 examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java
+        try (var reused = source.getConnection(); var statement = reused.prepareStatement("SELECT 1")) {
+            try (var result = statement.executeQuery()) {
+                assertTrue(result.next());
+                assertEquals(1, result.getInt(1));
+            }
+        }
+```
+
+```java
+// 摘自 examples/data-access-lab/src/main/java/dev/javafornestjs/data/DataConfiguration.java
+    @Bean(destroyMethod = "close")
+    HikariDataSource dataSource() {
+```
+
+额外的独立池关闭测试正常关闭拥有池，再断言isClosed且不能继续借用。
+
+```java
+// 摘自 examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java
+        try (owned; var connection = owned.getConnection()) {
+            assertFalse(owned.isClosed());
+            assertFalse(connection.isClosed());
+        }
+        assertTrue(owned.isClosed());
+        assertThrows(java.sql.SQLException.class, owned::getConnection);
+```
+
+Node数据测试finally关闭app并disconnect，客户端初始化失败路径也应执行最终释放，不让错误测试悬挂。
+
+```ts
+// 摘自 examples/nestjs-data-reference/src/tasks.test.ts
+  } finally {
+    await app?.close()
+    await client.$disconnect()
+  }
+```
 
 #### 6. 原理与流程图
 

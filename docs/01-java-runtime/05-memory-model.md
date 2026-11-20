@@ -102,6 +102,29 @@ TS开发者习惯用===比较字符串内容，迁到Java后同样写==，在字
 
 MemoryLab用两个`new String(char[])`确保两个不同String对象，==必须false、equals必须true；TS用两个对象包装同样的`'ok'`，对象===为false、text===为true。固定四元组1/2/false/true由两端测试断言。不要把Java例子改为两个相同字面量后仍要求身份false，因为那改变了实验条件。
 
+Java端observe的字符串部分节选：
+
+```java
+// MemoryLab.observe() 节选
+String first = new String(new char[] {'o', 'k'});
+String second = new String(new char[] {'o', 'k'});
+return new Result(primitive, original.value(), first == second, first.equals(second));
+```
+
+TS端对应节选：
+
+```ts
+// memory-lab.ts observeMemory() 节选
+const first = { text: 'ok' }
+const second = { text: 'ok' }
+return {
+  primitive,
+  shared: original.value,
+  sameReference: first === second,
+  sameText: first.text === second.text,
+}
+```
+
 #### 6. 原理与流程图
 
 两个引用→两个String实例→内容都为ok；==只观察两个引用是否指同一实例，equals执行String内容比较。文字链路足够，不把String内部存储格式画成跨版本保证。

@@ -38,6 +38,47 @@ baseline: Maven3.9.11 / Java21 / Boot3.5.16
 
 TS examples:build调用tsc，examples:test单独运行已输出JS测试，故顺序不能省略。Java根POM将Checkstyle绑定validate，JUnit由Surefire测试阶段执行，CLI的shade在package生成带core的产物。实际root verify日志显示这些动作；元数据goal `dependency:tree`/`help:effective-pom`用于检查，不等于完整verify。
 
+TS端脚本见`examples/nestjs-reference/package.json`节选：
+
+```json
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test dist/**/*.test.js",
+    "start": "node dist/main.js"
+  },
+```
+
+Checkstyle绑定validate的执行块摘自根`pom.xml`：
+
+```xml
+<!-- pom.xml（节选） -->
+        <executions>
+          <execution>
+            <id>java-quality</id>
+            <phase>validate</phase>
+            <goals><goal>check</goal></goals>
+          </execution>
+        </executions>
+```
+
+CLI的shade执行块摘自`examples/java-basics/greeting-cli/pom.xml`：
+
+```xml
+<!-- greeting-cli/pom.xml（节选） -->
+          <execution>
+            <phase>package</phase>
+            <goals><goal>shade</goal></goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <transformers combine.self="override">
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>dev.javafornestjs.cli.GreetingCli</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+```
+
 #### 6. 原理与流程图
 
 ```mermaid
@@ -97,6 +138,73 @@ parent继承配置，modules聚合构建；effective POM展示合成后的模型
 
 TS根workspace配置选择Nest项目，tsconfig另行定义编译规则。Java java-basics POM聚合各实验，子POM显式parent；根又继承Boot父项。实际help:effective-pom为core生成XML，XPath核对java.version与maven.compiler.release为21；字节码另由javap核对major65。
 
+TS端workspace清单见`pnpm-workspace.yaml`完整文件：
+
+```yaml
+# pnpm-workspace.yaml
+packages:
+  - examples/nestjs-reference
+  - examples/prisma-reference
+  - examples/nestjs-data-reference
+  - examples/nestjs-security-reference
+  - examples/nestjs-message-reference
+  - project/apps/admin-web
+```
+
+编译规则另在`examples/nestjs-reference/tsconfig.json`节选：
+
+```json
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rootDir": "src",
+    "outDir": "dist",
+    "strict": true,
+```
+
+Java端聚合与显式parent见`examples/java-basics/pom.xml`节选：
+
+```xml
+<!-- examples/java-basics/pom.xml（节选） -->
+  <parent>
+    <groupId>dev.javafornestjs</groupId>
+    <artifactId>course-examples</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <artifactId>java-basics</artifactId>
+  <packaging>pom</packaging>
+  <modules>
+    <module>greeting-core</module>
+    <module>greeting-cli</module>
+    <module>runtime-lab</module>
+    <module>generics-lab</module>
+    <module>language-lab</module>
+  </modules>
+```
+
+根再继承Boot父项见`pom.xml`节选：
+
+```xml
+<!-- pom.xml（节选） -->
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.16</version>
+    <relativePath/>
+  </parent>
+```
+
+XPath核对摘自`scripts/verify-build-model.ps1`节选：
+
+```powershell
+    $version = $model.SelectSingleNode('/m:project/m:properties/m:java.version', $ns)
+    if ($version.InnerText -ne '21') { throw 'Expected effective java.version 21' }
+    $releaseProperty = $model.SelectSingleNode('/m:project/m:properties/m:maven.compiler.release', $ns)
+    if ($releaseProperty.InnerText -ne '21') { throw 'Expected effective maven.compiler.release 21' }
+```
+
 #### 6. 原理与流程图
 
 父模型/项目声明/适用配置合成→effective POM→插件读取参数→实际产物。属性绑定不一定展开成configuration XML节点；本实验首次错误要求必须存在release节点，读取真实模型后改为属性+显式覆盖+产物分层核对。
@@ -147,6 +255,41 @@ dependencyManagement/BOM集中管理版本等默认规则，通常不自动引�
 #### 5. 两端代码对照
 
 TS根package使用overrides固定相关依赖，真实锁文件另记录解析图。Java core的JUnit无显式版本，真实树解析到5.12.2，继承的Boot管理提供选择；core字节码仍只依赖java.base。此例验证管理条目与实际引入的区别，没有新造多版本冲突矩阵，冲突规则按官方文档核对，不能把未执行夹具称为已测。
+
+TS端overrides块摘自根`package.json`：
+
+```json
+    "overrides": {
+      "vite": "6.4.4",
+      "lodash-es": "4.18.1",
+      "@hey-api/json-schema-ref-parser>js-yaml": "4.3.2",
+      "@prisma/config>effect": "3.22.1"
+    }
+```
+
+Java端core的JUnit声明不带版本，见`examples/java-basics/greeting-core/pom.xml`节选；管理来源即上一段根POM继承的Boot父项：
+
+```xml
+<!-- greeting-core/pom.xml（节选） -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+```
+
+core字节码仅依赖java.base的断言摘自`scripts/verify-build-model.mjs`：
+
+```js
+const targets = [...result.stdout.matchAll(/ -> (.+)$/gm)].map((match) =>
+  match[1].trim(),
+)
+assert.deepEqual(
+  targets,
+  ['java.base'],
+  'Core bytecode must depend only on java.base in this example',
+)
+```
 
 #### 6. 原理与流程图
 

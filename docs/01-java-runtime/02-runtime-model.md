@@ -293,7 +293,53 @@ Spring MVC默认Servlet请求处理与Nest所选HTTP适配器的请求模型也�
 
 TS 完整文件中的 `eventLoopOrder` 先调用 `setTimeout(..., 0)`，再同步计算，输出次序为 `sync-start,cpu-finished,timer`。Node 22.20.0 把小于1 ms的延迟调整为1 ms。同步 JS 执行完毕后，回调仍须等到事件循环调度。`workerChecksum` 创建 Worker 并通过消息返回结果，测试比较主线程和 Worker 的答案。[Node 22.20.0 定时器](https://nodejs.org/download/release/v22.20.0/docs/api/timers.html#settimeoutcallback-delay-args)
 
+TS端两段真实源码节选：
+
+```ts
+// runtime-lab.ts eventLoopOrder() 节选
+const events = ['sync-start']
+const timer = new Promise<void>((resolve) => {
+  setTimeout(() => {
+    events.push('timer')
+    resolve()
+  }, 0)
+})
+checksum(100_000)
+events.push('cpu-finished')
+await timer
+return events
+```
+
+```ts
+// runtime-lab.ts workerChecksum() 节选
+const worker = new Worker(
+  `const { parentPort, workerData } = require('node:worker_threads');
+   let sum = 0;
+   for (let i = 0; i < workerData; i++) sum = (sum + Math.imul(i, 31) + 7) | 0;
+   parentPort.postMessage(sum);`,
+  { eval: true, workerData: count },
+)
+```
+
 Java完整文件中的sharedCounter用两个线程和CountDownLatch强制两边都先读到0，再分别写回1；旁边用AtomicInteger增量作对照。输出`COUNTERS=1,2`。这里的屏障用于稳定复现读改写丢失，不是对业务计数的正确修复；正确对照采用原子操作。
+
+Java端increment方法节选，读改写之间插入屏障：
+
+```java
+// RuntimeLab.increment() 节选
+int snapshot = unsafe[0];
+bothRead.countDown();
+try {
+    if (!bothRead.await(5, TimeUnit.SECONDS)) {
+        throw new IllegalStateException("Both workers must reach the read barrier");
+    }
+} catch (InterruptedException exception) {
+    Thread.currentThread().interrupt();
+    throw new IllegalStateException(exception);
+}
+unsafe[0] = snapshot + 1;
+safe.incrementAndGet();
+```
 
 #### 6. 原理与流程图
 

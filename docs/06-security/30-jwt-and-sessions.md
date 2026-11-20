@@ -168,6 +168,39 @@ Java配置SessionCreationPolicy.STATELESS，只是不使用HTTP Session保存认
 
 本例Access仅从Authorization Bearer读取，Refresh从JSON正文读取；手动Cookie accessToken不会认证成功。登录/刷新响应no-store，审计仅存事件、actor/resource/request ID，源码没有把密码或原始令牌写入审计。公开登录/刷新请求也应省略失效Access头，因为即使路由permitAll，携带无效Bearer仍可能先被认证层拒绝。
 
+Node认证只解析Authorization头里的Bearer凭据：缺失时按匿名返回，格式错误直接拒绝，全程不读取Cookie：
+
+```ts
+// examples/nestjs-security-reference/src/auth.ts（authenticate方法节选）
+  async authenticate(
+    header: string | undefined,
+  ): Promise<Principal | undefined> {
+    if (!header || !/^Bearer\b/i.test(header)) return undefined
+    const match = /^Bearer ([^\s]+)$/i.exec(header)
+    if (!match) throw new UnauthorizedException()
+```
+
+Java端刷新入口从JSON正文接收Refresh凭据，登录/刷新响应统一以no-store返回：
+
+```java
+// examples/security-lab/src/main/java/dev/javafornestjs/security/AuthController.java（refresh方法节选）
+    @PostMapping("/auth/refresh")
+    public ResponseEntity<AuthService.Tokens> refresh(@Valid @RequestBody Refresh request) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(auth.rotate(request.refreshToken()));
+    }
+```
+
+审计写入只有actor、事件、资源、请求ID和发生时间列，不含密码或原始令牌：
+
+```java
+// examples/security-lab/src/main/java/dev/javafornestjs/security/AuthService.java（audit方法节选）
+    public void audit(Integer actor, String event, String resource) {
+        String request = MDC.get("requestId");
+        tracing.audit(() -> jdbc.update("INSERT INTO sec_audit(actor_id,event_code,resource_id,request_id,occurred_at) VALUES (?,?,?,?,?)",
+                actor, event, resource, request == null ? "non-http" : request, now()));
+    }
+```
+
 | 方式 | 能帮助什么 | 不能据此声称 |
 |---|---|---|
 | 内存令牌 | 减少跨刷新持久留存 | 自动免疫同源脚本窃取 |

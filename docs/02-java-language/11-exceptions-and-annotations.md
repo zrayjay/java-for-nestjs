@@ -38,6 +38,33 @@ JS函数签名通常不要求声明可能throw哪些Error，直接迁到Java调�
 
 TS closeTrace可抛Error但调用方无需throws声明；Java closeTrace声明IOException。JavaCompiler负例在caller中不捕获也不声明risky的IOException，必须命中unreported.exception诊断。Future测试还核对ExecutionException.getCause保留原IllegalArgumentException与bad-input，不把包装异常的外层信息当全部原因。
 
+TS端调用方节选，抛Error无需声明：
+
+```ts
+// language-lab.ts closeTrace() 节选
+try {
+  trace.push('body')
+  if (bodyFails) throw new Error('body-failure')
+} finally {
+  trace.push('close')
+  if (closeFails) throw new Error('close-failure')
+}
+```
+
+Java端声明与cause保留节选：
+
+```java
+// LanguageLab.closeTrace() 声明节选
+public static List<String> closeTrace(boolean bodyFails, boolean closeFails) throws IOException {
+```
+
+```java
+// ConcurrencyLab.failureCause() 节选
+} catch (ExecutionException failure) {
+    return failure.getCause();
+}
+```
+
 #### 6. 原理与流程图
 
 方法调用→正常返回或抛错→沿调用栈寻找适用处理器→必要时包装并保留cause。编译期先核对受检异常责任，运行时仍按异常传播处理；文字链路可明确两个阶段。
@@ -88,6 +115,36 @@ try-with-resources按作用域关闭AutoCloseable资源；当主体和close都�
 #### 5. 两端代码对照
 
 TS closeTrace(false,false)返回body/close，true/true最终抛close-failure；Java同名函数使用TraceResource，true/true要求IOException消息body-failure、一个suppressed且消息close-failure。Java测试实际检查数组长度与内容，不只确认“抛了某异常”。本例是受控资源模型，未操作真实数据库连接。
+
+TS端finally负例节选，close失败覆盖body失败：
+
+```ts
+// language-lab.ts closeTrace() 节选
+} finally {
+  trace.push('close')
+  if (closeFails) throw new Error('close-failure')
+}
+```
+
+Java端try-with-resources与suppressed断言节选：
+
+```java
+// LanguageLab.closeTrace() 节选
+try (var resource = new TraceResource(trace, closeFails)) {
+    trace.add("body");
+    if (bodyFails) {
+        throw new IOException("body-failure");
+    }
+}
+return trace;
+```
+
+```java
+// LanguageLabTest.resourceClosesAndSecondaryCloseErrorIsSuppressed() 节选
+assertEquals("body-failure", failure.getMessage());
+assertEquals(1, failure.getSuppressed().length);
+assertEquals("close-failure", failure.getSuppressed()[0].getMessage());
+```
 
 #### 6. 原理与流程图
 
@@ -148,6 +205,36 @@ Java注解表达元数据，运行时能否读到取决于保留策略；业务�
 #### 5. 两端代码对照
 
 TS @tag('risk')实际将TaggedRule构造函数注册到WeakMap，readTag显式读取risk，未标记类读undefined。JavaTag使用RUNTIME/TYPE，测试通过Class.getAnnotation取得value=risk。二者共同目标是读取标签，内部机制不同；本例没有注册任何鉴权、路由或代理逻辑。
+
+TS端装饰器注册与读取节选：
+
+```ts
+// language-lab.ts 节选
+const tags = new WeakMap<Function, string>()
+function tag(value: string): ClassDecorator {
+  return (target) => {
+    tags.set(target, value)
+  }
+}
+```
+
+Java端注解声明与反射读取节选：
+
+```java
+// LanguageLab.java 节选
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Tag { String value(); }
+
+@Tag("risk")
+public static final class TaggedRule { }
+```
+
+```java
+// LanguageLabTest.runtimeAnnotationMetadataMustBeReadExplicitly() 节选
+var tag = LanguageLab.TaggedRule.class.getAnnotation(LanguageLab.Tag.class);
+assertEquals("risk", tag.value());
+```
 
 #### 6. 原理与流程图
 

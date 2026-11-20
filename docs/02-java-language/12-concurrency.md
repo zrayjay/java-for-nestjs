@@ -39,6 +39,31 @@ baseline: Java21 / JDK21与25 / Node22.20.0
 
 TS promiseTasks让两async函数都记录start并等待同一gate，再放行收集[10,20]；测试只证明异步继续顺序，不声称JS线程并行。JavavirtualTasks用newVirtualThreadPerTaskExecutor，两个任务各自实际调用Thread.isVirtual，计数闩锁证明两者都进入等待区后才释放。返回10/20来自各任务，不是主线程写死的伪结果；测试要求bothVirtual=true。
 
+TS端gate协调节选：
+
+```ts
+// language-lab.ts promiseTasks() 节选
+const task = async (id: number, value: number): Promise<number> => {
+  events.push(`start:${id}`)
+  await gate
+  events.push(`finish:${id}`)
+  return value
+}
+```
+
+Java端virtualTasks任务提交节选：
+
+```java
+// ConcurrencyLab.virtualTasks() 节选
+var first = executor.submit(() -> {
+    entered.countDown();
+    if (!release.await(5, TimeUnit.SECONDS)) {
+        throw new IllegalStateException("release timeout");
+    }
+    return new TaskResult(10, Thread.currentThread().isVirtual());
+});
+```
+
 #### 6. 原理与流程图
 
 ```mermaid
@@ -106,6 +131,29 @@ Executor管理任务提交与执行，Future表示提交任务的结果；等待
 
 TS await Promise.all得到结果，失败Promise会使相应等待拒绝，不能据此推出其他任务被自动取消。Java failureCause在单线程executor中提交抛IllegalArgumentException的任务，get得到ExecutionException后读取cause；测试核对原类型与bad-input。try-with-resources关闭本例自建executor，框架管理的共享执行器不能由任意业务方法随手关闭。
 
+TS端Promise.all等待节选：
+
+```ts
+// language-lab.ts promiseTasks() 节选
+const values = await Promise.all([first, second])
+return { values, events }
+```
+
+Java端failureCause节选：
+
+```java
+// ConcurrencyLab.failureCause() 节选
+try (var executor = Executors.newSingleThreadExecutor()) {
+    var future = executor.submit(() -> { throw new IllegalArgumentException("bad-input"); });
+    try {
+        future.get(5, TimeUnit.SECONDS);
+        throw new IllegalStateException("expected failure");
+    } catch (ExecutionException failure) {
+        return failure.getCause();
+    }
+}
+```
+
 #### 6. 原理与流程图
 
 submit→队列/调度执行→Future记录成功或失败→get等待并取值/抛包装异常→所有者关闭executor。文字链路足够，任务执行与调用者等待不是同一步。
@@ -157,6 +205,33 @@ HTTP已超时却后台仍写入，或重试产生重复结果，常源于把“�
 #### 5. 两端代码对照
 
 TS gate模型显示工作在显式release前等待，不用计时器伪造取消。Java timeoutDoesNotCancel让任务进入闩锁等待，get(0,NANOSECONDS)确定抛TimeoutException；检查Future既未cancelled也未done，再finally释放门、等待42结果并关闭executor。共享状态的丢失更新/原子计数复用RuntimeLab的真实屏障测试，不把任务结束等同复合更新原子。
+
+TS端gate等待节选：
+
+```ts
+// language-lab.ts promiseTasks() 节选
+const gate = new Promise<void>((resolve) => {
+  release = resolve
+})
+const first = task(1, 10)
+const second = task(2, 20)
+release()
+```
+
+Java端timeoutDoesNotCancel节选，超时后任务仍活跃：
+
+```java
+// ConcurrencyLab.timeoutDoesNotCancel() 节选
+try {
+    future.get(0, TimeUnit.NANOSECONDS);
+    throw new IllegalStateException("blocked task cannot have completed");
+} catch (TimeoutException expected) {
+    return !future.isCancelled() && !future.isDone();
+} finally {
+    release.countDown();
+    future.get(5, TimeUnit.SECONDS);
+}
+```
 
 #### 6. 原理与流程图
 

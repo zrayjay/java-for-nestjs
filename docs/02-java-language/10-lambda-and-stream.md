@@ -90,6 +90,30 @@ JS Array.map通常立即生成结果，而Java stream.map后不终止可能什�
 
 TS total过滤[1,10,20]、乘2、求和60；Java对应filter/mapToInt/sum也断言60。TS Array.map计数立即为2；Java专门测试构建map后计数0、toList后计数2，再次toList抛IllegalStateException。计数仅为展示本例求值，生产逻辑不应依赖map副作用计数。
 
+TS端eager管道节选：
+
+```ts
+// language-lab.ts total() 节选
+return amounts
+  .filter((value) => value >= 10)
+  .map((value) => value * 2)
+  .reduce((sum, value) => sum + value, 0)
+```
+
+Java端惰性与一次性管道测试节选：
+
+```java
+// LanguageLabTest.streamIsLazyAndCannotBeReusedAfterTerminalOperation() 节选
+var stream = List.of(1, 2).stream().map(value -> {
+    calls.incrementAndGet();
+    return value * 2;
+});
+assertEquals(0, calls.get());
+assertEquals(List.of(2, 4), stream.toList());
+assertEquals(2, calls.get());
+assertThrows(IllegalStateException.class, stream::toList);
+```
+
 #### 6. 原理与流程图
 
 ```mermaid
@@ -148,6 +172,32 @@ Optional显式表达某个结果可能不存在，调用方仍需选择缺失策
 #### 5. 两端代码对照
 
 TS find返回u1或undefined，`?? fallback()`在找到时不调用fallback。Java find返回Optional，测试找到u1与missing为空；orElseGet供应器调用数为0，而orElse(fallback())因方法实参先求值，调用数为1。源码及完整命令在语言实验README，固定断言不依赖时间测量。
+
+TS端`??`后备节选：
+
+```ts
+// language-lab.test.ts 节选
+let fallbacks = 0
+const fallback = (): string => {
+  fallbacks++
+  return 'fallback'
+}
+assert.equal(find(values, 'u1') ?? fallback(), 'u1')
+assert.equal(fallbacks, 0)
+```
+
+Java端orElseGet与orElse对照测试节选：
+
+```java
+// LanguageLabTest.pipelineAndOptionalFollowExplicitContracts() 节选
+assertEquals("u1", found.orElseGet(() -> {
+    calls.incrementAndGet();
+    return "fallback";
+}));
+assertEquals(0, calls.get());
+assertEquals("u1", found.orElse(fallback(calls)));
+assertEquals(1, calls.get());
+```
 
 #### 6. 原理与流程图
 

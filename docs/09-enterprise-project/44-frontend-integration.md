@@ -83,7 +83,67 @@ flowchart LR
 
 #### 5. 两端代码对照
 
-[会话模块](../../project/apps/admin-web/src/session.ts)封装登录、401后的共享刷新、一次重试和退出。[导航](../../project/apps/admin-web/src/components/WorkspaceShell.vue)只装配已知且当前账号有权访问的页面。[认证控制器](../../project/apps/admin-server/src/main/java/dev/javafornestjs/capstone/AuthController.java)提供真实轮换与身份接口。
+[会话模块](../../project/apps/admin-web/src/session.ts)封装登录、401后的共享刷新、一次重试和退出。并发401时只有一个请求真正发起刷新，其余等待同一个Promise：
+
+```ts
+// project/apps/admin-web/src/session.ts（rotate函数节选）
+    if (tokens !== current) return tokens
+    if (!refreshFlight) {
+      const flight = expectData(() =>
+        refresh({ body: { refreshToken: current.refreshToken } }),
+      )
+        .then((fresh) => {
+          if (generation !== expected) throw expired()
+          tokens = verifyTokens(fresh)
+          return tokens
+        })
+        .catch((failure: unknown) => {
+          if (generation === expected) {
+            clear()
+            error.value = expired()
+          }
+          throw failure
+        })
+        .finally(() => {
+          if (refreshFlight === flight) refreshFlight = undefined
+        })
+      refreshFlight = flight
+    }
+    return refreshFlight
+```
+
+[导航](../../project/apps/admin-web/src/components/WorkspaceShell.vue)只装配已知且当前账号有权访问的页面：
+
+```ts
+// project/apps/admin-web/src/components/WorkspaceShell.vue（links函数节选）
+    const key = node.routeKey
+    const permitted =
+      key === 'orders'
+        ? profile.value?.permissions.includes('orders:read')
+        : profile.value?.permissions.includes('system:admin')
+    const known = key !== null && Object.hasOwn(pages, key)
+    const own =
+      key && known && permitted
+        ? [{ key: key as PageKey, label: node.label, depth }]
+        : []
+```
+
+[认证控制器](../../project/apps/admin-server/src/main/java/dev/javafornestjs/capstone/AuthController.java)提供真实轮换与身份接口。刷新重放时提交重放审计，再以401拒绝：
+
+```java
+// project/apps/admin-server/src/main/java/dev/javafornestjs/capstone/AuthController.java（refresh方法节选）
+    @PostMapping("/refresh")
+    ResponseEntity<TokenPair> refresh(@RequestBody Refresh request) {
+        var result = sessions.refresh(request.refreshToken());
+        if (result.replayedAccount() != null) {
+            audit.recordCommittedReplay(result.replayedAccount());
+        }
+        if (result.tokens() == null) {
+            throw SessionService.invalidAuthentication();
+        }
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(result.tokens());
+    }
+```
 
 #### 6. 原理与流程图
 
@@ -138,7 +198,39 @@ sequenceDiagram
 
 #### 5. 两端代码对照
 
-[列表](../../project/apps/admin-web/src/components/orders/OrdersView.vue)传状态、页码和页大小。[详情](../../project/apps/admin-web/src/components/orders/OrderPanel.vue)读取按钮权限和历史。服务端[订单模块](../../project/java-modules/module-business/src/main/java/dev/javafornestjs/capstone/orders/OrdersService.java)在事务中检查权限、状态和版本并写入历史。
+[列表](../../project/apps/admin-web/src/components/orders/OrdersView.vue)传状态、页码和页大小。[详情](../../project/apps/admin-web/src/components/orders/OrderPanel.vue)读取按钮权限和历史。动作按钮和写请求都只按详情响应中的`allowedActions`与当前`version`执行：
+
+```ts
+// project/apps/admin-web/src/components/orders/OrderPanel.vue（transition函数节选）
+  const current = order.value
+  if (!current?.allowedActions.includes(action)) return
+  const path = { id: current.id }
+  const body = { version: current.version }
+  void perform(async () => {
+    order.value = await data((headers) =>
+      transitions[action]({ headers, path, body }),
+    )
+```
+
+服务端[订单模块](../../project/java-modules/module-business/src/main/java/dev/javafornestjs/capstone/orders/OrdersService.java)在事务中检查权限、状态和版本并写入历史。版本来自页面提交，更新条件里同时校验旧版本与旧状态：
+
+```java
+// project/java-modules/module-business/src/main/java/dev/javafornestjs/capstone/orders/OrdersService.java（change方法节选）
+        if (before.version() != version) {
+            throw conflict();
+        }
+        if (!allowedState(action, beforeStatus, owner)) {
+            throw new RequestFailure(INVALID_TRANSITION, "Order does not allow this action");
+        }
+        long now = clock.millis();
+        int count = orders.update(id, version, before.status(), action.target.name(), after.customer(), after.amount(),
+                now, scope, actor.userId(), actor.departmentId());
+        if (count != 1) {
+            throw conflict();
+        }
+        orders.append(id, actor.userId(), action.name(), before.status(), action.target.name(), version + 1, now);
+        audit.record(actor.userId(), action.event, id);
+```
 
 #### 6. 原理与流程图
 

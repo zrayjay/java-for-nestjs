@@ -147,6 +147,26 @@ record为组件声明生成访问器及equals/hashCode等成员，组件引用�
 
 TS account显式复制roles并冻结数组/对象；Java Account紧凑构造器检查id并List.copyOf。测试先传reader列表，再向原列表加入admin，已创建Account仍只含reader；Java访问器返回列表写入会抛UnsupportedOperationException。Java编译负例另验证record不能被继承。此处roles仅字符串，未声称深冻结嵌套对象。
 
+TS端account节选：
+
+```ts
+// language-lab.ts account() 节选
+if (!id.trim()) throw new Error('id required')
+return Object.freeze({ id, roles: Object.freeze([...roles]) })
+```
+
+Java端紧凑构造器节选：
+
+```java
+// LanguageLab.Account 紧凑构造器节选
+public Account {
+    if (id == null || id.isBlank()) {
+        throw new IllegalArgumentException("id required");
+    }
+    roles = List.copyOf(roles);
+}
+```
+
 #### 6. 原理与流程图
 
 输入可变列表→构造器验证并复制→record保存新快照引用→访问器暴露该受限视图。输入变更不再改写快照；流程直接，用文字足够。
@@ -197,6 +217,38 @@ sealed限制直接子类型，配合模式switch可让编译器检查已知变�
 #### 5. 两端代码对照
 
 TS Payment联合分card/cash并在default赋never；Java Payment只permits Card/Cash，describe用Java21模式switch。共同输出card:1234、cash:20由两端测试断言；Java额外编译夹具加入未许可B实现，要求真实sealed诊断，而不是只检索源码关键字。
+
+TS端describe节选：
+
+```ts
+// language-lab.ts describe() 节选
+switch (payment.kind) {
+  case 'card':
+    return `card:${payment.lastFour}`
+  case 'cash':
+    return `cash:${payment.units}`
+  default: {
+    const exhaustive: never = payment
+    return exhaustive
+  }
+}
+```
+
+Java端声明与模式switch节选：
+
+```java
+// LanguageLab.java 节选
+public sealed interface Payment permits Card, Cash { }
+public record Card(String lastFour) implements Payment { }
+public record Cash(int units) implements Payment { }
+
+public static String describe(Payment payment) {
+    return switch (payment) {
+        case Card card -> "card:" + card.lastFour();
+        case Cash cash -> "cash:" + cash.units();
+    };
+}
+```
 
 #### 6. 原理与流程图
 

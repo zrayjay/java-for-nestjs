@@ -36,6 +36,36 @@ Nest Middleware可在路由处理前执行通用逻辑，因此与Filter有部�
 
 Java使用OncePerRequestFilter，通过FilterRegistrationBean设置order=-200，记录filter.before并在finally记录filter.after。Nest app.use记录middleware.before，在response.finish记录middleware.finish。两端都由服务端生成UUID请求ID，不直接信任用户输入；轨迹最多保留100条，仅供教学读取。
 
+```java
+// WebChainConfiguration.java 节选
+protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                 FilterChain chain) throws ServletException, IOException {
+    traces.begin(request, response);
+    traces.add(request, "filter.before");
+    try { chain.doFilter(request, response); }
+    finally {
+        traces.add(request, "filter.after");
+        traces.finish(request);
+    }
+}
+```
+
+```ts
+// trace.ts 中RequestTrace的节选
+begin(request: TraceRequest, response: TraceResponse): void {
+  let finish!: () => void
+  const entry = {
+    id: randomUUID(),
+    events: ['middleware.before'],
+    finished: new Promise<void>((resolve) => {
+      finish = resolve
+    }),
+    finish: () => finish(),
+  }
+```
+
+Nest侧外层入口由`createApi`中的`app.use`把`begin`注册为每个请求的第一站；`response.once('finish', ...)`随后把middleware.finish追加进同一事件列表。
+
 #### 6. 原理与流程图
 
 ```text
@@ -131,6 +161,26 @@ Nest常以Guard表达请求准入，Spring Security过滤器链承担更广泛�
 #### 5. 两端代码对照
 
 Java本例创建一个仅用于轨迹的内部OncePerRequestFilter，在AnonymousAuthenticationFilter之前加入Security链；它不作为独立Servlet Bean注册。配置stateless、关闭CSRF、permitAll仅适用于当前环回教学API。Nest TraceGuard总返回true，也只用于观察顺序，未实现认证。
+
+```java
+// WebChainConfiguration.java 节选
+return http.csrf(csrf -> csrf.disable()).requestCache(cache -> cache.disable())
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(rules -> rules.anyRequest().permitAll())
+        .addFilterBefore(inside, AnonymousAuthenticationFilter.class).build();
+```
+
+```ts
+// trace.ts 节选
+@Injectable()
+export class TraceGuard implements CanActivate {
+  constructor(private readonly trace: RequestTrace) {}
+  canActivate(context: ExecutionContext): boolean {
+    this.trace.add(context.switchToHttp().getRequest<TraceRequest>(), 'guard')
+    return true
+  }
+}
+```
 
 #### 6. 原理与流程图
 

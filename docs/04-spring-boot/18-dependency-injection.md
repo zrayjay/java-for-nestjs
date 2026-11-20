@@ -206,7 +206,31 @@ Spring prototype与Nest TRANSIENT只有部分可比：两者都可减少共享�
 
 Spring完整配置中PrototypeToken标为prototype；Holder是默认singleton且只在构造时得到一个token。测试验证两次getBean(token)不同、两次getBean(holder).token相同。若确实需要延迟领新实例，ProviderHolder使用ObjectProvider.getObject，并有两次结果不同的断言。
 
+```java
+// IocLab.java 节选
+@Bean(initMethod = "initialize", destroyMethod = "close")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+PrototypeToken token() { return new PrototypeToken(); }
+
+@Bean
+Holder holder(PrototypeToken token) { return new Holder(token); }
+```
+
 Nest完整配置中TransientToken和RequestToken分别使用TRANSIENT/REQUEST。测试验证Holder注入的TransientToken保持不变，独立resolve(TransientToken)得到不同实例；同一个ContextId解析RequestToken相同，新ContextId则不同。普通get不能获取作用域Provider，真实错误也被断言。
+
+```ts
+// ioc-lab.ts 节选
+@Injectable({ scope: Scope.TRANSIENT })
+export class TransientToken {}
+
+@Injectable({ scope: Scope.REQUEST })
+export class RequestToken implements OnModuleDestroy {
+  closed = false
+  onModuleDestroy(): void {
+    this.closed = true
+  }
+}
+```
 
 #### 6. 原理与流程图
 
@@ -276,7 +300,33 @@ flowchart LR
 
 Spring实验显式配置Session的open/close，并由静态注册的BeanPostProcessor在初始化后返回ProxyFactory生成的JDK接口代理。测试要求构造、before-init、init、after-init，然后外部execute出现advice/use，viaSelf只追加use，最后容器关闭追加destroy。这里只对本例显式initMethod及处理器排序给证据，未推断所有PostConstruct/后处理器的统一次序。
 
+```java
+// IocLab.java 中BeanPostProcessor的节选
+var factory = new ProxyFactory(resource);
+factory.addAdvice((MethodInterceptor) invocation -> {
+    if (invocation.getMethod().getName().equals("execute")) {
+        resource.events.values.add("advice");
+    }
+    return invocation.proceed();
+});
+return factory.getProxy();
+```
+
 Nest实验LifecycleProbe实现单例生命周期接口。TestingModule.compile只创建定义/对象；测试先观察constructed，再显式module.init得到module-init/bootstrap，module.close得到module-destroy/before-shutdown/shutdown。不要把TestingModule.compile特性推广为NestFactory.createApplicationContext也不会初始化；后者有自己的启动流程。
+
+```ts
+// ioc-lab.ts 中LifecycleProbe的节选
+readonly events = ['constructed']
+onModuleInit(): void {
+  this.events.push('module-init')
+}
+onApplicationBootstrap(): void {
+  this.events.push('bootstrap')
+}
+onModuleDestroy(): void {
+  this.events.push('module-destroy')
+}
+```
 
 #### 6. 原理与流程图
 

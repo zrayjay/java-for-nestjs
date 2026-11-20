@@ -84,7 +84,69 @@ MySQL 备份针对数据库。无论 API 使用 NestJS 还是 Spring，都可以
 
 #### 5. 两端代码对照
 
-[备份工具](../../project/deploy/compose/database-backup.mjs)使用 Node 流处理 SQL 文件，调用 MySQL 工具并校验 SHA-256。[业务比对](../../project/deploy/compose/verify-recovery.mjs)使用真实 HTTP 验证 Spring 恢复后的订单和审计。NestJS/MySQL 系统可复用相同步骤，并按其实体与会话模型定义比对项。
+[备份工具](../../project/deploy/compose/database-backup.mjs)使用 Node 流处理 SQL 文件，调用 MySQL 工具并校验 SHA-256。导出用`--single-transaction`获得一致性读视图，产物以排他写入落盘并立即计算校验值：
+
+```js
+// project/deploy/compose/database-backup.mjs（mysql与backup函数节选）
+const command =
+  tool === 'dump'
+    ? 'mysqldump -ucapstone --single-transaction --no-tablespaces --set-gtid-purged=OFF --skip-add-drop-table capstone'
+    : 'mysql -ucapstone --binary-mode capstone'
+```
+
+```js
+// project/deploy/compose/database-backup.mjs（backup函数节选）
+  const { child, done } = mysql('dump', ['ignore', 'pipe', 'inherit'])
+  await Promise.all([
+    pipeline(
+      child.stdout,
+      createWriteStream(snapshot, { flags: 'wx', mode: 0o600 }),
+    ),
+    done,
+  ])
+  await writeFile(checksum, (await digest(snapshot)) + '\n', {
+    flag: 'wx',
+    mode: 0o600,
+  })
+```
+
+恢复入口先校验归档与校验文件同批、应用已停止、目标库为空且未被锁定，然后清空快照内的会话族，防止基于历史快照重新激活已作废会话：
+
+```js
+// project/deploy/compose/database-backup.mjs（restoreInput生成器节选）
+  yield `
+SET @capstone_restore_ok = GET_LOCK('capstone-logical-restore', 0) = 1 AND
+  (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()) = 0;
+SET @capstone_restore_guard = IF(@capstone_restore_ok, 'DO 0', 'RESTORE_TARGET_MUST_BE_EMPTY_AND_UNLOCKED');
+PREPARE capstone_restore_guard FROM @capstone_restore_guard;
+EXECUTE capstone_restore_guard;
+DEALLOCATE PREPARE capstone_restore_guard;
+`
+  yield* createReadStream(staged)
+  yield `
+START TRANSACTION;
+DELETE FROM sys_refresh_session;
+DELETE FROM sys_session_family;
+COMMIT;
+`
+```
+
+[业务比对](../../project/deploy/compose/verify-recovery.mjs)使用真实 HTTP 验证 Spring 恢复后的订单和审计，恢复后逐一深比对订单、两条历史与审计：
+
+```js
+// project/deploy/compose/verify-recovery.mjs（compare分支节选）
+    const expected = JSON.parse(await readFile(fixturePath, 'utf8'))
+    assert.deepEqual(
+      await orderEvidence(expected.order.id, expected.clerkName, adminToken),
+      {
+        order: expected.order,
+        history: expected.history,
+        audit: expected.audit,
+      },
+    )
+```
+
+NestJS/MySQL 系统可复用相同步骤，并按其实体与会话模型定义比对项。
 
 #### 6. 原理与流程图
 

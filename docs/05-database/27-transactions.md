@@ -225,9 +225,67 @@ Spring传播注解对Prisma显式tx传参**无直接等价物**。Prisma helper�
 
 #### 5. 两端代码对照
 
-Java requiredCaught通过另一个真实代理调用inner.requiredFailure；内层写入并抛unchecked，外层catch后再写，但最终commit抛UnexpectedRollbackException且两行都消失。Prisma catchApplicationError在同一个回调中把tx传给helper，catch本例应用Failure后正常返回，两个成功写入都提交。
+Java requiredCaught通过另一个真实代理调用inner.requiredFailure；内层写入并抛unchecked，外层catch后再写，但最终commit抛UnexpectedRollbackException且两行都消失。
 
-Java independentCommitSurvives调用另一个Bean的REQUIRES_NEW方法，内层提交后外层故意抛错，最终只保留inner-independent。Prisma用根client显式再开一个独立$transaction，也观察到内层保留，但它不实现Spring挂起/恢复的全部框架语义，更不是在tx对象上调用嵌套事务API。
+```java
+// 摘自 examples/transaction-lab/src/main/java/dev/javafornestjs/transactions/TransactionLab.java
+        @Override
+        @Transactional(timeout = 10)
+        public void requiredCaught() {
+            try {
+                inner.requiredFailure();
+            } catch (Failure expected) {
+                // Deliberate negative example: catching does not clear Spring's rollback-only marker.
+            }
+            insert(jdbc, "outer-required");
+        }
+```
+
+```java
+// 同文件InnerService内层REQUIRED方法
+        @Override
+        @Transactional(timeout = 10)
+        public void requiredFailure() {
+            insert(jdbc, "inner-required");
+            throw new Failure("inner-failure");
+        }
+```
+
+Prisma catchApplicationError在同一个回调中把tx传给helper，catch本例应用Failure后正常返回，两个成功写入都提交。
+
+```ts
+// 摘自 examples/prisma-reference/src/transactions.ts
+export const catchApplicationError = () =>
+  client.$transaction(async (tx) => {
+    try {
+      await helperFailure(tx)
+    } catch (error) {
+      if (!(error instanceof Failure)) throw error
+    }
+    await insert(tx, 'outer-required')
+  })
+```
+
+Java independentCommitSurvives调用另一个Bean的REQUIRES_NEW方法，内层提交后外层故意抛错，最终只保留inner-independent。
+
+```java
+// 摘自 examples/transaction-lab/src/main/java/dev/javafornestjs/transactions/TransactionLab.java
+        @Override
+        @Transactional(propagation = Propagation.REQUIRES_NEW, timeout = 10)
+        public void independentCommit() { insert(jdbc, "inner-independent"); }
+```
+
+Prisma用根client显式再开一个独立$transaction，也观察到内层保留，但它不实现Spring挂起/恢复的全部框架语义，更不是在tx对象上调用嵌套事务API。
+
+```ts
+// 同文件独立事务分支
+export const independentCommit = () =>
+  client.$transaction(async (outer) => {
+    await insert(outer, 'outer-independent')
+    await client.$transaction((inner) => insert(inner, 'inner-independent'))
+    throw new Failure('outer-failure')
+  })
+```
 
 #### 6. 原理与流程图
 
@@ -298,9 +356,58 @@ REQUIRES_NEW不是整个外层事务的savepoint，也不是把inner操作包进
 
 #### 5. 两端代码对照
 
-Java readCommitted/repeatableRead通过代理设置级别，在同一读取事务先读100，调用另一个REQUIRES_NEW写入事务把值改为200并提交，再读一次。Prisma readTwice先用reader读取，显式开启独立writer事务并等待提交，再用原reader读。
+Java readCommitted/repeatableRead通过代理设置级别，在同一读取事务先读100，调用另一个REQUIRES_NEW写入事务把值改为200并提交，再读一次。
+
+```java
+// 摘自 examples/transaction-lab/src/main/java/dev/javafornestjs/transactions/TransactionLab.java
+        @Override
+        @Transactional(isolation = Isolation.READ_COMMITTED, timeout = 10)
+        public ReadPair readCommitted() { return readTwice(); }
+
+        @Override
+        @Transactional(isolation = Isolation.REPEATABLE_READ, timeout = 10)
+        public ReadPair repeatableRead() { return readTwice(); }
+```
+
+```java
+// 同文件InnerService的REQUIRES_NEW写入方法
+        @Override
+        @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED, timeout = 10)
+        public long changeBalance() {
+            jdbc.update("UPDATE tx_lab_balances SET amount=200 WHERE id=1");
+            return jdbc.queryForObject("SELECT CONNECTION_ID()", Long.class);
+        }
+```
+
+Prisma readTwice先用reader读取，显式开启独立writer事务并等待提交，再用原reader读。
+
+```ts
+// 摘自 examples/prisma-reference/src/transactions.ts
+export const readTwice = (isolationLevel: 'ReadCommitted' | 'RepeatableRead') =>
+  client.$transaction(
+    async (reader) => {
+      const first = await reader.balance.findUniqueOrThrow({ where: { id: 1 } })
+      const writerId = await client.$transaction(async (writer) => {
+        await writer.balance.update({ where: { id: 1 }, data: { amount: 200 } })
+        // ...
+      })
+      return [first.amount, second.amount]
+    },
+    { isolationLevel },
+  )
+```
 
 两端通过MySQL CONNECTION_ID核对读/写来自不同连接，避免把同一连接自己的写入当作并发可见性实验。预期RC为[100,200]，RR为[100,100]。新增连接身份断言与实际通过版本记录在验证报告；测试不依赖随机调度或定时睡眠。
+
+```ts
+// 同文件readTwice内的连接身份核对
+      const readerIds = await reader.$queryRaw<
+        { connection_id: string }[]
+      >`SELECT CAST(CONNECTION_ID() AS CHAR) AS connection_id`
+      // ...
+      if (readerIds[0].connection_id === writerId)
+        throw new Error('Isolation experiment requires distinct connections')
+```
 
 #### 6. 原理与流程图
 

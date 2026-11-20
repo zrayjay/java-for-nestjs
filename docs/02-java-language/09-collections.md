@@ -89,6 +89,27 @@ Java record可用新建的相等键查到记录；同样新建JS对象查询Map�
 
 Java测试以Account(u1,reader)作键，另建相等Account查询得到20，Set大小1。TS两个同内容Account对象查询为undefined，Set大小2；规范化到id字符串后可查询到20。源码测试刻意分别断言不同结果，不用“同题”掩盖不同键语义。
 
+Java端值键测试节选：
+
+```java
+// LanguageLabTest.valueKeysAndSnapshotAreStableAgainstInputMutation() 节选
+var equivalent = new LanguageLab.Account("u1", List.of("reader"));
+assertEquals(20, LanguageLab.lookup(balances, equivalent));
+assertEquals(1, new HashSet<>(List.of(key, equivalent)).size());
+```
+
+TS端身份键测试节选：
+
+```ts
+// language-lab.test.ts 节选
+const first = account('u1', ['reader'])
+const equivalent = account('u1', ['reader'])
+const objects = new Map([[first, 20]])
+assert.equal(objects.get(equivalent), undefined)
+assert.equal(new Set([first, equivalent]).size, 2)
+assert.equal(new Map([[first.id, 20]]).get(equivalent.id), 20)
+```
+
 #### 6. 原理与流程图
 
 ```mermaid

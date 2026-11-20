@@ -34,7 +34,51 @@ Prisma Migrate也管理Schema演变，但不等于Prisma generate。generate只�
 
 #### 5. 两端代码对照
 
-V1创建owners/tasks及检查/外键，V2创建title/id索引。Java迁移器使用专用data_schema_history，cleanDisabled=true。测试检查applied2、validate成功、第二次migrate执行0项。Node运行在Java迁移之后，Prisma模型映射同名表，客户端生成并不作为建库步骤。
+V1创建owners/tasks及检查/外键，V2创建title/id索引。
+
+```sql
+-- 摘自 examples/data-access-lab/src/main/resources/db/data-migration/V1__tasks.sql
+CREATE TABLE data_tasks (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(80) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    priority TINYINT NOT NULL,
+    owner_id INT NOT NULL DEFAULT 1,
+    CONSTRAINT ck_data_priority CHECK (priority BETWEEN 1 AND 5),
+    CONSTRAINT fk_data_owner FOREIGN KEY(owner_id) REFERENCES data_owners(id)
+);
+```
+
+```sql
+-- 摘自 examples/data-access-lab/src/main/resources/db/data-migration/V2__task_title_index.sql
+CREATE INDEX ix_data_tasks_title ON data_tasks(title, id);
+```
+
+Java迁移器使用专用data_schema_history，cleanDisabled=true。测试检查applied2、validate成功、第二次migrate执行0项。
+
+```java
+// 摘自 examples/data-access-lab/src/main/java/dev/javafornestjs/data/DataConfiguration.java
+    @Bean
+    Flyway dataMigration(DataSource source) {
+        var migration = Flyway.configure().dataSource(source).locations("classpath:db/data-migration")
+                .table("data_schema_history").cleanDisabled(true).load();
+        migration.migrate();
+        return migration;
+    }
+```
+
+Node运行在Java迁移之后，Prisma模型映射同名表，客户端生成并不作为建库步骤。
+
+```prisma
+// 摘自 examples/prisma-reference/prisma/schema.prisma
+model DataTask {
+  id       Int    @id @default(autoincrement())
+  title    String @db.VarChar(80)
+  ownerId  Int    @default(1) @map("owner_id")
+  owner    DataOwner @relation(fields: [ownerId], references: [id])
+  @@index([title, id], map: "ix_data_tasks_title")
+  @@map("data_tasks")
+}
+```
 
 #### 6. 原理与流程图
 
@@ -81,7 +125,37 @@ Java与Prisma最终访问相同MySQL，索引机制不因客户端语言改变�
 
 #### 5. 两端代码对照
 
-真实测试先检查possible_keys和SHOW INDEX，再建立4001行固定夹具、ANALYZE统计信息，对同一title过滤查询比较正常可用索引与IGNORE INDEX受控禁用路径。断言前者实际key为ix_data_tasks_title、后者type为ALL，估计扫描行数下降且查询结果相同；两条EXPLAIN ANALYZE均实际执行并记录。CI产物data-results-java-21/25中的sql-plan-comparison.txt保存完整计划。这不是修改已应用迁移后再改回的DDL实验，也不是生产速度基准。Node过滤/分页测试使用相同表结构，不把驱动差异伪装成索引差异。
+真实测试先检查possible_keys和SHOW INDEX，再建立4001行固定夹具、ANALYZE统计信息，对同一title过滤查询比较正常可用索引与IGNORE INDEX受控禁用路径。断言前者实际key为ix_data_tasks_title、后者type为ALL，估计扫描行数下降且查询结果相同；两条EXPLAIN ANALYZE均实际执行并记录。
+
+```java
+// 摘自 examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java
+        var availablePlan = jdbc.queryForMap("EXPLAIN " + indexed, "Plan 1999");
+        var ignoredPlan = jdbc.queryForMap("EXPLAIN " + ignored, "Plan 1999");
+        assertEquals("ix_data_tasks_title", availablePlan.get("key"));
+        assertEquals("ALL", ignoredPlan.get("type"));
+        assertTrue(((Number) availablePlan.get("rows")).longValue() < ((Number) ignoredPlan.get("rows")).longValue());
+        assertEquals(jdbc.queryForList(indexed, "Plan 1999"), jdbc.queryForList(ignored, "Plan 1999"));
+        String availableActual = jdbc.queryForObject("EXPLAIN ANALYZE " + indexed, String.class, "Plan 1999");
+        String ignoredActual = jdbc.queryForObject("EXPLAIN ANALYZE " + ignored, String.class, "Plan 1999");
+        assertTrue(availableActual.contains("actual time="));
+        assertTrue(ignoredActual.contains("actual time="));
+```
+
+```java
+// 同文件受控禁用路径的SQL
+        String indexed = "SELECT id,title FROM data_tasks WHERE title=?";
+        String ignored = "SELECT id,title FROM data_tasks IGNORE INDEX (ix_data_tasks_title) WHERE title=?";
+```
+
+CI产物data-results-java-21/25中的sql-plan-comparison.txt保存完整计划。这不是修改已应用迁移后再改回的DDL实验，也不是生产速度基准。Node过滤/分页测试使用相同表结构，不把驱动差异伪装成索引差异。
+
+```java
+// 同文件写出的计划对照产物
+        Files.writeString(Path.of("target", "sql-plan-comparison.txt"), "Fixture: 4001 tasks; one title match.\n"
+                + "Available index EXPLAIN: " + availablePlan + "\n" + availableActual + "\n"
+                + "Ignored index EXPLAIN: " + ignoredPlan + "\n" + ignoredActual + "\n"
+                + "Controlled access-path comparison, not a production speed guarantee.\n");
+```
 
 #### 6. 原理与流程图
 
@@ -128,7 +202,39 @@ Java Statement.prepare计数和Prisma query事件都提供局部证据，但含�
 
 #### 5. 两端代码对照
 
-Java N+1真实4→1，Node批量4→2；池耗尽测试表明即使没发出第三条SQL，也可能在借连接阶段失败。CI先安装复用HTTP产物，执行Java迁移及SQL验证，再执行Node/Prisma真实SQL。JPA与生成jOOQ同样建立在已迁移Schema上。
+Java N+1真实4→1，Node批量4→2；池耗尽测试表明即使没发出第三条SQL，也可能在借连接阶段失败。
+
+```java
+// 摘自 examples/data-access-lab/src/main/java/dev/javafornestjs/data/SqlCounter.java
+@Intercepts(@Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class}))
+public class SqlCounter implements Interceptor {
+    private final AtomicInteger statements = new AtomicInteger();
+    public void reset() { statements.set(0); }
+    public int count() { return statements.get(); }
+    @Override
+    public Object intercept(Invocation invocation) throws Throwable {
+        statements.incrementAndGet();
+        return invocation.proceed();
+    }
+}
+```
+
+```java
+// 摘自 examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java（池耗尽分支）
+        try (var first = source.getConnection(); var second = source.getConnection()) {
+            assertEquals(2, source.getHikariPoolMXBean().getActiveConnections());
+            assertThrows(SQLTransientConnectionException.class, source::getConnection);
+```
+
+CI先安装复用HTTP产物，执行Java迁移及SQL验证，再执行Node/Prisma真实SQL。JPA与生成jOOQ同样建立在已迁移Schema上。
+
+```yaml
+# 摘自 .github/workflows/data-access.yml
+      - name: Real MySQL Mapper, pool, JPA, generated jOOQ and migration tests
+        run: ./mvnw --batch-mode --no-transfer-progress -f examples/data-access-lab/pom.xml clean verify
+      - name: Nest and Prisma actual MySQL contract
+        run: npx --yes pnpm@10.34.9 --filter @java-for-nestjs/nestjs-data-reference test
+```
 
 #### 6. 原理与流程图
 

@@ -34,7 +34,40 @@ Prisma Client从schema生成模型查询API；MyBatis Mapper可由接口和XML�
 
 #### 5. 两端代码对照
 
-TaskMapper扩展BaseMapper并声明listLimited/ownerName/joinedOwners，XML namespace与完整接口名一致，statement id匹配方法。listLimited使用`LIMIT #{limit}`，不是字符串拼接。PrismaTasks使用dataTask.findMany和orderBy/take；二者都由现有Controller→Service调用，Repository适配器把表行转成稳定HTTP资源体。
+TaskMapper扩展BaseMapper并声明listLimited/ownerName/joinedOwners，XML namespace与完整接口名一致，statement id匹配方法。listLimited使用`LIMIT #{limit}`，不是字符串拼接。
+
+```java
+// 摘自 examples/data-access-lab/src/main/java/dev/javafornestjs/data/TaskMapper.java
+@Mapper
+public interface TaskMapper extends BaseMapper<TaskRow> {
+    List<TaskRow> listLimited(@Param("limit") int limit);
+    String ownerName(@Param("id") int id);
+    List<OwnedTask> joinedOwners();
+}
+```
+
+```xml
+<!-- 摘自 examples/data-access-lab/src/main/resources/mapper/data/TaskMapper.xml -->
+<mapper namespace="dev.javafornestjs.data.TaskMapper">
+  <select id="listLimited" resultType="dev.javafornestjs.data.TaskRow">
+    SELECT id,title,priority,owner_id FROM data_tasks ORDER BY id LIMIT #{limit}
+  </select>
+</mapper>
+```
+
+PrismaTasks使用dataTask.findMany和orderBy/take；二者都由现有Controller→Service调用，Repository适配器把表行转成稳定HTTP资源体。
+
+```ts
+// 摘自 examples/nestjs-data-reference/src/tasks.ts
+  async list(limit: number): Promise<Task[]> {
+    return (
+      await this.client.dataTask.findMany({
+        orderBy: { id: 'asc' },
+        take: limit,
+      })
+    ).map(view)
+  }
+```
 
 #### 6. 原理与流程图
 
@@ -81,7 +114,39 @@ LambdaQueryWrapper引用Java getter减少列名字符串错误；Prisma where由
 
 #### 5. 两端代码对照
 
-Java测试用LambdaQueryWrapper.eq(title,攻击字符串)要求空结果，再对3行数据执行Page(2,2)并按id升序，断言total3、第二页仅Gamma。Node同样测试精确攻击字符串过滤和skip2/take2。SQL绑定使字符串成为值，不成为OR条件。
+Java测试用LambdaQueryWrapper.eq(title,攻击字符串)要求空结果，再对3行数据执行Page(2,2)并按id升序，断言total3、第二页仅Gamma。
+
+```java
+// 摘自 examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java
+        var attack = new LambdaQueryWrapper<TaskRow>().eq(TaskRow::getTitle, "x' OR 1=1 --");
+        assertTrue(mapper.selectList(attack).isEmpty());
+        var page = mapper.selectPage(new Page<TaskRow>(2, 2),
+                new LambdaQueryWrapper<TaskRow>().orderByAsc(TaskRow::getId));
+        assertEquals(3, page.getTotal());
+        assertEquals(1, page.getRecords().size());
+        assertEquals("Gamma", page.getRecords().getFirst().getTitle());
+```
+
+Node同样测试精确攻击字符串过滤和skip2/take2。SQL绑定使字符串成为值，不成为OR条件。
+
+```ts
+// 摘自 examples/nestjs-data-reference/src/tasks.test.ts
+    assert.equal(
+      (await client.dataTask.findMany({ where: { title: "x' OR 1=1 --" } }))
+        .length,
+      0,
+    )
+    assert.equal(
+      (
+        await client.dataTask.findMany({
+          orderBy: { id: 'asc' },
+          skip: 2,
+          take: 2,
+        })
+      )[0].title,
+      'Gamma',
+    )
+```
 
 #### 6. 原理与流程图
 
@@ -128,7 +193,38 @@ Java MyBatis不自动决定关系加载，逐行ownerName和XML Join都由程序
 
 #### 5. 两端代码对照
 
-Java [SqlCounter](../../examples/data-access-lab/src/main/java/dev/javafornestjs/data/SqlCounter.java)在StatementHandler.prepare计数，3个不同owner的列表加逐条补查为4，joinedOwners为1，并比较相同负责人顺序。Prisma query事件只统计SELECT：逐条4次，findMany主记录再findMany owners为2，最终名字都应Alice/Bob/Cara。
+Java [SqlCounter](../../examples/data-access-lab/src/main/java/dev/javafornestjs/data/SqlCounter.java)在StatementHandler.prepare计数，3个不同owner的列表加逐条补查为4，joinedOwners为1，并比较相同负责人顺序。
+
+```java
+// 摘自 examples/data-access-lab/src/test/java/dev/javafornestjs/data/DataAccessTest.java
+        for (var task : mapper.listLimited(100)) { names.add(mapper.ownerName(task.getOwnerId())); }
+        assertEquals(List.of("Alice", "Bob", "Cara"), names);
+        assertEquals(4, counter.count());
+        counter.reset();
+        var joined = mapper.joinedOwners();
+        assertEquals(names, joined.stream().map(TaskMapper.OwnedTask::owner).toList());
+        assertEquals(1, counter.count());
+```
+
+Prisma query事件只统计SELECT：逐条4次，findMany主记录再findMany owners为2，最终名字都应Alice/Bob/Cara。
+
+```ts
+// 摘自 examples/nestjs-data-reference/src/tasks.test.ts
+    client.$on('query', (event) => {
+      if (/^SELECT\b/i.test(event.query.trim())) statements.push(event.query)
+    })
+    // ...
+    assert.deepEqual(names, ['Alice', 'Bob', 'Cara'])
+    assert.equal(statements.length, 4)
+```
+
+```ts
+// 同文件同一测试的批量读取分支
+    const owners = await client.dataOwner.findMany({
+      where: { id: { in: batchedTasks.map((task) => task.ownerId) } },
+    })
+    assert.equal(statements.length, 2)
+```
 
 #### 6. 原理与流程图
 

@@ -36,6 +36,35 @@ Nest Interceptor包装路由执行流，可比较横切关注点，但不是JDK�
 
 Java测试同一个Worker先设置proxyTargetClass=false，再true，分别断言Proxy.isProxyClass与AopUtils.isCglibProxy。Advice记录`advice:execute`后调用invocation.proceed。Nest完整TraceInterceptor用next.handle返回Observable并finalize；它演示请求横切处理，不声称验证Java代理策略。
 
+```java
+// ProxyModelTest.java 节选
+var factory = new ProxyFactory(new Worker(events));
+factory.setInterfaces(Work.class);
+factory.setProxyTargetClass(classProxy);
+factory.addAdvice((MethodInterceptor) invocation -> {
+    events.add("advice:" + invocation.getMethod().getName());
+    return invocation.proceed();
+});
+var proxy = (Work) factory.getProxy();
+assertEquals(classProxy, AopUtils.isCglibProxy(proxy));
+assertEquals(!classProxy, Proxy.isProxyClass(proxy.getClass()));
+```
+
+```ts
+// trace.ts 节选
+@Injectable()
+export class TraceInterceptor implements NestInterceptor {
+  constructor(private readonly trace: RequestTrace) {}
+  intercept(context: ExecutionContext, next: CallHandler) {
+    const request = context.switchToHttp().getRequest<TraceRequest>()
+    this.trace.add(request, 'interceptor.before')
+    return next
+      .handle()
+      .pipe(finalize(() => this.trace.add(request, 'interceptor.finalize')))
+  }
+}
+```
+
 #### 6. 原理与流程图
 
 ```text
@@ -134,6 +163,32 @@ Spring RestControllerAdvice配ExceptionHandler可对照Nest Catch/ExceptionFilte
 #### 5. 两端代码对照
 
 Java ApiErrors把绑定/校验/非法参数转400、MissingTask转404、未支持方法转405、其他异常转500。Nest Filter读取HttpException状态并生成稳定code；当前未支持方法默认走404。打包共同契约断言400/404；两端各自真实HTTP测试另外在测试环境替换仓库写入行为，注入意外异常并断言500和仅含internal_error的响应体。没有为生产入口添加故障路由，也不声称405完全一致。
+
+```java
+// ApiErrors.java 节选
+@ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class,
+        MethodArgumentTypeMismatchException.class, ConstraintViolationException.class,
+        IllegalArgumentException.class})
+ResponseEntity<ApiError> invalid() {
+    return ResponseEntity.badRequest().body(new ApiError("invalid_request"));
+}
+```
+
+```ts
+// api.ts 中ApiErrors的节选
+const status = error instanceof HttpException ? error.getStatus() : 500
+const code =
+  (
+    {
+      400: 'invalid_request',
+      401: 'unauthorized',
+      403: 'forbidden',
+      404: 'not_found',
+      413: 'payload_too_large',
+      415: 'unsupported_media_type',
+    } as Record<number, string>
+  )[status] ?? 'internal_error'
+```
 
 #### 6. 原理与流程图
 

@@ -36,6 +36,24 @@ Boot ConfigurationProperties支持结构化绑定、类型转换和Validation。
 
 Java ApiProperties是lab前缀的record，带Validated与NotBlank，默认label为lesson，由EnableConfigurationProperties启用。BootModelTest传入空白lab.label并沿真实异常因果链找到BindValidationException及NotBlank错误，不接受任意启动异常冒充验证成功。Nest readConfiguration默认lesson，空白LAB_LABEL抛错，配置factory在容器创建阶段执行。
 
+```java
+// ApiProperties.java 节选
+@Validated
+@ConfigurationProperties("lab")
+public record ApiProperties(@DefaultValue("lesson") @NotBlank String label) { }
+```
+
+```ts
+// configuration.ts 节选
+export function readConfiguration(
+  environment: NodeJS.ProcessEnv,
+): LabConfiguration {
+  const label = environment.LAB_LABEL ?? 'lesson'
+  if (label.trim().length === 0) throw new Error('LAB_LABEL must be nonblank')
+  return Object.freeze({ label })
+}
+```
+
 #### 6. 原理与流程图
 
 ```text
@@ -129,6 +147,29 @@ Spring本例使用@Bean的initMethod="start"、destroyMethod="stop"以及Applica
 #### 5. 两端代码对照
 
 Java BootModelTest实际启动非WebBoot上下文，观察construct/init/ready，try-with-resources关闭后再断言destroy。Nest api.test创建真实HTTP应用，持有LifecycleProbe，app.close后断言construct/init/ready/destroy。Java配置仅公开Actuator health/info，HTTP测试核对/actuator/health为UP、/actuator/env为404；Nest自定义/health只是最小JSON，不是Actuator复刻。
+
+```java
+// LifecycleConfiguration.java 节选
+@Bean(initMethod = "start", destroyMethod = "stop")
+Probe lifecycleProbe(Events events) { return new Probe(events); }
+@Bean
+ApplicationListener<ApplicationReadyEvent> ready(Events events) {
+    return event -> events.add("ready");
+}
+```
+
+```ts
+// configuration.ts 中LifecycleProbe的节选
+onModuleInit(): void {
+  this.events.push('init')
+}
+onApplicationBootstrap(): void {
+  this.events.push('ready')
+}
+onModuleDestroy(): void {
+  this.events.push('destroy')
+}
+```
 
 #### 6. 原理与流程图
 
