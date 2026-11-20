@@ -10,7 +10,7 @@ baseline: Java21 / Node22.20.0 / TS5.9.3 / HotSpot系GC实验
 
 ## 章节范围与先修
 
-先完成[编译执行](04-compile-and-run.md)。本章讲对象身份、引用和资源责任，不是完整Java Memory Model并发规范；happens-before、volatile与锁在后续并发章展开。源码为[MemoryLab](../../examples/java-basics/runtime-lab/src/main/java/dev/javafornestjs/runtime/MemoryLab.java)与[TS参照](../../examples/nestjs-reference/src/runtime/memory-lab.ts)，命令、固定输出和调试步骤见[基础实验](../../examples/java-basics/runtime-lab/FOUNDATIONS.md)。实测与独立审查见[P2-01](../progress/P2-01.md)。
+先完成[编译执行](04-compile-and-run.md)。本章使用单线程示例讲对象身份、引用和资源责任。跨线程的可见性与原子性见[第12章](../02-java-language/12-concurrency.md)。源码为[MemoryLab](../../examples/java-basics/runtime-lab/src/main/java/dev/javafornestjs/runtime/MemoryLab.java)与[TS参照](../../examples/nestjs-reference/src/runtime/memory-lab.ts)，命令、固定输出和调试步骤见[基础实验](../../examples/java-basics/runtime-lab/FOUNDATIONS.md)。实测与独立审查见[P2-01](../progress/P2-01.md)。
 
 ## 知识点
 
@@ -18,7 +18,7 @@ baseline: Java21 / Node22.20.0 / TS5.9.3 / HotSpot系GC实验
 
 #### 1. 一句话定义
 
-Java始终按值传参：基本类型复制其值，引用类型复制引用值；共享对象修改可见，形参重新绑定不会改写调用者变量。
+Java 始终按值传参。基本类型复制其值，引用类型复制引用值。同一线程内，两处别名都能读取对同一对象的字段修改，形参重新绑定只改变其局部值。跨线程读取需要另外建立 happens-before 关系。[JLS 21 §17.4.5](https://docs.oracle.com/javase/specs/jls/se21/html/jls-17.html#jls-17.4.5)
 
 #### 2. 为什么需要它
 

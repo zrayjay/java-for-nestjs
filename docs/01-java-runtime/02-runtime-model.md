@@ -10,7 +10,7 @@ baseline: Java21 / HotSpot系JVM21与25 / Node22.20.0 / TypeScript5.9.3
 
 ## 章节范围与先修
 
-目标：能追踪源码到执行的路径，解释预热和GC为何影响测量，区分事件循环、操作系统线程及共享状态竞争。需要能够在Node中运行TS构建产物，并理解函数、数组和基本异步；第01章仍未交付，可先阅读[兼容矩阵](../00-introduction/compatibility-matrix.md)和[工作区指南](../00-introduction/workspace.md)。
+目标：能追踪源码到执行的路径，解释预热和GC为何影响测量，区分事件循环、操作系统线程及共享状态竞争。先读[第01章](01-java-ecosystem.md)，并能在 Node 中运行 TS 构建产物，理解函数、数组和基本异步。环境准备见[工作区指南](../00-introduction/workspace.md)。
 
 本章不讲字节码指令全集、GC调优、Java内存模型证明或虚拟线程调度器。JIT/GC实验使用HotSpot系实现的诊断参数；JVM规范没有要求所有实现采用相同JIT、收集器或内存布局。
 
@@ -291,7 +291,7 @@ Spring MVC默认Servlet请求处理与Nest所选HTTP适配器的请求模型也�
 
 #### 5. 两端代码对照
 
-TS完整文件中的eventLoopOrder先注册0延迟定时器，再同步计算；输出次序为`sync-start,cpu-finished,timer`。0表示到期门槛，不是对正在执行JS的抢占。workerChecksum真正创建Worker并通过消息返回同题计算结果，测试比较主线程和Worker答案，不比较速度。
+TS 完整文件中的 `eventLoopOrder` 先调用 `setTimeout(..., 0)`，再同步计算，输出次序为 `sync-start,cpu-finished,timer`。Node 22.20.0 把小于1 ms的延迟调整为1 ms。同步 JS 执行完毕后，回调仍须等到事件循环调度。`workerChecksum` 创建 Worker 并通过消息返回结果，测试比较主线程和 Worker 的答案。[Node 22.20.0 定时器](https://nodejs.org/download/release/v22.20.0/docs/api/timers.html#settimeoutcallback-delay-args)
 
 Java完整文件中的sharedCounter用两个线程和CountDownLatch强制两边都先读到0，再分别写回1；旁边用AtomicInteger增量作对照。输出`COUNTERS=1,2`。这里的屏障用于稳定复现读改写丢失，不是对业务计数的正确修复；正确对照采用原子操作。
 

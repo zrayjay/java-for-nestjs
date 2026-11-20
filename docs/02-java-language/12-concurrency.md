@@ -164,7 +164,9 @@ TS gate模型显示工作在显式release前等待，不用计时器伪造取消
 
 #### 7. 类比边界与错误直觉
 
-本例只证明等待超时不取消，没有主动取消/中断实验，不能声称所有IO会响应interrupt。Future完成产生的可见性保证也不能修复任务内部已发生的非原子竞争。
+本例只验证等待超时。主动取消还需核对任务及 I/O 是否响应中断。`Future` 的内存一致性约定将异步计算中的动作排序在另一个线程对应的 `get()` 之后的动作之前。仅观察 `isDone()` 或等待超时，无法从该约定得到同样的保证。成功取到结果也无法修复任务中已经发生的非原子竞争。[Java SE 21 Future](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/Future.html)
+
+线程间的可见性依赖具体同步关系。对同一个 `volatile` 字段的写入先于后续读取，对同一个监视器的解锁先于后续加锁。`volatile` 单次读写的规则无法把 `count++` 的读取、加一和写回合成原子操作。可用本章的原子计数对照观察区别。[JLS 21 §17.4.5](https://docs.oracle.com/javase/specs/jls/se21/html/jls-17.html#jls-17.4.5)
 
 #### 8. 企业应用场景与选型
 
