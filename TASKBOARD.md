@@ -52,6 +52,7 @@
 | P6-04-C | 服务恢复后读取 | Codex，本会话离线实施 | codex/p6-04-c-production-chapter | 实现in_review，面板未同步 | [交付手册与第45章](docs/progress/P6-04-C.md)、[独立复核](docs/reviews/P6-04-C.md) | 独立复跑健康、静态资源、认证及恢复数据探针通过 |
 | P6-05 | 服务恢复后读取 | Codex，本会话离线实施 | codex/p6-05-acceptance | 实现in_review，面板未同步 | [验收矩阵](docs/progress/P6-05.md) | 同源浏览器、事务故障、恢复、告警及720次测量通过 |
 | G6 | 服务恢复后读取 | 独立规范与规格复核 | codex/p6-05-acceptance | 技术准入通过，面板未同步 | [G6 技术准入](docs/progress/G6.md)、[独立复核](docs/reviews/G6.md) | 第42至45章与L1–L5证据完整，开放P7技术审校 |
+| P7-01 | 服务恢复后读取 | Codex，本会话离线实施 | codex/p7-01-technical-audit | 实现in_review，面板未同步 | [45章技术审校](docs/reviews/P7-01.md) | JVM、线程、代理、事务、安全与消息独立复核通过 |
 | 文档预览站 | JAV-56 | Codex，本会话 | main | review | [部署CI通过](https://github.com/zrayjay/java-for-nestjs/actions/runs/42765271826)，提交3f495c0；[线上文档](https://zrayjay.github.io/java-for-nestjs/)首页/目录/图表/部署指南及6项JS/CSS资源HTTP200 | 不等同P7全书发布或Release |
 
 JAV-3至JAV-9已全部按用户指令合并main并标记done，任务分支已删除。2026-11-10用户另行授权公开当前仓库并部署建设中的文档站，以JAV-56跟踪，不提前完成P7-05。其余阶段仍待关卡开放。Java原生Windows Web探针缺口未关闭前，不将G0或完整Java跨平台基线标为通过；本次Windows非Web示例及Node文档站的通过结果单独记录。
