@@ -37,11 +37,15 @@ export default defineConfig({
         ],
       },
       {
-        text: '课程路线 · 正文待建设',
+        text: '课程正文',
         collapsed: false,
         items: catalog.map((part) => ({
           text: `${part.number} · ${part.title}`,
-          link: `/course/#part-${part.number}`,
+          collapsed: true,
+          items: part.chapters.map((chapter) => ({
+            text: `${String(chapter.number).padStart(2, '0')} · ${chapter.title}`,
+            link: `/${chapter.path.replace(/^docs\//, '').replace(/\.md$/, '')}`,
+          })),
         })),
       },
       {
